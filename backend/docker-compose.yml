@@ -1,0 +1,26 @@
+version: '3.7'
+
+networks:
+  phonk-bot:
+    name: inari-network
+
+volumes:
+  app-db-data-inari:
+    name: app-db-data-inari
+
+services:
+  db:
+    image: postgres
+    container_name: inari-postgres
+    hostname: postgres
+    restart: always
+    networks:
+      - phonk-bot
+    volumes:
+     - app-db-data-inari:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - ${POSTGRES_PORT}:5432
