@@ -31,6 +31,14 @@ export const Paragraph = styled.span`
   text-align: center;
 `;
 
+export const ErrorText = styled.span`
+  font-family: ${({ theme }) => theme.font.family.montserrat};
+  font-style: normal;
+  font-size: 16px;
+  text-align: center;
+  color: red;
+`;
+
 export const SubmitButton = styled(Button)`
   &&{
     font-family: ${({ theme }) => theme.font.family.montserrat};
