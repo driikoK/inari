@@ -15,7 +15,7 @@ export class TrackService {
     for (const track of tracks) {
       const user = await this.userModel
         .findOne({
-          name: track.nickname,
+          nickname: track.nickname,
         })
         .exec();
 
@@ -24,7 +24,7 @@ export class TrackService {
 
         await this.userModel.updateOne<INickname>(
           {
-            name: track.nickname,
+            nickname: track.nickname,
           },
           {
             coin: Number(user.coin) + Number(track.coin),

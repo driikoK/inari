@@ -5,11 +5,12 @@ import { UserService } from './users.service';
 import { userProviders } from './users.provider';
 import { UserController } from './users.controller';
 import { TrackService } from './track.service';
+import { SettingController } from './setting.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([]), DatabaseModule],
   providers: [UserService, TrackService, ...userProviders],
   exports: [UserService],
-  controllers: [UserController],
+  controllers: [UserController, SettingController],
 })
 export class UserModule {}

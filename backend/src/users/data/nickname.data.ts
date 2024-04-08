@@ -1,5 +1,5 @@
 export class UserData {
-  name: string;
+  nickname: string;
   types: string[];
   coin: number;
 }

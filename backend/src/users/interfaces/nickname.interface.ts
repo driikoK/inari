@@ -1,5 +1,5 @@
 export interface INickname extends Document {
-  name: string;
+  nickname: string;
   types: string[];
   coin: number;
 }

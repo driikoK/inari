@@ -19,6 +19,6 @@ export class UserService {
   }
 
   async updateUser(user: UserData) {
-    const updateNickname = this.nicknameModel.updateOne(user, user);
+    this.nicknameModel.updateOne(user, user);
   }
 }

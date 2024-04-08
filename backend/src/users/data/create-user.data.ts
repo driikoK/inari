@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserData {
   @ApiProperty()
-  name: string;
+  nickname: string;
 
   @ApiProperty()
   types: string[];
