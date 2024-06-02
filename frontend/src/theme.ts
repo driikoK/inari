@@ -4,7 +4,8 @@ const colors = {
   title: '#252d3a',
   background: '#161d16',
   link: '#d2ddff',
-  yellow: '#e8dd09'
+  yellow: '#e8dd09',
+  gray: '#343a42'
 };
 
 const font = {

@@ -8,3 +8,8 @@
   text-decoration: none;
   box-sizing: border-box;
 }
+
+html {
+  background-color: #161d16;
+  height: 100%;
+}

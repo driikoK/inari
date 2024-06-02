@@ -7,7 +7,7 @@ import {
   TitleWrapper,
 } from './styles';
 import { TResultAnime } from '../../../types';
-import InfoDialog from '../../../components/InfoDialog';
+import InfoDialog from '../../dialogs/InfoDialog';
 import List from '../../../components/List';
 
 const Result: FunctionComponent = () => {

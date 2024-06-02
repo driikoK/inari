@@ -1,41 +1,16 @@
-export type TAnime = {
-  id: number,
-  name: string,
-  link: string,
-  posterUrl: string,
-  isOngoing: boolean,
-}
-
-export type TResultAnime = {
-  anime: TAnime & {
-    votes: {
-      id: number,
-      userName: string,
-    }[],
-  },
-  voteCount: number,
-}
-
 export interface ValuesType {
-  main: TracksType;
-  bonus: TracksType;
+  main: TrackType;
+  bonus: TrackType;
   dubs: number[];
 }
 
-export interface TracksType {
+export interface TrackType {
   [key: string]: {
     nickname: string;
     nameTitle: string;
     coin: number;
     typeRole: string;
   };
-}
-
-export interface TrackType {
-  nickname: string;
-  nameTitle: string;
-  coin: number;
-  typeRole: string;
 }
 
 export interface CofType{
@@ -69,12 +44,4 @@ export enum DubStatusEnum {
 export interface FormErrorsType {
   main: string;
   bonus: string;
-}
-
-export interface UserType {
-  _id: string,
-  nickname: string,
-  types: string[],
-  coin: number,
-  __v: number
 }
