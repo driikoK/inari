@@ -9,6 +9,9 @@ export class CreateTrackData {
   nameTitle: string;
 
   @ApiProperty()
+  note: string;
+
+  @ApiProperty()
   typeRole: TypesEnum;
 
   @ApiProperty()

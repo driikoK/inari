@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
 import { UserService } from './users.service';
 import { CreateUserData } from './data/create-user.data';
 import { TypesEnum } from './enums/types.enum';
 import { TrackService } from './track.service';
 import { CreateTrackData } from './data/create-track.data';
 import { ApiBody } from '@nestjs/swagger';
+import { FilterTrackData } from './data/filter-track.data';
 
 @Controller()
 export class UserController {
@@ -34,14 +35,27 @@ export class UserController {
     return this.trackService.tracks(tracks);
   }
 
+  @Put('/track/:id')
+  @ApiBody({ type: [CreateTrackData] })
+  async updateTrack(@Body() tracks: CreateTrackData) {
+  }
+
+  @Get('/tracks')
+  async tracks(@Query() filter: FilterTrackData) { 
+    return this.trackService.getTracks(filter);
+  }
+
+  @Get('/tracks/animeName')
+  async tracksAnimeName() {
+      return this.trackService.getTrackAnimeNames();
+  }
+
   @Get('/types')
   async getTypes() {
     return [
       TypesEnum.DIRECTOR,
       TypesEnum.DUB,
       TypesEnum.OTHER,
-      TypesEnum.RELEASE,
-      TypesEnum.RELEASE,
       TypesEnum.SOUND,
       TypesEnum.SUB,
     ];
