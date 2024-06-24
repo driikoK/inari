@@ -1,16 +1,16 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { TypesEnum } from "../enums/types.enum";
 
 export class FilterTrackData {
-    @ApiProperty()
+    @ApiPropertyOptional({nullable: true})
     nickname: string;
     
-    @ApiProperty()
+    @ApiPropertyOptional({nullable: true})
     season: number;
     
-    @ApiProperty()
+    @ApiPropertyOptional({nullable: true})
     nameTitle: string;
     
-    @ApiProperty()
+    @ApiPropertyOptional({nullable: true})
     typeRole: TypesEnum;
 }

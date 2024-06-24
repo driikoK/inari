@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTrackData } from './data/create-track.data';
 import { Model } from 'mongoose';
 import { ITrack } from './interfaces/track.interface';
@@ -14,7 +14,7 @@ export class TrackService {
   ) {}
 
   async getTracks(filter: FilterTrackData) {
-    return this.trackModel.find(filter).exec();
+    return this.trackModel.find(filter);
   }
 
   async getTrackAnimeNames() {
@@ -53,6 +53,8 @@ export class TrackService {
           },
         );
       }
+
+      throw new HttpException('User not found', 406);
     }
   }
 }
