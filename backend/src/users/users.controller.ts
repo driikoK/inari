@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { UserService } from './users.service';
 import { CreateUserData } from './data/create-user.data';
 import { TypesEnum } from './enums/types.enum';
@@ -38,6 +38,11 @@ export class UserController {
   @Put('/track/:id')
   @ApiBody({ type: [CreateTrackData] })
   async updateTrack(@Body() tracks: CreateTrackData) {
+  }
+
+  @Delete('/track/:id')
+  async deleteTrack(@Param('id') id: string) {
+    return this.trackService.deleteTrack(id);
   }
 
   @Get('/tracks')

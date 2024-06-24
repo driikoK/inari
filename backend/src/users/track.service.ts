@@ -17,6 +17,12 @@ export class TrackService {
     return this.trackModel.find(filter);
   }
 
+  async deleteTrack(id: string) {
+    return this.trackModel.findOneAndDelete({
+      _id: id,
+    });
+  }
+
   async getTrackAnimeNames() {
     return this.trackModel.aggregate([{
       $group: {
@@ -52,6 +58,7 @@ export class TrackService {
             coin: Number(user.coin) + Number(track.coin),
           },
         );
+        return;
       }
 
       throw new HttpException('User not found', 406);

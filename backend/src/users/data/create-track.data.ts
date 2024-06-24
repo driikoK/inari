@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TypesEnum } from '../enums/types.enum';
 
 export class CreateTrackData {
@@ -8,8 +8,11 @@ export class CreateTrackData {
   @ApiProperty()
   nameTitle: string;
 
+  @ApiPropertyOptional({nullable: true})
+  note?: string;
+
   @ApiProperty()
-  note: string;
+  currentEpisode: number;
 
   @ApiProperty()
   typeRole: TypesEnum;
