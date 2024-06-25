@@ -49,3 +49,7 @@ export const StyledSelect = styled(Select)`
     background-color: white;
   }
 `;
+
+export const ClearOptionItem = styled.span`
+  font-weight: 500;
+`;

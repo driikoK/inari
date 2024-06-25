@@ -9,6 +9,9 @@ const theme = createTheme({
     secondary: {
       main: '#ffffff',
       contrastText: '#000000'
+    },
+    warning: {
+      main: '#ff0000',
     }
   },
   typography: {

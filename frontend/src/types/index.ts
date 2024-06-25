@@ -32,8 +32,12 @@ export interface TracksType {
 }
 
 export interface TrackType {
+  _id: string
   nickname: string;
   nameTitle: string;
+  season: number;
+  currentEpisode: number;
+  note: string | null;
   coin: number;
   typeRole: string;
 }

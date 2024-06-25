@@ -32,6 +32,15 @@ export class TrackService {
     }]);
   }
 
+  async getTrackSeasons() {
+    return this.trackModel.aggregate([{
+      $group: {
+        _id: '$season',
+        count: { $sum: 1 }
+      }
+    }]);
+  }
+
   async updateTrack(track: CreateTrackData) {
 
   }

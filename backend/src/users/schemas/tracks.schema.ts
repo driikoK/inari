@@ -7,7 +7,7 @@ export const TracksSchema = new mongoose.Schema({
   season: Number,
   note: String,
   currentEpisode: Number,
-  type: {
+  typeRole: {
     type: String,
     enum: TypesEnum,
   },

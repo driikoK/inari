@@ -18,13 +18,13 @@ const Cookie: FunctionComponent = () => {
         <ElementImage $url='/cookie.png'/>
         <Title>Додати нові крихти</Title>
       </ElementContainer>
-      <ElementContainer onClick={ () => handleLink('general') }>
+      <ElementContainer onClick={ () => handleLink('list') }>
         <ElementImage $url='/general.png'/>
-        <Title>Загальний топ</Title>
+        <Title>Список крихт</Title>
       </ElementContainer>
-      <ElementContainer onClick={ () => handleLink('roles') }>
+      <ElementContainer onClick={ () => handleLink('rating') }>
         <ElementImage $url='/roles.png'/>
-        <Title>Топ по ролях</Title>
+        <Title>Рейтинг крихт</Title>
       </ElementContainer>
       <InputCookieDialog onClose={() => setOpenDialog(false)} open={openDialog} />
     </Container>

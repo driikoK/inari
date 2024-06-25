@@ -27,17 +27,12 @@ export const TitleWrapper = styled.div`
   margin-bottom: 10px;
 `;
 
-export const RatingContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 30px;
-`;
-
-export const RatingBlock = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 50%;
+export const ListWrapper = styled.div`
+  display: grid;
+  flex-wrap: wrap;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  justify-items: center;
+  gap: 16px 12px;
 `;
 
 export const SelectWrapper = styled.div`
@@ -48,4 +43,8 @@ export const StyledSelect = styled(Select)`
 .${selectClasses.select}{
     background-color: white;
   }
+`;
+
+export const ClearOptionItem = styled.span`
+  font-weight: 500;
 `;

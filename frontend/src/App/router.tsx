@@ -3,9 +3,9 @@ import Vote from './pages/Vote';
 import Layout from './Layout';
 import Result from './pages/Result';
 import Cookie from './pages/Cookie';
-import RolesRating from './pages/RolesRating';
-import GeneralRating from './pages/GeneralRating';
 import Home from './pages/Home';
+import CookieRating from './pages/CookieRating';
+import CookieList from './pages/CookieList';
 
 
 const router = createBrowserRouter([
@@ -30,12 +30,12 @@ const router = createBrowserRouter([
         element: <Cookie />
       },
       {
-        path: 'cookie/roles',
-        element: <RolesRating />
+        path: 'cookie/rating',
+        element: <CookieRating />
       },
       {
-        path: 'cookie/general',
-        element: <GeneralRating />
+        path: 'cookie/list',
+        element: <CookieList />
       }
     ],
   },
