@@ -6,7 +6,6 @@ import configuration from './config';
 import { PollsModule } from './polls/polls.module';
 import { CommandModule } from 'nestjs-command';
 import { SeedModule } from './seeds/seed.module';
-import { userProviders } from './users/users.provider';
 import { UserModule } from './users/users.module';
 
 @Module({

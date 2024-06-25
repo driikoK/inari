@@ -1,8 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTrackData } from './data/create-track.data';
 import { Model } from 'mongoose';
 import { ITrack } from './interfaces/track.interface';
 import { INickname } from './interfaces/nickname.interface';
+import { determineAnimeSeason } from './helper/season.helper';
+import { FilterTrackData } from './data/filter-track.data';
 
 @Injectable()
 export class TrackService {
@@ -10,6 +12,29 @@ export class TrackService {
     @Inject('TRACK_MODEL') private readonly trackModel: Model<ITrack>,
     @Inject('NICKNAME_MODEL') private readonly userModel: Model<INickname>,
   ) {}
+
+  async getTracks(filter: FilterTrackData) {
+    return this.trackModel.find(filter);
+  }
+
+  async deleteTrack(id: string) {
+    return this.trackModel.findOneAndDelete({
+      _id: id,
+    });
+  }
+
+  async getTrackAnimeNames() {
+    return this.trackModel.aggregate([{
+      $group: {
+        _id: '$nameTitle',
+        count: { $sum: 1 }
+      }
+    }]);
+  }
+
+  async updateTrack(track: CreateTrackData) {
+
+  }
 
   async tracks(tracks: CreateTrackData[]) {
     for (const track of tracks) {
@@ -20,7 +45,10 @@ export class TrackService {
         .exec();
 
       if (user) {
-        await this.trackModel.create(track);
+        await this.trackModel.create({
+          ...track,
+          season: determineAnimeSeason(new Date().getMonth(), new Date().getFullYear()),
+        });
 
         await this.userModel.updateOne<INickname>(
           {
@@ -30,7 +58,10 @@ export class TrackService {
             coin: Number(user.coin) + Number(track.coin),
           },
         );
+        return;
       }
+
+      throw new HttpException('User not found', 406);
     }
   }
 }

@@ -3,6 +3,5 @@ export enum TypesEnum {
   SUB = 'sub',
   SOUND = 'sound',
   DIRECTOR = 'director',
-  RELEASE = 'release',
   OTHER = 'other',
 }
