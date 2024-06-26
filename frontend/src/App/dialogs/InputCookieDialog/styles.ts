@@ -30,6 +30,15 @@ export const Paragraph = styled.span`
   text-align: center;
 `;
 
+export const SubParagraph = styled.span`
+  font-family: ${({ theme }) => theme.font.family.montserrat};
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  color: gray;
+`;
+
 export const Title = styled.span`
   font-family: ${({ theme }) => theme.font.family.montserrat};
   font-style: normal;
@@ -64,6 +73,7 @@ export const ButtonsWrapper = styled.div`
   display: flex;
   flex-direction: row;
   gap: 16px;
+  justify-content: center;
 `;
 
 export const FormWrapper = styled(Form)`
@@ -97,4 +107,11 @@ export const DubSelect = styled(Select)`
   .${selectClasses.select}{
     padding: 0 10px;
   }
+`;
+
+export const RowWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  justify-content: center;
 `;

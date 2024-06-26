@@ -80,30 +80,29 @@ export class TrackService {
         })
         .exec();
 
-      if (user) {
-        await this.trackModel.create({
-          ...track,
-          season: determineAnimeSeason(
-            new Date().getMonth(),
-            new Date().getFullYear(),
-          ),
-        });
-
-        await this.userModel.updateOne<INickname>(
-          {
-            nickname: track.nickname,
-          },
-          {
-            coin: Number(user.coin) + Number(track.coin),
-            types: user.types.includes(track.typeRole)
-              ? user.types
-              : [...user.types, track.typeRole],
-          },
-        );
-        return;
+      if (!user) {
+        throw new HttpException('User not found', 406);
       }
 
-      throw new HttpException('User not found', 406);
+      await this.trackModel.create({
+        ...track,
+        season: determineAnimeSeason(
+          new Date().getMonth(),
+          new Date().getFullYear(),
+        ),
+      });
+
+      await this.userModel.updateOne<INickname>(
+        {
+          nickname: track.nickname,
+        },
+        {
+          coin: Number(user.coin) + Number(track.coin),
+          types: user.types.includes(track.typeRole)
+            ? user.types
+            : [...user.types, track.typeRole],
+        },
+      );
     }
   }
 }

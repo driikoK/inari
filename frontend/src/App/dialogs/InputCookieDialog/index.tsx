@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FunctionComponent, useEffect, useState } from 'react';
-import { Input, MenuItem, Snackbar, type DialogProps } from '@mui/material';
+import { Input, MenuItem, Snackbar, TextField, type DialogProps } from '@mui/material';
 import {
   ButtonsWrapper,
   ColorText,
@@ -12,6 +12,8 @@ import {
   ErrorText,
   FormWrapper,
   Paragraph,
+  RowWrapper,
+  SubParagraph,
   Title,
   TitleWrapper,
 } from './styles';
@@ -23,7 +25,13 @@ import { AnimeStatusEnum, CoinsType, DubStatusEnum, ValuesType } from './types';
 import { initialValuesSetup } from './const';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KBInputField from '@components/KBInputField';
-import { handleChangeDubFields, handleChangeDubStatus, handleChangeNameTitle, totalBonusCoins, totalKbs, totalMainCoins } from './utils';
+import {
+  getPartialValue,
+  handleChangeDubFields,
+  handleChangeDubStatus,
+  totalKbs,
+  totalMainCoins,
+} from './utils';
 import useTracksStore from '@/stores/useTracksStore';
 import useCofStore from '@/stores/useCofStore';
 import useCoinsStore from '@/stores/useCoinsStore';
@@ -40,29 +48,27 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
     AnimeStatusEnum.NONE
   );
   const [dubFields, setDubFields] = useState<number>(1);
-  const [dubStatus, setDubStatus] = useState<DubStatusEnum>(DubStatusEnum.COOKIE);
+  const [dubStatus, setDubStatus] = useState<DubStatusEnum>(
+    DubStatusEnum.COOKIE
+  );
   const { cof, getCof } = useCofStore();
   const { coinsTypes, getCoins } = useCoinsStore();
   const [coins, setCoins] = useState<CoinsType>(coinsTypes.delayStandardAnime);
   const [nameTitle, setNameTitle] = useState('');
+  const [currentEpisode, setCurrentEpisode] = useState(1);
+  const [note, setNote] = useState<string | null>(null);
   const [initialValues, setInitialValues] = useState<ValuesType>(() => {
-    return initialValuesSetup(nameTitle, cof, coins);
+    return initialValuesSetup(nameTitle, cof, coins, currentEpisode);
   });
   const [isPopOpen, setPopOpen] = useState<boolean>(false);
   const [popMessage, setPopMessage] = useState('');
-  const { addTracks } = useTracksStore()
+  const { addTracks } = useTracksStore();
 
   useEffect(() => {
     getCof();
     getCoins();
-  }, [])
+  }, []);
 
-  useEffect(() => {
-    setInitialValues(() => {
-      return initialValuesSetup(nameTitle, cof, coins);
-    });
-  }, [cof]);
-  
   useEffect(() => {
     if (animeStatus === AnimeStatusEnum.FILM) {
       setCoins(coinsTypes.film);
@@ -71,30 +77,24 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
     } else if (animeStatus === AnimeStatusEnum.STANDART) {
       setCoins(coinsTypes.inTimeStandardAnime);
     }
-  }, [animeStatus]);
+  }, [animeStatus, coinsTypes]);
 
   useEffect(() => {
-    const updatedMain = { ...initialValues.main };
-    const updatedBonus = { ...initialValues.bonus };
+    const updatedMain = initialValuesSetup(nameTitle, cof, coins, currentEpisode).main;
 
     Object.keys(updatedMain).forEach((key) => {
-      updatedMain[key] = { ...updatedMain[key], nameTitle };
-    });
+      updatedMain[key] = { ...updatedMain[key], nameTitle, currentEpisode };
 
-    Object.keys(updatedBonus).forEach((key) => {
-      updatedBonus[key] = { ...updatedBonus[key], nameTitle };
-
-      if (updatedBonus[key].typeRole === 'director') {
-        updatedBonus[key].coin = coins.BonusDirector;
+      if (updatedMain[key].typeRole === 'director') {
+        updatedMain[key].coin = coins.bonusDirector;
       }
     });
 
-    setInitialValues(prev => ({
+    setInitialValues((prev) => ({
       ...prev,
       main: updatedMain,
-      bonus: updatedBonus,
     }));
-  }, [coins, nameTitle]);
+  }, [coins, nameTitle, currentEpisode]);
 
   useEffect(() => {
     const newDubFields = Object.keys(initialValues.main).filter((key) =>
@@ -108,12 +108,21 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
       <DialogWrapper>
         {animeStatus === AnimeStatusEnum.NONE && (
           <>
-            <Title>Назва тайтлу</Title>
-            <Input
-              placeholder="Вкажіть назву тайтлу"
-              value={nameTitle}
-              onChange={(e) => handleChangeNameTitle(e, setNameTitle)}
-            />
+            <Title>Назва тайтлу і номер епізоду</Title>
+            <RowWrapper>
+              <Input
+                placeholder="Вкажіть назву тайтлу"
+                value={nameTitle}
+                onChange={(e) => setNameTitle(e.target.value)}
+              />
+              <Input
+                placeholder="Епізод"
+                value={currentEpisode}
+                type="number"
+                sx={{width: '80px'}}
+                onChange={(e) => setCurrentEpisode(Number(e.target.value))}
+              />
+            </RowWrapper>
             <Title>Серія виконана за</Title>
             <ButtonsWrapper>
               <Button
@@ -149,10 +158,14 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
               try {
                 const valuesArray = [
                   ...Object.values(values.main),
-                  ...Object.values(values.bonus),
                 ];
-                await addTracks(valuesArray);
-
+                const updValuesArray = valuesArray.map((value) => {
+                  return {
+                    ...value,
+                    note
+                  };
+                });
+                await addTracks(updValuesArray);
                 setPopMessage('Успішно');
                 setPopOpen(true);
                 setTimeout(() => {
@@ -175,12 +188,19 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                 </Button>
                 <TitleWrapper>
                   <Title>
-                    Основні крихти -{' '}
+                    Крихти -{' '}
                     <ColorText>
-                      {totalMainCoins(values)}/{coins.coin}
+                      {totalMainCoins(values)}/
+                      {coins.coin + coins.bonusDirector}
                     </ColorText>
                   </Title>
                 </TitleWrapper>
+                <Paragraph>Звукач:</Paragraph>
+                <InputField name={'main.sound'} isDisabled={true} />
+                <Paragraph>Куратор:</Paragraph>
+                <InputField name={'main.director'} isDisabled={true} />
+                <Paragraph>Переклад:</Paragraph>
+                <InputField name={'main.sub'} isDisabled={true} />
                 <DubControlWrapper>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <Paragraph>Озвучення:</Paragraph>
@@ -189,9 +209,10 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                       onChange={(e) =>
                         handleChangeDubFields(
                           e,
-                          initialValues,
+                          values,
                           setInitialValues,
-                          nameTitle
+                          nameTitle,
+                          currentEpisode,
                         )
                       }
                     />
@@ -209,6 +230,10 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                     </MenuItem>
                   </DubSelect>
                 </DubControlWrapper>
+                <SubParagraph>
+                  Для розподілу дозволено {getPartialValue(cof.dub, coins.coin)}{' '}
+                  крихт
+                </SubParagraph>
                 {dubStatus === DubStatusEnum.COOKIE &&
                   Array.from({ length: dubFields }, (_, i) => i).map(
                     (_, index) => (
@@ -223,48 +248,31 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                         dubName={`dubs.${index}`}
                         key={index}
                         sumOfAllFiles={totalKbs(values)}
-                        allPoints={cof.dub}
+                        allPoints={getPartialValue(cof.dub, coins.coin)}
                       />
                     )
                   )}
-                <Paragraph>Переклад:</Paragraph>
-                <InputField name={'main.sub'} isDisabled={true} />
-                <Paragraph>Звукач:</Paragraph>
-                <InputField name={'main.sound'} isDisabled={true} />
+                <SubParagraph>
+                  Для наступних ролей для розподілу дозволено {getPartialValue(cof.additional, coins.coin)}{' '}
+                  крихт
+                </SubParagraph>
+                <Paragraph>Фіксер:</Paragraph>
+                <InputField name={'main.fixer'} />
+                <Paragraph>Розбивач ролей:</Paragraph>
+                <InputField name={'main.roleBreaker'} />
+                <Paragraph>Релізер:</Paragraph>
+                <InputField name={'main.release'} />
+                <Paragraph>Нотатка:</Paragraph>
+                <TextField
+                  placeholder="Не обов'язкове поле"
+                  value={note || ''}
+                  onChange={(e) => setNote(e.target.value)}
+                  sx={{ m: 1, width: '100%' }}
+
+                />
                 {errors.main && (
                   <ErrorText>
                     <>{errors.main}</>
-                  </ErrorText>
-                )}
-                <TitleWrapper>
-                  <Title>
-                    Бонусні крихти -{' '}
-                    <ColorText>
-                      {totalBonusCoins(values)}/{coins.coinBonus}
-                    </ColorText>
-                  </Title>
-                </TitleWrapper>
-                <Paragraph>Куратор:</Paragraph>
-                <InputField name={'bonus.director'} isDisabled={true} />
-                <Paragraph>Фіксер:</Paragraph>
-                <InputField name={'bonus.fixer'} />
-                <Paragraph>Розбивач ролей:</Paragraph>
-                <InputField name={'bonus.roleBreaker'} />
-                <Paragraph>Релізер:</Paragraph>
-                <InputField name={'bonus.release'} />
-                <Paragraph>Перекладач:</Paragraph>
-                <InputField name={'bonus.sub'} />
-                <Paragraph>Звукач:</Paragraph>
-                <InputField name={'bonus.sound'} />
-                <Paragraph>Озвучення:</Paragraph>
-                {Array.from({ length: dubFields }, (_, i) => i).map(
-                  (_, index) => (
-                    <InputField name={`bonus.dub${index + 1}`} key={index} />
-                  )
-                )}
-                {errors.bonus && (
-                  <ErrorText>
-                    <>{errors.bonus}</>
                   </ErrorText>
                 )}
                 <Button

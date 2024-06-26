@@ -12,6 +12,7 @@ const useCofStore = create<IState>((set) => ({
     sub: 0,
     dub: 0,
     sound: 0,
+    additional: 0,
   },
   loading: false,
   error: null,

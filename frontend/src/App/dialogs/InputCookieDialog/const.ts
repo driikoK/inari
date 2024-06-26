@@ -1,85 +1,62 @@
-import { CofType, CoinsType, ValuesType } from "./types";
+import { CofType, CoinsType, ValuesType } from './types';
+import { getPartialValue } from './utils';
 
-export const initialValuesSetup = (nameTitle: string, cof: CofType, coins: CoinsType): ValuesType => ({
+export const initialValuesSetup = (
+  nameTitle: string,
+  cof: CofType,
+  coins: CoinsType,
+  currentEpisode: number,
+): ValuesType => ({
   main: {
-    sub: { nickname: '', nameTitle: nameTitle, coin: cof.sub, typeRole: 'sub' },
+    sub: {
+      nickname: '',
+      nameTitle,
+      coin: getPartialValue(cof.sub, coins.coin),
+      typeRole: 'sub',
+      currentEpisode,
+    },
     sound: {
       nickname: '',
-      nameTitle: nameTitle,
-      coin: cof.sound,
+      nameTitle,
+      coin: getPartialValue(cof.sound, coins.coin),
       typeRole: 'sound',
+      currentEpisode,
     },
-    dub1: {
-      nickname: '',
-      nameTitle: nameTitle,
-      coin: 0,
-      typeRole: 'dub',
-    },
-  },
-  bonus: {
     director: {
       nickname: '',
-      nameTitle: nameTitle,
-      coin: coins.BonusDirector,
+      nameTitle,
+      coin: coins.bonusDirector,
       typeRole: 'director',
+      currentEpisode,
     },
-    sub: { nickname: '', nameTitle: nameTitle, coin: 0, typeRole: 'sub' },
-    sound: { nickname: '', nameTitle: nameTitle, coin: 0, typeRole: 'sound' },
-    fixer: { nickname: '', nameTitle: nameTitle, coin: 0, typeRole: 'other' },
-    roleBreaker: {
+    fixer: {
       nickname: '',
-      nameTitle: nameTitle,
+      nameTitle,
       coin: 0,
       typeRole: 'other',
+      currentEpisode,
+    },
+    roleBreaker: {
+      nickname: '',
+      nameTitle,
+      coin: 0,
+      typeRole: 'other',
+      currentEpisode,
     },
     release: {
       nickname: '',
-      nameTitle: nameTitle,
+      nameTitle,
       coin: 0,
-      typeRole: 'release',
+      typeRole: 'other',
+      currentEpisode,
     },
     dub1: {
       nickname: '',
-      nameTitle: nameTitle,
+      nameTitle,
       coin: 0,
       typeRole: 'dub',
+      currentEpisode,
     },
   },
   dubs: [],
 });
-
-export const initialCof = {
-  sub: 30,
-  dub: 55,
-  sound: 15,
-}
-
-export const coinsMock = {
-  film: {
-    type: 'film',
-    coin: 200,
-    coinBonus: 150,
-    maxBonusOnRole: 30,
-    maxBonusForOthers: 25,
-    maxBonusForMainRoles: 15,
-    BonusDirector: 60,
-  },
-  inTimeStandardAnime: {
-    type: 'inTimeStandardAnime',
-    coin: 100,
-    coinBonus: 70,
-    maxBonusOnRole: 10,
-    maxBonusForOthers: 25,
-    maxBonusForMainRoles: 15,
-    BonusDirector: 30,
-  },
-  delayStandardAnime: {
-    type: 'delayStandardAnime',
-    coin: 100,
-    coinBonus: 30,
-    maxBonusOnRole: 10,
-    maxBonusForOthers: 12,
-    maxBonusForMainRoles: 8,
-    BonusDirector: 10,
-  },
-};

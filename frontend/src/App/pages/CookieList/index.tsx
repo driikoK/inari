@@ -1,21 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FunctionComponent, useEffect, useState } from 'react';
 import {
-  ClearOptionItem,
   ListWrapper,
   PageContainer,
   SelectWrapper,
-  StyledSelect,
   Title,
   TitleWrapper,
 } from './styles';
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  OutlinedInput,
-  useMediaQuery,
-} from '@mui/material';
 import useSeasonsStore from '@/stores/useSeasons';
 import { reverseDetermineAnimeSeason } from '@/utils/season.utils';
 import useTracksStore from '@/stores/useTracksStore';
@@ -23,6 +14,7 @@ import useAnimeStore from '@/stores/useAnimeStore';
 import useTypeStore from '@/stores/useTypesStore';
 import useUsersStore from '@/stores/useUsersStore';
 import ListCard from '@/components/ListCard';
+import SelectField from '@/components/SelectField';
 
 const CookieList: FunctionComponent = () => {
   const { seasons, getSeasons } = useSeasonsStore();
@@ -42,8 +34,6 @@ const CookieList: FunctionComponent = () => {
   const [selectedUser, setSelectedUser] = useState<string | undefined>(
     undefined
   );
-
-  // const isDesktop = useMediaQuery(theme.screens.desktop);
 
   useEffect(() => {
     getSeasons();
@@ -68,74 +58,39 @@ const CookieList: FunctionComponent = () => {
         <Title>Список крихт</Title>
       </TitleWrapper>
       <SelectWrapper>
-        <FormControl sx={{ m: 1, width: '100%' }}>
-          <InputLabel id="name-label">Сезон</InputLabel>
-          <StyledSelect
-            input={<OutlinedInput label="Сезон" />}
-            value={selectedSeason}
-            onChange={(e) => setSelectedSeason(e.target.value as number)}
-          >
-            <MenuItem value={undefined}>
-              <ClearOptionItem> Скасувати вибір </ClearOptionItem>
-            </MenuItem>
-            {seasons.map((season) => (
-              <MenuItem key={season._id} value={season._id}>
-                {reverseDetermineAnimeSeason(season._id)}
-              </MenuItem>
-            ))}
-          </StyledSelect>
-        </FormControl>
-        <FormControl sx={{ m: 1, width: '100%' }}>
-          <InputLabel id="name-label">Роль</InputLabel>
-          <StyledSelect
-            input={<OutlinedInput label="Роль" />}
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value as string)}
-          >
-            <MenuItem value={undefined}>
-              <ClearOptionItem> Скасувати вибір </ClearOptionItem>
-            </MenuItem>
-            {types.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </StyledSelect>
-        </FormControl>
-        <FormControl sx={{ m: 1, width: '100%' }}>
-          <InputLabel id="name-label">Нікнейм</InputLabel>
-          <StyledSelect
-            input={<OutlinedInput label="Нікнейм" />}
-            value={selectedUser}
-            onChange={(e) => setSelectedUser(e.target.value as string)}
-          >
-            <MenuItem value={undefined}>
-              <ClearOptionItem> Скасувати вибір </ClearOptionItem>
-            </MenuItem>
-            {users.map((user) => (
-              <MenuItem key={user._id} value={user.nickname}>
-                {user.nickname}
-              </MenuItem>
-            ))}
-          </StyledSelect>
-        </FormControl>
-        <FormControl sx={{ m: 1, width: '100%' }}>
-          <InputLabel id="name-label">Аніме</InputLabel>
-          <StyledSelect
-            input={<OutlinedInput label="Аніме" />}
-            value={selectedAnime}
-            onChange={(e) => setSelectedAnime(e.target.value as string)}
-          >
-            <MenuItem value={undefined}>
-              <ClearOptionItem> Скасувати вибір </ClearOptionItem>
-            </MenuItem>
-            {animeNames.map((anime) => (
-              <MenuItem key={anime._id} value={anime._id}>
-                {anime._id}
-              </MenuItem>
-            ))}
-          </StyledSelect>
-        </FormControl>
+        <SelectField
+          label="Сезон"
+          value={selectedSeason}
+          onChange={setSelectedSeason}
+          options={seasons.map((season) => ({
+            value: season._id,
+            label: reverseDetermineAnimeSeason(season._id),
+          }))}
+        />
+        <SelectField
+          label="Роль"
+          value={selectedRole}
+          onChange={setSelectedRole}
+          options={types.map((type) => ({ value: type, label: type }))}
+        />
+        <SelectField
+          label="Нікнейм"
+          value={selectedUser}
+          onChange={setSelectedUser}
+          options={users.map((user) => ({
+            value: user.nickname,
+            label: user.nickname,
+          }))}
+        />
+        <SelectField
+          label="Аніме"
+          value={selectedAnime}
+          onChange={setSelectedAnime}
+          options={animeNames.map((anime) => ({
+            value: anime._id,
+            label: anime._id,
+          }))}
+        />
       </SelectWrapper>
       <ListWrapper>
         {tracks.map((track) => (

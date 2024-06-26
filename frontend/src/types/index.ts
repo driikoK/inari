@@ -28,6 +28,7 @@ export interface TracksType {
     nameTitle: string;
     coin: number;
     typeRole: string;
+    currentEpisode: number;
   };
 }
 
@@ -46,16 +47,14 @@ export interface CofType{
   sub: number,
   dub: number,
   sound: number,
+  additional: number,
 }
 
 export interface CoinsType {
   type: string;
   coin: number;
-  coinBonus: number;
-  maxBonusOnRole: number;
-  maxBonusForOthers: number;
-  maxBonusForMainRoles: number;
-  BonusDirector: number;
+  maxAdditionalOnRole: number,
+  bonusDirector: number;
 }
 
 export enum AnimeStatusEnum {
