@@ -52,8 +52,14 @@ export class UserController {
 
   @Get('/tracks/animeName')
   async tracksAnimeName() {
-      return this.trackService.getTrackAnimeNames();
+    return this.trackService.getTrackAnimeNames();
   }
+
+  @Get('/tracks/seasons')
+  async tracksSeasons() {
+    return this.trackService.getTrackSeasons();
+  }
+
 
   @Get('/types')
   async getTypes() {

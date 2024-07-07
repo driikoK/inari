@@ -6,6 +6,13 @@ const theme = createTheme({
       main: '#e8dd09',
       contrastText: '#161d16',
     },
+    secondary: {
+      main: '#ffffff',
+      contrastText: '#000000'
+    },
+    warning: {
+      main: '#ff0000',
+    }
   },
   typography: {
     fontFamily: '"Montserrat"',
