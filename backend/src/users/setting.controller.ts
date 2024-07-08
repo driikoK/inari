@@ -29,10 +29,10 @@ export class SettingController {
   @Get('/cof')
   async getCof() {
     return {
-      sub: 25,
-      dub: 48,
+      sub: 22,
+      dub: 46,
       sound: 12,
-      additional: 15,
+      additional: 20,
     };
   }
 }
