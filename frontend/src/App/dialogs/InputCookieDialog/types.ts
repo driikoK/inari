@@ -1,6 +1,6 @@
 export interface ValuesType {
   main: TrackType;
-  dubs: number[];
+  dubs: string[];
 }
 
 export interface TrackType {

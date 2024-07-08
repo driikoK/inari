@@ -1,4 +1,4 @@
-import { Dialog, Select, TextField, dialogClasses, selectClasses } from '@mui/material';
+import { Dialog, Select, dialogClasses, selectClasses } from '@mui/material';
 import { Form } from 'formik';
 import styled from 'styled-components';
 
@@ -91,16 +91,6 @@ export const DubControlWrapper = styled.div`
   })};
   align-items: center;
   gap: 10px;
-`;
-
-export const DubTextField = styled(TextField)`
-  &&{
-    width: 50px;
-    input{
-      text-align: center;
-      padding: 0 10px;
-    }
-  }
 `;
 
 export const DubSelect = styled(Select)`

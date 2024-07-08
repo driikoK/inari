@@ -1,6 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FunctionComponent, useEffect, useState } from 'react';
-import { Input, MenuItem, Snackbar, TextField, type DialogProps } from '@mui/material';
+import {
+  Input,
+  MenuItem,
+  Snackbar,
+  TextField,
+  type DialogProps,
+} from '@mui/material';
 import {
   ButtonsWrapper,
   ColorText,
@@ -8,7 +14,6 @@ import {
   DialogWrapper,
   DubControlWrapper,
   DubSelect,
-  DubTextField,
   ErrorText,
   FormWrapper,
   Paragraph,
@@ -80,7 +85,12 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
   }, [animeStatus, coinsTypes]);
 
   useEffect(() => {
-    const updatedMain = initialValuesSetup(nameTitle, cof, coins, currentEpisode).main;
+    const updatedMain = initialValuesSetup(
+      nameTitle,
+      cof,
+      coins,
+      currentEpisode
+    ).main;
 
     Object.keys(updatedMain).forEach((key) => {
       updatedMain[key] = { ...updatedMain[key], nameTitle, currentEpisode };
@@ -119,7 +129,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                 placeholder="Епізод"
                 value={currentEpisode}
                 type="number"
-                sx={{width: '80px'}}
+                sx={{ width: '80px' }}
                 onChange={(e) => setCurrentEpisode(Number(e.target.value))}
               />
             </RowWrapper>
@@ -156,13 +166,11 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
             initialValues={initialValues}
             onSubmit={async (values) => {
               try {
-                const valuesArray = [
-                  ...Object.values(values.main),
-                ];
+                const valuesArray = [...Object.values(values.main)];
                 const updValuesArray = valuesArray.map((value) => {
                   return {
                     ...value,
-                    note
+                    note,
                   };
                 });
                 await addTracks(updValuesArray);
@@ -204,19 +212,26 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                 <DubControlWrapper>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <Paragraph>Озвучення:</Paragraph>
-                    <DubTextField
+                    <DubSelect
                       value={dubFields}
                       onChange={(e) =>
                         handleChangeDubFields(
                           e,
                           values,
-                          setInitialValues,
                           nameTitle,
                           currentEpisode,
+                          setInitialValues,
                         )
                       }
-                    />
-                    <Paragraph>(ліміт: 1-20)</Paragraph>
+                    >
+                      {Array.from({ length: 20 }, (_, i) => i + 1).map(
+                        (num) => (
+                          <MenuItem key={num} value={num}>
+                            {num}
+                          </MenuItem>
+                        )
+                      )}
+                    </DubSelect>
                   </div>
                   <DubSelect
                     value={dubStatus}
@@ -253,8 +268,8 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                     )
                   )}
                 <SubParagraph>
-                  Для наступних ролей для розподілу дозволено {getPartialValue(cof.additional, coins.coin)}{' '}
-                  крихт
+                  Для наступних ролей для розподілу дозволено{' '}
+                  {getPartialValue(cof.additional, coins.coin)} крихт
                 </SubParagraph>
                 <Paragraph>Фіксер:</Paragraph>
                 <InputField name={'main.fixer'} />
@@ -268,7 +283,6 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                   value={note || ''}
                   onChange={(e) => setNote(e.target.value)}
                   sx={{ m: 1, width: '100%' }}
-
                 />
                 {errors.main && (
                   <ErrorText>

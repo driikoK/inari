@@ -49,10 +49,10 @@ const KBInputField: FunctionComponent<IInputProps> = ({ mainName, dubName, isDis
   };
 
   const handleCoinsChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = Number(event.target.value);
+    const value = event.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
     const dubFieldValue = isNaN(Number(dubField.value)) ? 0 : Number(dubField.value);
-    const updatedSum = sumOfAllFiles - dubFieldValue + value;
-    const proportion = updatedSum !== 0 ? value / updatedSum : 0;
+    const updatedSum = sumOfAllFiles - dubFieldValue + Number(value);
+    const proportion = updatedSum !== 0 ? Number(value) / updatedSum : 0;
     const points = Math.round(allPoints * proportion);
     
     helpers.setValue({ ...field.value, coin: points });
@@ -82,11 +82,12 @@ const KBInputField: FunctionComponent<IInputProps> = ({ mainName, dubName, isDis
         </Select>
       </FormControl>
       <TextField
+        error={isNaN(dubField.value)}
         disabled={isDisabled}
         variant="outlined"
         label="КБ"
-        type="number"
-        value={dubField.value || 0}
+        type="text"
+        value={dubField.value}
         onChange={handleCoinsChange}
         sx={{ m: 1, width: isTablet ? 100 : '100%' }}
       />

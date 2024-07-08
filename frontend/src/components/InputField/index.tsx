@@ -22,7 +22,10 @@ export interface IInputProps {
   isDisabled?: boolean;
 }
 
-const InputField: FunctionComponent<IInputProps> = ({ name, isDisabled = false }) => {
+const InputField: FunctionComponent<IInputProps> = ({
+  name,
+  isDisabled = false,
+}) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [field, _, helpers] = useField(name);
   const [openDialog, setOpenDialog] = useState(false);
@@ -30,14 +33,15 @@ const InputField: FunctionComponent<IInputProps> = ({ name, isDisabled = false }
 
   useEffect(() => {
     getUsers();
-  }, [])
+  }, []);
 
   const handleNicknameChange = (event: SelectChangeEvent) => {
     helpers.setValue({ ...field.value, nickname: event.target.value });
   };
 
   const handleCoinsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    helpers.setValue({ ...field.value, coin: Number(event.target.value) });
+    const value = event.target.value.replace(/[^0-9]/g, '');
+    helpers.setValue({ ...field.value, coin: Number(value) });
   };
 
   const isTablet = useMediaQuery(theme.screens.tablet);
@@ -65,13 +69,17 @@ const InputField: FunctionComponent<IInputProps> = ({ name, isDisabled = false }
       <TextField
         disabled={isDisabled}
         variant="outlined"
-        label="Крихти"
-        type="number"
-        value={field.value.coin}
+        placeholder='0'
+        type="text"
+        inputProps={{ inputMode: 'numeric', pattern: "[0-9]*" }}
+        value={field.value.coin || ''}
         onChange={handleCoinsChange}
         sx={{ m: 1, width: isTablet ? 100 : '100%' }}
       />
-      <CreateUserDialog onClose={() => setOpenDialog(false)} open={openDialog}/>
+      <CreateUserDialog
+        onClose={() => setOpenDialog(false)}
+        open={openDialog}
+      />
     </FieldContainer>
   );
 };

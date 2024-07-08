@@ -12,22 +12,20 @@ export const totalMainCoins = (values: ValuesType) => {
 
 export const totalKbs = (values: ValuesType) => {
   const sumOfKbs: number = values.dubs.reduce(
-    (accumulator, currentValue) => accumulator + currentValue,
+    (accumulator, currentValue) => accumulator + Number(currentValue),
     0
   );
   return sumOfKbs;
 };
 
 export const handleChangeDubFields = (
-  event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  event: SelectChangeEvent<unknown>,
   initialValues: ValuesType,
-  setInitialValues: Dispatch<SetStateAction<ValuesType>>,
   nameTitle: string,
   currentEpisode: number,
+  setInitialValues: Dispatch<SetStateAction<ValuesType>>,
 ) => {
   const value = Number(event.target.value);
-  const newDubFields = Math.min(Math.max(value, 1), 20);
-
   const newMain = { ...initialValues.main };
 
   for (const key in newMain) {
@@ -36,7 +34,7 @@ export const handleChangeDubFields = (
     }
   }
 
-  for (let i = 1; i <= newDubFields; i++) {
+  for (let i = 1; i <= value; i++) {
     newMain[`dub${i}`] = {
       nickname: '',
       nameTitle,
@@ -49,6 +47,7 @@ export const handleChangeDubFields = (
   setInitialValues((prev) => ({
     ...prev,
     main: newMain,
+    dubs: Array(value).fill('')
   }));
 };
 

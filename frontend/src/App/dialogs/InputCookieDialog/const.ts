@@ -58,5 +58,5 @@ export const initialValuesSetup = (
       currentEpisode,
     },
   },
-  dubs: [],
+  dubs: [''],
 });

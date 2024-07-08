@@ -19,7 +19,7 @@ export type TResultAnime = {
 export interface ValuesType {
   main: TracksType;
   bonus: TracksType;
-  dubs: number[];
+  dubs: string[];
 }
 
 export interface TracksType {
