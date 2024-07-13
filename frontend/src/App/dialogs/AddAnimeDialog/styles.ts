@@ -1,5 +1,4 @@
-import { Dialog, Select, dialogClasses, selectClasses } from '@mui/material';
-import { Form } from 'formik';
+import { Dialog, dialogClasses } from '@mui/material';
 import styled from 'styled-components';
 
 export const DialogContainer = styled(Dialog)`
@@ -28,15 +27,6 @@ export const Paragraph = styled.span`
   font-weight: 500;
   font-size: 16px;
   text-align: center;
-`;
-
-export const SubParagraph = styled.span`
-  font-family: ${({ theme }) => theme.font.family.montserrat};
-  font-style: normal;
-  font-weight: 500;
-  font-size: 14px;
-  text-align: center;
-  color: gray;
 `;
 
 export const Title = styled.span`
@@ -69,52 +59,9 @@ export const ErrorText = styled.span`
   color: red;
 `;
 
-export const ButtonsWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  justify-content: center;
-`;
-
-export const FormWrapper = styled(Form)`
+export const InputWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: start;
-  gap: 6px;
-`;
-
-export const DubControlWrapper = styled.div`
-  display: flex;
-  ${({ theme }) =>
-    theme.mq({
-      flexDirection: ["column", "column", "row", "row"],
-  })};
-  align-items: center;
-  gap: 10px;
-`;
-
-export const DubSelect = styled(Select)`
-  .${selectClasses.select}{
-    padding: 0 10px;
-  }
-`;
-
-export const RowWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
+  width: 100%;
   gap: 16px;
-`;
-
-export const PlusMinusWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-`;
-
-export const CheckboxWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
 `;

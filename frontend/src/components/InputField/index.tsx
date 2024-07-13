@@ -13,7 +13,6 @@ import {
 import { FieldContainer } from './styles';
 import { FunctionComponent, useEffect, useState } from 'react';
 import CreateUserDialog from '@/App/dialogs/CreateUserDialog';
-import Button from '../Button';
 import theme from '@theme';
 import useUsersStore from '@/stores/useUsersStore';
 
@@ -61,17 +60,21 @@ const InputField: FunctionComponent<IInputProps> = ({
               {user.nickname}
             </MenuItem>
           ))}
-          <div>
-            <Button onClick={() => setOpenDialog(true)}>Додати</Button>
-          </div>
+          <MenuItem
+            sx={{ fontWeight: '500' }}
+            value={''}
+            onClick={() => setOpenDialog(true)}
+          >
+            Додати
+          </MenuItem>
         </Select>
       </FormControl>
       <TextField
         disabled={isDisabled}
         variant="outlined"
-        placeholder='0'
+        placeholder="0"
         type="text"
-        inputProps={{ inputMode: 'numeric', pattern: "[0-9]*" }}
+        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
         value={field.value.coin || ''}
         onChange={handleCoinsChange}
         sx={{ m: 1, width: isTablet ? 100 : '100%' }}

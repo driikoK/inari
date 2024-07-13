@@ -1,14 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FunctionComponent, useEffect, useState } from 'react';
 import {
-  Input,
+  Checkbox,
+  FormControl,
+  InputLabel,
   MenuItem,
+  OutlinedInput,
+  Select,
+  SelectChangeEvent,
   Snackbar,
   TextField,
   type DialogProps,
 } from '@mui/material';
 import {
   ButtonsWrapper,
+  CheckboxWrapper,
   ColorText,
   DialogContainer,
   DialogWrapper,
@@ -17,6 +23,7 @@ import {
   ErrorText,
   FormWrapper,
   Paragraph,
+  PlusMinusWrapper,
   RowWrapper,
   SubParagraph,
   Title,
@@ -32,14 +39,18 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KBInputField from '@components/KBInputField';
 import {
   getPartialValue,
+  handleChangeCurrentEpisode,
   handleChangeDubFields,
   handleChangeDubStatus,
+  isEpisodeValid,
   totalKbs,
   totalMainCoins,
 } from './utils';
 import useTracksStore from '@/stores/useTracksStore';
 import useCofStore from '@/stores/useCofStore';
 import useCoinsStore from '@/stores/useCoinsStore';
+import useAnimeStore from '@/stores/useAnimeStore';
+import AddAnimeDialog from '../AddAnimeDialog';
 
 export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -60,7 +71,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
   const { coinsTypes, getCoins } = useCoinsStore();
   const [coins, setCoins] = useState<CoinsType>(coinsTypes.delayStandardAnime);
   const [nameTitle, setNameTitle] = useState('');
-  const [currentEpisode, setCurrentEpisode] = useState(1);
+  const [currentEpisode, setCurrentEpisode] = useState('1');
   const [note, setNote] = useState<string | null>(null);
   const [initialValues, setInitialValues] = useState<ValuesType>(() => {
     return initialValuesSetup(nameTitle, cof, coins, currentEpisode);
@@ -68,10 +79,14 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
   const [isPopOpen, setPopOpen] = useState<boolean>(false);
   const [popMessage, setPopMessage] = useState('');
   const { addTracks } = useTracksStore();
+  const { animeNames, getAnime } = useAnimeStore();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [isFast, setIsFast] = useState(false);
 
   useEffect(() => {
     getCof();
     getCoins();
+    getAnime();
   }, []);
 
   useEffect(() => {
@@ -93,7 +108,11 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
     ).main;
 
     Object.keys(updatedMain).forEach((key) => {
-      updatedMain[key] = { ...updatedMain[key], nameTitle, currentEpisode };
+      updatedMain[key] = {
+        ...updatedMain[key],
+        nameTitle,
+        currentEpisode: parseFloat(currentEpisode),
+      };
 
       if (updatedMain[key].typeRole === 'director') {
         updatedMain[key].coin = coins.bonusDirector;
@@ -120,43 +139,66 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
           <>
             <Title>Назва тайтлу і номер епізоду</Title>
             <RowWrapper>
-              <Input
-                placeholder="Вкажіть назву тайтлу"
-                value={nameTitle}
-                onChange={(e) => setNameTitle(e.target.value)}
-              />
-              <Input
+              <FormControl>
+                <InputLabel id="name-label">Аніме</InputLabel>
+                <Select
+                  id="name-label"
+                  value={nameTitle}
+                  onChange={(e) => setNameTitle(e.target.value)}
+                  input={<OutlinedInput label="Аніме" />}
+                  placeholder="Вкажіть назву тайтлу"
+                  sx={{ minWidth: '150px', maxWidth: '230px' }}
+                >
+                  {animeNames.map((animeName) => (
+                    <MenuItem key={animeName._id} value={animeName._id}>
+                      {animeName._id}
+                    </MenuItem>
+                  ))}
+                  <MenuItem
+                    sx={{ fontWeight: '600' }}
+                    value={''}
+                    onClick={() => setOpenDialog(true)}
+                  >
+                    Додати
+                  </MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                error={!isEpisodeValid(currentEpisode)}
                 placeholder="Епізод"
-                value={currentEpisode}
-                type="number"
-                sx={{ width: '80px' }}
-                onChange={(e) => setCurrentEpisode(Number(e.target.value))}
+                value={currentEpisode || ''}
+                type="text"
+                sx={{ width: '85px' }}
+                onChange={(e) =>
+                  handleChangeCurrentEpisode(e, setCurrentEpisode)
+                }
               />
             </RowWrapper>
-            <Title>Серія виконана за</Title>
+            <Title>Аніме належить до:</Title>
             <ButtonsWrapper>
               <Button
                 variant="contained"
-                disabled={nameTitle.length < 3}
+                disabled={
+                  nameTitle.length < 3 || !isEpisodeValid(currentEpisode)
+                }
                 onClick={() => setAnimeStatus(AnimeStatusEnum.STANDART)}
               >
-                3 дні
+                Серіал
               </Button>
               <Button
                 variant="contained"
-                disabled={nameTitle.length < 3}
-                onClick={() => setAnimeStatus(AnimeStatusEnum.DELAY)}
-              >
-                3+ дні
-              </Button>
-              <Button
-                variant="contained"
-                disabled={nameTitle.length < 3}
+                disabled={
+                  nameTitle.length < 3 || !isEpisodeValid(currentEpisode)
+                }
                 onClick={() => setAnimeStatus(AnimeStatusEnum.FILM)}
               >
-                фільм
+                Фільм
               </Button>
             </ButtonsWrapper>
+            <AddAnimeDialog
+              onClose={() => setOpenDialog(false)}
+              open={openDialog}
+            />
           </>
         )}
 
@@ -166,14 +208,19 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
             initialValues={initialValues}
             onSubmit={async (values) => {
               try {
-                const valuesArray = [...Object.values(values.main)];
+                const valuesArray = [...Object.values(values.main)].filter(
+                  (value) => value.nickname !== ''
+                );
                 const updValuesArray = valuesArray.map((value) => {
+                  const updatedCoins = isFast ? Math.round(value.coin * 1.2) : value.coin;
                   return {
                     ...value,
                     note,
+                    coin: updatedCoins,
                   };
                 });
                 await addTracks(updValuesArray);
+                // alert(JSON.stringify(updValuesArray, null, 2));
                 setPopMessage('Успішно');
                 setPopOpen(true);
                 setTimeout(() => {
@@ -219,8 +266,8 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                           e,
                           values,
                           nameTitle,
-                          currentEpisode,
-                          setInitialValues,
+                          parseFloat(currentEpisode),
+                          setInitialValues
                         )
                       }
                     >
@@ -267,6 +314,43 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                       />
                     )
                   )}
+                <PlusMinusWrapper>
+                  <Button
+                    sx={{ padding: 0 }}
+                    onClick={() => {
+                      const newValue = Math.min(Math.max(dubFields + 1, 1), 20);
+                      handleChangeDubFields(
+                        {
+                          target: { value: newValue },
+                        } as SelectChangeEvent<unknown>,
+                        values,
+                        nameTitle,
+                        parseFloat(currentEpisode),
+                        setInitialValues
+                      );
+                    }}
+                    disabled={dubFields >= 20}
+                  >
+                    +
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const newValue = Math.min(Math.max(dubFields - 1, 1), 20);
+                      handleChangeDubFields(
+                        {
+                          target: { value: newValue },
+                        } as SelectChangeEvent<unknown>,
+                        values,
+                        nameTitle,
+                        parseFloat(currentEpisode),
+                        setInitialValues
+                      );
+                    }}
+                    disabled={dubFields <= 1}
+                  >
+                    -
+                  </Button>
+                </PlusMinusWrapper>
                 <SubParagraph>
                   Для наступних ролей для розподілу дозволено{' '}
                   {getPartialValue(cof.additional, coins.coin)} крихт
@@ -277,6 +361,8 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                 <InputField name={'main.roleBreaker'} />
                 <Paragraph>Релізер:</Paragraph>
                 <InputField name={'main.release'} />
+                <Paragraph>Додаткова роль (не обов'язкова):</Paragraph>
+                <InputField name={'main.another'} />
                 <Paragraph>Нотатка:</Paragraph>
                 <TextField
                   placeholder="Не обов'язкове поле"
@@ -284,6 +370,10 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                   onChange={(e) => setNote(e.target.value)}
                   sx={{ m: 1, width: '100%' }}
                 />
+                <CheckboxWrapper>
+                  <Checkbox value={isFast} onChange={() => setIsFast(!isFast)}/>
+                  <SubParagraph>Зроблено швидко</SubParagraph>
+                </CheckboxWrapper>
                 {errors.main && (
                   <ErrorText>
                     <>{errors.main}</>

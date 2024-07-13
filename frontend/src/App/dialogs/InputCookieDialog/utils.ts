@@ -23,7 +23,7 @@ export const handleChangeDubFields = (
   initialValues: ValuesType,
   nameTitle: string,
   currentEpisode: number,
-  setInitialValues: Dispatch<SetStateAction<ValuesType>>,
+  setInitialValues: Dispatch<SetStateAction<ValuesType>>
 ) => {
   const value = Number(event.target.value);
   const newMain = { ...initialValues.main };
@@ -47,7 +47,7 @@ export const handleChangeDubFields = (
   setInitialValues((prev) => ({
     ...prev,
     main: newMain,
-    dubs: Array(value).fill('')
+    dubs: Array(value).fill(''),
   }));
 };
 
@@ -61,4 +61,17 @@ export const handleChangeDubStatus = (
 
 export const getPartialValue = (percent: number, totalValue: number) => {
   return (percent / 100) * totalValue;
-}
+};
+
+export const handleChangeCurrentEpisode = (
+  event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  setCurrentEpisode: Dispatch<SetStateAction<string>>
+) => {
+  const value = event.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+  console.log(value)
+  setCurrentEpisode(value);
+};
+
+export const isEpisodeValid = (episode: string) => {
+  return !isNaN(Number(episode)) && episode.length > 0;
+};

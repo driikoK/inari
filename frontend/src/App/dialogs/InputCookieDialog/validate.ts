@@ -43,7 +43,7 @@ export const validate = (
   }
 
   for (const key in values.main) {
-    if (Object.prototype.hasOwnProperty.call(values.main, key)) {
+    if (Object.prototype.hasOwnProperty.call(values.main, key) && key !== 'another') {
       if (!values.main[key].nickname) {
         errors.main = 'Нікнейми не можуть бути порожнім';
       }

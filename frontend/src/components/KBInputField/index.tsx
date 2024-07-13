@@ -14,7 +14,6 @@ import {
 import { FieldContainer, Label } from './styles';
 import { FunctionComponent, useEffect, useState } from 'react';
 import CreateUserDialog from '@/App/dialogs/CreateUserDialog';
-import Button from '../Button';
 import theme from '@theme';
 import useUsersStore from '@/stores/useUsersStore';
 
@@ -76,9 +75,13 @@ const KBInputField: FunctionComponent<IInputProps> = ({ mainName, dubName, isDis
               {user.nickname}
             </MenuItem>
           ))}
-          <div>
-            <Button onClick={() => setOpenDialog(true)}>Додати</Button>
-          </div>
+          <MenuItem
+            sx={{ fontWeight: '500' }}
+            value={''}
+            onClick={() => setOpenDialog(true)}
+          >
+            Додати
+          </MenuItem>
         </Select>
       </FormControl>
       <TextField
