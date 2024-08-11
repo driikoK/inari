@@ -1,12 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useField } from 'formik';
 import {
+  Autocomplete,
   FormControl,
-  InputLabel,
   MenuItem,
-  OutlinedInput,
-  Select,
-  SelectChangeEvent,
   TextField,
   useMediaQuery,
 } from '@mui/material';
@@ -34,8 +31,8 @@ const InputField: FunctionComponent<IInputProps> = ({
     getUsers();
   }, []);
 
-  const handleNicknameChange = (event: SelectChangeEvent) => {
-    helpers.setValue({ ...field.value, nickname: event.target.value });
+  const handleNicknameChange = (value: string) => {
+    helpers.setValue({ ...field.value, nickname: value });
   };
 
   const handleCoinsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,26 +45,36 @@ const InputField: FunctionComponent<IInputProps> = ({
   return (
     <FieldContainer>
       <FormControl sx={{ m: 1, width: isTablet ? 300 : '100%' }}>
-        <InputLabel id="name-label">Нікнейм</InputLabel>
-        <Select
-          labelId="name-label"
-          value={field.value.nickname}
-          onChange={handleNicknameChange}
-          input={<OutlinedInput label="Нікнейм" />}
-        >
-          {users.map((user) => (
-            <MenuItem key={user.nickname} value={user.nickname}>
-              {user.nickname}
+        <Autocomplete
+          options={users}
+          getOptionLabel={(option) => option.nickname}
+          value={
+            users.find((user) => user.nickname === field.value.nickname) || null
+          }
+          onChange={(_, newValue) => {
+            if (newValue) {
+              handleNicknameChange(newValue.nickname);
+            } else {
+              handleNicknameChange('');
+            }
+          }}
+          renderInput={(params) => (
+            <TextField {...params} label="Нікнейм" variant="outlined" />
+          )}
+          renderOption={(props, option) => (
+            <MenuItem {...props} key={option.nickname} value={option.nickname}>
+              {option.nickname}
             </MenuItem>
-          ))}
-          <MenuItem
-            sx={{ fontWeight: '500' }}
-            value={''}
-            onClick={() => setOpenDialog(true)}
-          >
-            Додати
-          </MenuItem>
-        </Select>
+          )}
+          noOptionsText={
+            <MenuItem
+              sx={{ fontWeight: '500' }}
+              onClick={() => setOpenDialog(true)}
+            >
+              Додати
+            </MenuItem>
+          }
+        />
       </FormControl>
       <TextField
         disabled={isDisabled}

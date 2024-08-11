@@ -30,8 +30,7 @@ export interface CoinsType {
 export enum AnimeStatusEnum {
   NONE = 'none',
   FILM = 'film',
-  STANDART = 'inTimeStandardAnime',
-  DELAY = 'delayStandardAnime',
+  SERIES = 'inTimeStandardAnime',
 }
 
 export enum DubStatusEnum {

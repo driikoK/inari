@@ -33,12 +33,12 @@ export const handleChangeDubFields = (
       delete newMain[key];
     }
   }
-
+  
   for (let i = 1; i <= value; i++) {
     newMain[`dub${i}`] = {
-      nickname: '',
+      nickname: (initialValues.main[`dub${i}`]?.nickname) ?? '',
       nameTitle,
-      coin: 0,
+      coin: (initialValues.main[`dub${i}`]?.coin) ?? 0,
       typeRole: 'dub',
       currentEpisode,
     };
@@ -68,7 +68,6 @@ export const handleChangeCurrentEpisode = (
   setCurrentEpisode: Dispatch<SetStateAction<string>>
 ) => {
   const value = event.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
-  console.log(value)
   setCurrentEpisode(value);
 };
 

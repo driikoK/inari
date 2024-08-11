@@ -48,6 +48,7 @@ export interface CofType{
   dub: number,
   sound: number,
   additional: number,
+  fastMultiplier: number,
 }
 
 export interface CoinsType {

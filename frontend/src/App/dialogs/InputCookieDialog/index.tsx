@@ -1,12 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FunctionComponent, useEffect, useState } from 'react';
 import {
+  Autocomplete,
   Checkbox,
-  FormControl,
-  InputLabel,
   MenuItem,
-  OutlinedInput,
-  Select,
   SelectChangeEvent,
   Snackbar,
   TextField,
@@ -69,7 +66,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
   );
   const { cof, getCof } = useCofStore();
   const { coinsTypes, getCoins } = useCoinsStore();
-  const [coins, setCoins] = useState<CoinsType>(coinsTypes.delayStandardAnime);
+  const [coins, setCoins] = useState<CoinsType>(coinsTypes.series);
   const [nameTitle, setNameTitle] = useState('');
   const [currentEpisode, setCurrentEpisode] = useState('1');
   const [note, setNote] = useState<string | null>(null);
@@ -92,10 +89,8 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
   useEffect(() => {
     if (animeStatus === AnimeStatusEnum.FILM) {
       setCoins(coinsTypes.film);
-    } else if (animeStatus === AnimeStatusEnum.DELAY) {
-      setCoins(coinsTypes.delayStandardAnime);
-    } else if (animeStatus === AnimeStatusEnum.STANDART) {
-      setCoins(coinsTypes.inTimeStandardAnime);
+    } else if (animeStatus === AnimeStatusEnum.SERIES) {
+      setCoins(coinsTypes.series);
     }
   }, [animeStatus, coinsTypes]);
 
@@ -139,9 +134,45 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
           <>
             <Title>Назва тайтлу і номер епізоду</Title>
             <RowWrapper>
-              <FormControl>
-                <InputLabel id="name-label">Аніме</InputLabel>
-                <Select
+              <Autocomplete
+                options={animeNames}
+                getOptionLabel={(option) => option._id}
+                value={
+                  nameTitle
+                    ? animeNames.find((anime) => anime._id === nameTitle)
+                    : null
+                }
+                onChange={(_, newValue) => {
+                  if (newValue) {
+                    setNameTitle(newValue._id);
+                  } else {
+                    setNameTitle('');
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Аніме"
+                    placeholder="Вкажіть назву тайтлу"
+                    variant="outlined"
+                  />
+                )}
+                sx={{ minWidth: '150px', maxWidth: '230px' }}
+                renderOption={(props, option) => (
+                  <MenuItem {...props} key={option._id} value={option._id}>
+                    {option._id}
+                  </MenuItem>
+                )}
+                noOptionsText={
+                  <MenuItem
+                    sx={{ fontWeight: '600' }}
+                    onClick={() => setOpenDialog(true)}
+                  >
+                    Додати
+                  </MenuItem>
+                }
+              />
+              {/* <Select
                   id="name-label"
                   value={nameTitle}
                   onChange={(e) => setNameTitle(e.target.value)}
@@ -161,8 +192,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                   >
                     Додати
                   </MenuItem>
-                </Select>
-              </FormControl>
+                </Select> */}
               <TextField
                 error={!isEpisodeValid(currentEpisode)}
                 placeholder="Епізод"
@@ -181,7 +211,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                 disabled={
                   nameTitle.length < 3 || !isEpisodeValid(currentEpisode)
                 }
-                onClick={() => setAnimeStatus(AnimeStatusEnum.STANDART)}
+                onClick={() => setAnimeStatus(AnimeStatusEnum.SERIES)}
               >
                 Серіал
               </Button>
@@ -212,7 +242,9 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                   (value) => value.nickname !== ''
                 );
                 const updValuesArray = valuesArray.map((value) => {
-                  const updatedCoins = isFast ? Math.round(value.coin * 1.2) : value.coin;
+                  const updatedCoins = isFast
+                    ? Math.round(value.coin * cof.fastMultiplier)
+                    : value.coin;
                   return {
                     ...value,
                     note,
@@ -371,7 +403,10 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                   sx={{ m: 1, width: '100%' }}
                 />
                 <CheckboxWrapper>
-                  <Checkbox value={isFast} onChange={() => setIsFast(!isFast)}/>
+                  <Checkbox
+                    value={isFast}
+                    onChange={() => setIsFast(!isFast)}
+                  />
                   <SubParagraph>Зроблено швидко</SubParagraph>
                 </CheckboxWrapper>
                 {errors.main && (

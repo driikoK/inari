@@ -11,5 +11,5 @@ export default {
   db: process.env.POSTGRES_DB,
   dbString: process.env.POSTGRES_CONNECTION_STRING,
   cors: process.env.CORS,
-  apiKey: process.env.API_KEY,
+  coinsPass: process.env.COINS_PASSWORD,
 };

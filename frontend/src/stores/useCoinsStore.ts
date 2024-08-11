@@ -5,8 +5,7 @@ import { CoinsType } from '@/types';
 interface IState {
   coinsTypes: {
     film: CoinsType;
-    inTimeStandardAnime: CoinsType;
-    delayStandardAnime: CoinsType;
+    series: CoinsType;
   };
   getCoins: () => Promise<void>;
 }
@@ -19,14 +18,8 @@ const useCoinsStore = create<IState>((set) => ({
       maxAdditionalOnRole: 0,
       bonusDirector: 0,
     },
-    inTimeStandardAnime: {
-      type: 'inTimeStandardAnime',
-      coin: 0,
-      maxAdditionalOnRole: 0,
-      bonusDirector: 0,
-    },
-    delayStandardAnime: {
-      type: 'delayStandardAnime',
+    series: {
+      type: 'series',
       coin: 0,
       maxAdditionalOnRole: 0,
       bonusDirector: 0,

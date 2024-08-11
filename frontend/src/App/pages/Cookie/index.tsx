@@ -2,9 +2,11 @@ import { FunctionComponent, useState } from 'react';
 import InputCookieDialog from '@/App/dialogs/InputCookieDialog';
 import { Container, ElementContainer, ElementImage, Title } from './styles';
 import { useNavigate } from 'react-router-dom';
+import PasswordDialog from '@/App/dialogs/PasswordDialog';
 
 const Cookie: FunctionComponent = () => {
-  const [openDialog, setOpenDialog] = useState(false);
+  const [openCookieDialog, setOpenCookieDialog] = useState(false);
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
 
   const navigate = useNavigate();
 
@@ -14,7 +16,7 @@ const Cookie: FunctionComponent = () => {
 
   return (
     <Container>
-      <ElementContainer onClick={() => setOpenDialog(true)}>
+      <ElementContainer onClick={() => setOpenPasswordDialog(true)}>
         <ElementImage $url='/cookie.png'/>
         <Title>Додати нові крихти</Title>
       </ElementContainer>
@@ -26,7 +28,8 @@ const Cookie: FunctionComponent = () => {
         <ElementImage $url='/roles.png'/>
         <Title>Рейтинг крихт</Title>
       </ElementContainer>
-      <InputCookieDialog onClose={() => setOpenDialog(false)} open={openDialog} />
+      <InputCookieDialog onClose={() => setOpenCookieDialog(false)} open={openCookieDialog} />
+      <PasswordDialog onSubmit={()=> {setOpenPasswordDialog(false); setOpenCookieDialog(true)} } onClose={() => setOpenPasswordDialog(false) } open={openPasswordDialog} />
     </Container>
   );
 };

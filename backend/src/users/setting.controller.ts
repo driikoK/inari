@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
+import config from 'src/config';
 
 @Controller()
 export class SettingController {
@@ -11,17 +12,11 @@ export class SettingController {
         maxAdditionalOnRole: 30,
         bonusDirector: 60,
       },
-      inTimeStandardAnime: {
-        type: 'inTimeStandardAnime',
+      series: {
+        type: 'series',
         coin: 200,
         maxAdditionalOnRole: 20,
         bonusDirector: 30,
-      },
-      delayStandardAnime: {
-        type: 'delayStandardAnime',
-        coin: 150,
-        maxAdditionalOnRole: 10,
-        bonusDirector: 10,
       },
     };
   }
@@ -33,6 +28,12 @@ export class SettingController {
       dub: 46,
       sound: 12,
       additional: 20,
+      fastMultiplier: 1.2,
     };
+  }
+
+  @Get('/allow-coins/:password')
+  async isAllowCoins(@Param('password') password: string) {
+    return password === config.coinsPass;
   }
 }
