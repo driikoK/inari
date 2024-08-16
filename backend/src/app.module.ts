@@ -10,18 +10,18 @@ import { UserModule } from './users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: configuration.postgres.host,
-      port: configuration.postgres.port,
-      username: configuration.postgres.user,
-      password: configuration.postgres.password,
-      database: configuration.postgres.db,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-      logging: false,
-    }),
-    PollsModule,
+    //   TypeOrmModule.forRoot({
+    //     type: 'postgres',
+    //     host: configuration.postgres.host,
+    //     port: configuration.postgres.port,
+    //     username: configuration.postgres.user,
+    //     password: configuration.postgres.password,
+    //     database: configuration.postgres.db,
+    //     entities: [__dirname + '/**/*.entity{.ts,.js}'],
+    //     synchronize: true,
+    //     logging: false,
+    //   }),
+    // PollsModule,
     CommandModule,
     SeedModule,
     UserModule,
