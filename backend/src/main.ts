@@ -7,11 +7,11 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const corsOptions: CorsOptions = {
-    origin: configuration.cors,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  };
+  // const corsOptions: CorsOptions = {
+  //   origin: configuration.cors,
+  //   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  //   allowedHeaders: ['Content-Type', 'Authorization'],
+  // };
 
   const options = new DocumentBuilder()
     .setTitle('API Title')
@@ -24,8 +24,6 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api-docs', app, document);
-
-  app.enableCors(corsOptions);
 
   await app.listen(8000);
 }
