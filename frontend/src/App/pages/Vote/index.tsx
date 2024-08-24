@@ -14,7 +14,7 @@ import InfoDialog from '../../dialogs/InfoDialog';
 import InputDialog from '../../dialogs/InputDialog';
 
 const Vote: FunctionComponent = () => {
-  const [selectedCards, setSelectedCards] = useState<number[]>([]);
+  const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [ongoingsData, setOngoinsData] = useState<TAnime[]>([]);
   const [oldsData, setOldsData] = useState<TAnime[]>([]);
   const [openInfoDialog, setOpenInfoDialog] = useState(false);
@@ -56,7 +56,7 @@ const Vote: FunctionComponent = () => {
     fetchData();
   }, []);
 
-  const handleCheckboxChange = (id: number) => {
+  const handleCheckboxChange = (id: string) => {
     if (selectedCards.includes(id)) {
       setSelectedCards(selectedCards.filter((item) => item !== id));
     } else {
@@ -124,12 +124,12 @@ const Vote: FunctionComponent = () => {
           ) : (
             ongoingsData.map((card) => (
               <Card
-                key={card.id}
+                key={card._id}
                 name={card.name}
                 link={card.link}
                 posterUrl={card.posterUrl}
-                checked={selectedCards.includes(card.id)}
-                onCheckboxChange={() => handleCheckboxChange(card.id)}
+                checked={selectedCards.includes(card._id)}
+                onCheckboxChange={() => handleCheckboxChange(card._id)}
               />
             ))
           )}
@@ -143,12 +143,12 @@ const Vote: FunctionComponent = () => {
           ) : (
             oldsData.map((card) => (
               <Card
-                key={card.id}
+                key={card._id}
                 name={card.name}
                 link={card.link}
                 posterUrl={card.posterUrl}
-                checked={selectedCards.includes(card.id)}
-                onCheckboxChange={() => handleCheckboxChange(card.id)}
+                checked={selectedCards.includes(card._id)}
+                onCheckboxChange={() => handleCheckboxChange(card._id)}
               />
             ))
           )}

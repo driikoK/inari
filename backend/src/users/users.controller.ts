@@ -1,12 +1,22 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { UserService } from './users.service';
 import { CreateUserData } from './data/create-user.data';
 import { TypesEnum } from './enums/types.enum';
 import { TrackService } from './track.service';
 import { CreateTrackData } from './data/create-track.data';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { FilterTrackData } from './data/filter-track.data';
 
+@ApiTags('Users')
 @Controller()
 export class UserController {
   constructor(
@@ -37,8 +47,7 @@ export class UserController {
 
   @Put('/track/:id')
   @ApiBody({ type: [CreateTrackData] })
-  async updateTrack(@Body() tracks: CreateTrackData) {
-  }
+  async updateTrack(@Body() tracks: CreateTrackData) {}
 
   @Delete('/track/:id')
   async deleteTrack(@Param('id') id: string) {
@@ -46,7 +55,7 @@ export class UserController {
   }
 
   @Get('/tracks')
-  async tracks(@Query() filter: FilterTrackData) { 
+  async tracks(@Query() filter: FilterTrackData) {
     return this.trackService.getTracks(filter);
   }
 
@@ -59,7 +68,6 @@ export class UserController {
   async tracksSeasons() {
     return this.trackService.getTrackSeasons();
   }
-
 
   @Get('/types')
   async getTypes() {

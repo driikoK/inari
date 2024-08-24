@@ -6,14 +6,17 @@ import {
   HttpStatus,
   Post,
 } from '@nestjs/common';
-import { Anime } from './entities/anime.entity';
 import { PollsService } from './polls.service';
+import { IAnime } from './interfaces/anime.interface';
+import { ApiTags } from '@nestjs/swagger';
+import { AnimeData } from './data/anime.data';
 
+@ApiTags('Polls')
 @Controller()
 export class PollsController {
   constructor(private readonly pollsService: PollsService) {}
 
-  @Get('/ongoings') async getOngoings(): Promise<Anime[]> {
+  @Get('/ongoings') async getOngoings(): Promise<IAnime[]> {
     try {
       const anime = await this.pollsService.findAnimeByIsOngoing(true);
       return anime;
@@ -23,7 +26,7 @@ export class PollsController {
     }
   }
 
-  @Get('/olds') async getOlds(): Promise<Anime[]> {
+  @Get('/olds') async getOlds(): Promise<IAnime[]> {
     try {
       const anime = await this.pollsService.findAnimeByIsOngoing(false);
       return anime;
@@ -49,6 +52,30 @@ export class PollsController {
   ): Promise<boolean> {
     try {
       await this.pollsService.vote(body.userName, body.animeIds);
+      return true;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Post('/clear-poll')
+  async claerPoll(): Promise<boolean> {
+    try {
+      await this.pollsService.clearAllAnimesAndVotes();
+      return true;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Post('/set-anime')
+  async setAnime(@Body('animeList') animeList: AnimeData[]): Promise<boolean> {
+    try {
+      for (const anime of animeList) {
+        await this.pollsService.createAnime(anime);
+      }
       return true;
     } catch (error) {
       console.error(error);

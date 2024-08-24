@@ -1,17 +1,29 @@
 import { Command } from 'nestjs-command';
 import { Injectable } from '@nestjs/common';
-import AppDataSource from '../../db/config/migration';
-import { Anime } from 'src/polls/entities/anime.entity';
-import { anime } from './datas/anime.data';
 import { nicknames } from './datas/nicknames.data';
 import { UserData } from 'src/users/data/nickname.data';
 import { UserService } from 'src/users/users.service';
+import { animeSeries } from './datas/anime.data';
+import { PollsService } from 'src/polls/polls.service';
+import { AnimeData } from 'src/polls/data/anime.data';
 
 @Injectable()
 export class SeedCommand {
   constructor(
     private readonly usersService: UserService,
+    private readonly pollsService: PollsService,
   ) {}
+
+  @Command({
+    command: 'seed:anime',
+    describe: 'create anime',
+  })
+  async anime() {
+    for (const anime of animeSeries) {
+      const animeTemplate = Object.assign(new AnimeData(), anime);
+      await this.pollsService.createAnime(animeTemplate);
+    }
+  }
 
   @Command({
     command: 'seed:nicknames',
@@ -29,10 +41,6 @@ export class SeedCommand {
     describe: 'clear lists',
   })
   async clear() {
-    await AppDataSource.initialize();
-
-    await AppDataSource.query(`TRUNCATE TABLE "user" CASCADE`);
-
-    await AppDataSource.destroy();
+    console.log('to do');
   }
 }

@@ -1,5 +1,5 @@
 export type TAnime = {
-  id: number,
+  _id: string,
   name: string,
   link: string,
   posterUrl: string,
@@ -9,7 +9,7 @@ export type TAnime = {
 export type TResultAnime = {
   anime: TAnime & {
     votes: {
-      id: number,
+      _id: string,
       userName: string,
     }[],
   },

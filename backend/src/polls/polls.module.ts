@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Anime } from './entities/anime.entity';
-import { Vote } from './entities/vote.entity';
 import { PollsController } from './polls.controller';
 import { PollsService } from './polls.service';
+import { DatabaseModule } from 'src/database/database.module';
+import { pollsProviders } from './polls.provider';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Anime, Vote])],
-  providers: [PollsService],
+  imports: [DatabaseModule],
+  providers: [PollsService, ...pollsProviders],
   controllers: [PollsController],
+  exports: [PollsService],
 })
 export class PollsModule {}

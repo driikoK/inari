@@ -17,7 +17,7 @@ interface IPropList {
     link: string;
     isOngoing: boolean;
     votes: {
-      id: number;
+      _id: string;
       userName: string;
     }[];
   };
@@ -42,7 +42,7 @@ const List: FunctionComponent<IPropList> = ({ anime, voteCount }) => {
           <Paragraph>Голосували:</Paragraph>
           <VotesWrapper>
             {votesArray.map((vote) => (
-              <Paragraph key={vote.id}>{vote.userName}</Paragraph>
+              <Paragraph key={vote._id}>{vote.userName}</Paragraph>
             ))}
           </VotesWrapper>
         </>

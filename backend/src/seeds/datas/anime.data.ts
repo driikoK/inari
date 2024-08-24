@@ -1,4 +1,4 @@
-export const anime = [
+export const animeSeries = [
   {
     name: 'Kishuku Gakkou-hen',
     link: 'https://myanimelist.net/anime/55855/Kuroshitsuji__Kishuku_Gakkou-hen',

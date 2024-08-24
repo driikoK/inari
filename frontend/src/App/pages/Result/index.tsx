@@ -52,7 +52,7 @@ const Result: FunctionComponent = () => {
           ) : (
             data.map((item) => (
               <List
-                key={item.anime.id}
+                key={item.anime._id}
                 anime={item.anime}
                 voteCount={item.voteCount}
               />

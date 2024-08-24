@@ -1,6 +1,8 @@
 import { Controller, Get, Param } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import config from 'src/config';
 
+@ApiTags('Settings')
 @Controller()
 export class SettingController {
   @Get('/coins')
