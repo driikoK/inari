@@ -4,6 +4,7 @@ export type TAnime = {
   link: string,
   posterUrl: string,
   isOngoing: boolean,
+  isPriority: boolean,
 }
 
 export type TResultAnime = {

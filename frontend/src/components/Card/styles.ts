@@ -37,6 +37,17 @@ export const CheckboxWrapper = styled.div`
   border-radius: 50%;
 `;
 
+export const PriorityWrapper = styled.div`
+  position: absolute;
+  top: 13px;
+  right: 5px;
+  background-color: ${({ theme }) => theme.colors.yellow};
+  font-family: ${({ theme }) => theme.font.family.montserrat};
+  font-weight: 500;
+  color: black;
+  padding: 5px;
+`;
+
 export const LinkWrapper = styled.a`
   display: flex;
   align-items: center;

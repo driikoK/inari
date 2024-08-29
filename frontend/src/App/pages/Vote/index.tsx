@@ -129,6 +129,7 @@ const Vote: FunctionComponent = () => {
                 link={card.link}
                 posterUrl={card.posterUrl}
                 checked={selectedCards.includes(card._id)}
+                isPriority={card.isPriority}
                 onCheckboxChange={() => handleCheckboxChange(card._id)}
               />
             ))
@@ -148,6 +149,7 @@ const Vote: FunctionComponent = () => {
                 link={card.link}
                 posterUrl={card.posterUrl}
                 checked={selectedCards.includes(card._id)}
+                isPriority={card.isPriority}
                 onCheckboxChange={() => handleCheckboxChange(card._id)}
               />
             ))

@@ -3,4 +3,5 @@ export class AnimeData {
   link: string;
   posterUrl: string;
   isOngoing: boolean;
+  isPriority: boolean;
 }
