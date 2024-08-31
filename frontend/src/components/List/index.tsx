@@ -8,6 +8,7 @@ import {
   Old,
   Ongoing,
   Paragraph,
+  Priority,
   VotesWrapper,
 } from './styles';
 
@@ -16,6 +17,7 @@ interface IPropList {
     name: string;
     link: string;
     isOngoing: boolean;
+    isPriority: boolean;
     votes: {
       _id: string;
       userName: string;
@@ -35,6 +37,7 @@ const List: FunctionComponent<IPropList> = ({ anime, voteCount }) => {
           <LinkParagraph>MAL</LinkParagraph>
         </LinkWrapper>
         {anime.isOngoing ? <Ongoing> - Онґоїнґ</Ongoing> : <Old> - Старе</Old>}
+        {anime.isPriority && <Priority> | Пріоритет</Priority>}
       </InfoWrapper>
       <Paragraph>Голосів: {voteCount}</Paragraph>
       {votesArray.length >= 1 && (

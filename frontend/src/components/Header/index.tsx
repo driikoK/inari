@@ -42,7 +42,7 @@ const Header: FunctionComponent = () => {
       {isDesktop ? (
         <NavWrapper>
           <NavButton onClick={() => handleLink('/cookie')}>Крихти</NavButton>
-          {/* <NavButton onClick={() => handleLink('/vote')}>Голосування</NavButton> */}
+          <NavButton onClick={() => handleLink('/vote')}>Голосування</NavButton>
         </NavWrapper>
       ) : (
         <IconButton onClick={handleClickMenu}>
@@ -64,7 +64,7 @@ const Header: FunctionComponent = () => {
         }}
       >
         <MenuItem onClick={() => handleLink('/cookie')}>Крихти</MenuItem>
-        {/* <MenuItem onClick={() => handleLink('/vote')}>Голосування</MenuItem> */}
+        <MenuItem onClick={() => handleLink('/vote')}>Голосування</MenuItem>
       </Menu>
     </HeaderContainer>
   );

@@ -2,10 +2,11 @@ import { FunctionComponent, useState } from 'react';
 import InputCookieDialog from '@/App/dialogs/InputCookieDialog';
 import { Container, ElementContainer, ElementImage, Title } from './styles';
 import { useNavigate } from 'react-router-dom';
+import PasswordDialog from '@/App/dialogs/PasswordDialog';
 
 const Cookie: FunctionComponent = () => {
   const [openCookieDialog, setOpenCookieDialog] = useState(false);
-  // const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(true);
 
   const navigate = useNavigate();
 
@@ -28,7 +29,7 @@ const Cookie: FunctionComponent = () => {
         <Title>Рейтинг крихт</Title>
       </ElementContainer>
       <InputCookieDialog onClose={() => setOpenCookieDialog(false)} open={openCookieDialog} />
-      {/* <PasswordDialog onSubmit={()=> {setOpenPasswordDialog(false); setOpenCookieDialog(true)} } onClose={() => setOpenPasswordDialog(false) } open={openPasswordDialog} /> */}
+      <PasswordDialog onSubmit={()=> {setOpenPasswordDialog(false);} } onClose={() => {} } open={openPasswordDialog} />
     </Container>
   );
 };

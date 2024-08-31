@@ -28,6 +28,12 @@ export const Old = styled.span`
   color: red;
 `;
 
+export const Priority = styled.span`
+  font-family: ${({ theme }) => theme.font.family.montserrat};
+  font-size: 15px;
+  color: blue;
+`;
+
 export const VotesWrapper = styled.div`
   display: flex;
   flex-direction: column;
