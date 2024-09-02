@@ -10,6 +10,11 @@ export const CardContainer = styled.div`
       width: ["150px", "150px", "225px", "225px"],
   })};
   background-color: ${({ theme }) => theme.colors.title};
+`;
+
+export const PosterWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
   position: relative;
 `;
 
@@ -40,6 +45,17 @@ export const CheckboxWrapper = styled.div`
 export const PriorityWrapper = styled.div`
   position: absolute;
   top: 13px;
+  right: 5px;
+  background-color: ${({ theme }) => theme.colors.yellow};
+  font-family: ${({ theme }) => theme.font.family.montserrat};
+  font-weight: 500;
+  color: black;
+  padding: 5px;
+`;
+
+export const SponsoredWrapper = styled.div`
+  position: absolute;
+  bottom: 13px;
   right: 5px;
   background-color: ${({ theme }) => theme.colors.yellow};
   font-family: ${({ theme }) => theme.font.family.montserrat};

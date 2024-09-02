@@ -4,4 +4,6 @@ export class AnimeData {
   posterUrl: string;
   isOngoing: boolean;
   isPriority: boolean;
+  isDecided: boolean;
+  isSponsored: boolean;
 }

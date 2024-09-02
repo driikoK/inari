@@ -5,6 +5,8 @@ export type TAnime = {
   posterUrl: string,
   isOngoing: boolean,
   isPriority: boolean,
+  isDecided: boolean;
+  isSponsored: boolean;
 }
 
 export type TResultAnime = {

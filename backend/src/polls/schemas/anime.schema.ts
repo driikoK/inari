@@ -6,6 +6,8 @@ export const AnimeSchema = new mongoose.Schema({
   posterUrl: { type: String, required: true },
   isOngoing: { type: Boolean, required: true },
   isPriority: { type: Boolean, required: true },
+  isDecided: { type: Boolean, required: true },
+  isSponsored: { type: Boolean, required: true },
   votes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Vote' }],
 });
 
