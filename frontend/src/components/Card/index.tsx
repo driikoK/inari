@@ -38,12 +38,14 @@ const Card: FunctionComponent<ICardProps> = ({
   return (
     <CardContainer>
       <PosterWrapper>
-        <CheckboxWrapper>
-          <Checkbox checked={checked} onChange={onCheckboxChange} />
-        </CheckboxWrapper>
+        {!isDecided && (
+          <CheckboxWrapper>
+            <Checkbox checked={checked} onChange={onCheckboxChange} />
+          </CheckboxWrapper>
+        )}
         {isPriority && <PriorityWrapper>+25% крихт</PriorityWrapper>}
         {isSponsored && <SponsoredWrapper>Від меценатів</SponsoredWrapper>}
-        <Poster $url={posterUrl} onClick={onCheckboxChange} />
+        <Poster $url={posterUrl} onClick={isDecided ? () => {} : onCheckboxChange} />
       </PosterWrapper>
       <InfoWrapper>
         <LinkWrapper href={link} target="_blank">
@@ -53,7 +55,9 @@ const Card: FunctionComponent<ICardProps> = ({
         <Paragraph>{name}</Paragraph>
         <br />
         <br />
-        <Paragraph style={{color: 'red'}}>{isDecided && "(Тайтл остаточно робитиметься)"}</Paragraph>
+        <Paragraph style={{ color: 'red' }}>
+          {isDecided && '(Тайтл точно робитиметься)'}
+        </Paragraph>
       </InfoWrapper>
     </CardContainer>
   );
