@@ -10,9 +10,9 @@ export class SettingController {
     return {
       film: {
         type: 'film',
-        coin: 400,
-        maxAdditionalOnRole: 30,
-        bonusDirector: 60,
+        coin: 400, // загальна кількість крихт, які будуть розподілятися між учасниками
+        maxAdditionalOnRole: 30, // максимальна кількість крихт, які можна дати учаснику з додаткових ролей (релізер, розроділяч ролей і тд)
+        bonusDirector: 60, // крихти для куратора (вони окремо)
       },
       series: {
         type: 'series',
@@ -26,11 +26,11 @@ export class SettingController {
   @Get('/cof')
   async getCof() {
     return {
-      sub: 22,
+      sub: 22, // відсоток від загальної кількості крихт
       dub: 46,
       sound: 12,
       additional: 20,
-      fastMultiplier: 1.2,
+      fastMultiplier: 1.2, // множник, на який множаться всі розподілені крихти, якщо активувати чекбокс "зроблено швидко"
     };
   }
 
