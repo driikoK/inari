@@ -5,7 +5,12 @@ import { TrackType } from '@/types';
 
 interface IState {
   tracks: TrackType[];
-  getTracks: (filters?: { nickname?: string; season?: number; nameTitle?: string; typeRole?: string }) => Promise<void>;
+  getTracks: (filters?: {
+    nickname?: string;
+    season?: number;
+    nameTitle?: string;
+    typeRole?: string;
+  }) => Promise<void>;
   addTracks: (newTracks: unknown[]) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;
 }
@@ -15,7 +20,7 @@ const useTracksStore = create<IState>((set) => ({
 
   getTracks: async (filters) => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/tracks`, { params: filters });
+      const response = await axios.get(`${process.env.API_URL}/users/tracks`, { params: filters });
       set({ tracks: response.data });
     } catch (error) {
       throw error;
@@ -24,20 +29,15 @@ const useTracksStore = create<IState>((set) => ({
 
   addTracks: async (newTracks: unknown[]) => {
     try {
-      await axios.post(
-        `${process.env.API_URL}/tracks`,
-        newTracks
-      );
+      await axios.post(`${process.env.API_URL}/users/tracks`, newTracks);
     } catch (error) {
       throw error;
     }
   },
   deleteTracks: async (id: string) => {
     try {
-      await axios.delete(
-        `${process.env.API_URL}/track/${id}`
-      );
-      set((state) => ({ tracks: state.tracks.filter(item => item._id !== id) }));
+      await axios.delete(`${process.env.API_URL}/users/track/${id}`);
+      set((state) => ({ tracks: state.tracks.filter((item) => item._id !== id) }));
     } catch (error) {
       throw error;
     }
