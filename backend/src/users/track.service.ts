@@ -48,17 +48,6 @@ export class TrackService {
     return;
   }
 
-  async getTrackAnimeNames() {
-    return this.trackModel.aggregate([
-      {
-        $group: {
-          _id: '$nameTitle',
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-  }
-
   async getTrackSeasons() {
     return this.trackModel.aggregate([
       {

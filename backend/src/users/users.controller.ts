@@ -17,24 +17,24 @@ import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { FilterTrackData } from './data/filter-track.data';
 
 @ApiTags('Users')
-@Controller()
+@Controller('users')
 export class UserController {
   constructor(
     private readonly usersService: UserService,
     private readonly trackService: TrackService,
   ) {}
 
-  @Get('/users')
+  @Get()
   async getUsers() {
     return this.usersService.findAll();
   }
 
-  @Post('/users')
+  @Post()
   async createUser(@Body() user: CreateUserData) {
     return this.usersService.createUser(user);
   }
 
-  @Put('/users')
+  @Put()
   async updateUser(@Body() user: CreateUserData) {
     return this.usersService.updateUser(user);
   }
@@ -57,11 +57,6 @@ export class UserController {
   @Get('/tracks')
   async tracks(@Query() filter: FilterTrackData) {
     return this.trackService.getTracks(filter);
-  }
-
-  @Get('/tracks/animeName')
-  async tracksAnimeName() {
-    return this.trackService.getTrackAnimeNames();
   }
 
   @Get('/tracks/seasons')
