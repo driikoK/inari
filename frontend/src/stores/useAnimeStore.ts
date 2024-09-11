@@ -2,8 +2,13 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
+interface IAnime {
+  _id: string;
+  name: string;
+}
+
 interface IState {
-  animeNames: { _id: string; count: number }[];
+  animeNames: IAnime[];
   getAnime: () => Promise<void>;
   addAnime: (newAnime: string) => Promise<void>;
 }
@@ -13,9 +18,7 @@ const useAnimeStore = create<IState>((set) => ({
 
   getAnime: async () => {
     try {
-      const response = await axios.get(
-        `${process.env.API_URL}/tracks/animeName`
-      );
+      const response = await axios.get(`${process.env.API_URL}/team-animes`);
       set({ animeNames: response.data });
     } catch (error) {
       throw error;
@@ -23,9 +26,8 @@ const useAnimeStore = create<IState>((set) => ({
   },
   addAnime: async (newAnime: string) => {
     try {
-      set((state) => ({
-        animeNames: [...state.animeNames, { _id: newAnime, count: 1 }],
-      }));
+      const response = await axios.post(`${process.env.API_URL}/team-animes`, { name: newAnime });
+      set(response.data);
     } catch (error) {
       throw error;
     }

@@ -31,7 +31,7 @@ const useCoinsStore = create<IState>((set) => ({
   getCoins: async () => {
     // eslint-disable-next-line no-useless-catch
     try {
-      const response = await axios.get(`${process.env.API_URL}/coins`);
+      const response = await axios.get(`${process.env.API_URL}/settings/coins`);
       set({ coinsTypes: response.data });
     } catch (error: unknown) {
       throw error;

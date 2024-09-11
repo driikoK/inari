@@ -12,7 +12,7 @@ const useTypeStore = create<IState>((set) => ({
 
   getTypes: async () => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/types`);
+      const response = await axios.get(`${process.env.API_URL}/users/types`);
       set({ types: response.data });
     } catch (error) {
       throw error;

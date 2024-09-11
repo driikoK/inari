@@ -1,11 +1,5 @@
 import { FunctionComponent, useEffect, useState } from 'react';
-import {
-  ListsWrapper,
-  PageContainer,
-  PageWrapper,
-  Title,
-  TitleWrapper,
-} from './styles';
+import { ListsWrapper, PageContainer, PageWrapper, Title, TitleWrapper } from './styles';
 import { TResultAnime } from '../../../types';
 import InfoDialog from '../../dialogs/InfoDialog';
 import List from '../../../components/List';
@@ -24,7 +18,7 @@ const Result: FunctionComponent = () => {
     setLoadingData(true);
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.API_URL}/result`);
+        const response = await fetch(`${process.env.API_URL}/polls/result`);
         const result = await response.json();
         setData(result);
         console.log(result);
@@ -51,19 +45,11 @@ const Result: FunctionComponent = () => {
             <Title>Завантаження...</Title>
           ) : (
             data.map((item) => (
-              <List
-                key={item.anime._id}
-                anime={item.anime}
-                voteCount={item.voteCount}
-              />
+              <List key={item.anime._id} anime={item.anime} voteCount={item.voteCount} />
             ))
           )}
         </ListsWrapper>
-        <InfoDialog
-          open={openInfoDialog}
-          text={dialogText}
-          onClose={handleInfoDialogClose}
-        />
+        <InfoDialog open={openInfoDialog} text={dialogText} onClose={handleInfoDialogClose} />
       </PageWrapper>
     </PageContainer>
   );

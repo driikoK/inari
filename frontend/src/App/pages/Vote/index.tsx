@@ -37,11 +37,11 @@ const Vote: FunctionComponent = () => {
       setLoadingData(true);
       setOpenIputDialog(true);
       try {
-        const ongoingsResponse = await fetch(`${process.env.API_URL}/ongoings`);
+        const ongoingsResponse = await fetch(`${process.env.API_URL}/polls/ongoings`);
         const ongoings = await ongoingsResponse.json();
         setOngoinsData(ongoings);
 
-        const oldsResponse = await fetch(`${process.env.API_URL}/olds`);
+        const oldsResponse = await fetch(`${process.env.API_URL}/polls/olds`);
         const olds = await oldsResponse.json();
         setOldsData(olds);
       } catch (error) {
@@ -79,7 +79,7 @@ const Vote: FunctionComponent = () => {
           animeIds: selectedCards,
         };
 
-        const voteResponse = await fetch(`${process.env.API_URL}/vote`, {
+        const voteResponse = await fetch(`${process.env.API_URL}/polls/vote`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -166,11 +166,7 @@ const Vote: FunctionComponent = () => {
             </SubmitButton>
           </ButtonWrapper>
         ) : null}
-        <InfoDialog
-          open={openInfoDialog}
-          text={dialogText}
-          onClose={handleInfoDialogClose}
-        />
+        <InfoDialog open={openInfoDialog} text={dialogText} onClose={handleInfoDialogClose} />
         <InputDialog
           open={openInputDialog}
           userName={userName}

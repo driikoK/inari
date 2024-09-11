@@ -21,7 +21,7 @@ const useCofStore = create<IState>((set) => ({
   getCof: async () => {
     // eslint-disable-next-line no-useless-catch
     try {
-      const response = await axios.get(`${process.env.API_URL}/cof`);
+      const response = await axios.get(`${process.env.API_URL}/settings/cof`);
       set({ cof: response.data });
     } catch (error) {
       throw error;
