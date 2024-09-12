@@ -12,7 +12,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AnimeData } from './data/anime.data';
 
 @ApiTags('Polls')
-@Controller()
+@Controller('polls')
 export class PollsController {
   constructor(private readonly pollsService: PollsService) {}
 
