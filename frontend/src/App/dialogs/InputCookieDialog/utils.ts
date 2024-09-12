@@ -33,14 +33,15 @@ export const handleChangeDubFields = (
       delete newMain[key];
     }
   }
-  
+
   for (let i = 1; i <= value; i++) {
     newMain[`dub${i}`] = {
-      nickname: (initialValues.main[`dub${i}`]?.nickname) ?? '',
+      nickname: initialValues.main[`dub${i}`]?.nickname ?? '',
       nameTitle,
-      coin: (initialValues.main[`dub${i}`]?.coin) ?? 0,
+      coin: initialValues.main[`dub${i}`]?.coin ?? 0,
       typeRole: 'dub',
       currentEpisode,
+      isGuest: false,
     };
   }
 
