@@ -7,37 +7,33 @@ import {
   OutlinedInput,
   Select,
   SelectChangeEvent,
-  Snackbar,
   TextField,
   type DialogProps,
 } from '@mui/material';
+import toast from 'react-hot-toast';
 import { DialogContainer, InputWrapper, Title, TitleWrapper } from './styles';
 import Button from '@/components/Button';
 import useUsersStore from '@/stores/useUsersStore';
 import useTypeStore from '@/stores/useTypesStore';
 
-export interface IRequiredAuthorizationDialogProps
-  extends Pick<DialogProps, 'open'> {
+export interface IRequiredAuthorizationDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
 }
 
-const CreateUserDialog: FunctionComponent<
-  IRequiredAuthorizationDialogProps
-> = ({ open, onClose }) => {
+const CreateUserDialog: FunctionComponent<IRequiredAuthorizationDialogProps> = ({
+  open,
+  onClose,
+}) => {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [nickname, setNickname] = useState<string>('');
-  const [isPopOpen, setPopOpen] = useState<boolean>(false);
-  const [popMessage, setPopMessage] = useState('');
   const { addUser } = useUsersStore();
-  const { types, getTypes} = useTypeStore();
+  const { types, getTypes } = useTypeStore();
 
   useEffect(() => {
     getTypes();
   }, []);
 
-  const handleSelectChange = (
-    event: SelectChangeEvent<typeof selectedTypes>
-  ) => {
+  const handleSelectChange = (event: SelectChangeEvent<typeof selectedTypes>) => {
     const {
       target: { value },
     } = event;
@@ -48,18 +44,18 @@ const CreateUserDialog: FunctionComponent<
     const value = event.target.value;
     setNickname(value);
   };
-  const handleSubmit = () => {
-    try { 
-      addUser({ nickname, types: selectedTypes, coin: 0 });
 
-      setPopMessage('Успішно');
-      setPopOpen(true);
+  const handleSubmit = async () => {
+    try {
+      await addUser({ nickname, types: selectedTypes, coin: 0 });
+
+      toast.success('Новий мембер створений успішно!');
+
       setTimeout(() => {
         onClose();
-      }, 1000)
+      }, 1000);
     } catch (e) {
-      setPopMessage('Помилка');
-      setPopOpen(true);
+      toast.error('Помилка!');
     }
   };
 
@@ -69,11 +65,7 @@ const CreateUserDialog: FunctionComponent<
         <Title>Створення користувача</Title>
       </TitleWrapper>
       <InputWrapper>
-        <TextField
-          placeholder="Введіть нікнейм"
-          value={nickname}
-          onChange={handleNicknameChange}
-        />
+        <TextField placeholder="Введіть нікнейм" value={nickname} onChange={handleNicknameChange} />
         <FormControl>
           <InputLabel id="demo-multiple-name-label">Типи</InputLabel>
           <Select
@@ -99,13 +91,6 @@ const CreateUserDialog: FunctionComponent<
       >
         Зберегти
       </Button>
-      <Snackbar
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={isPopOpen}
-        autoHideDuration={1000}
-        onClose={() => setPopOpen(false)}
-        message={popMessage}
-      />
     </DialogContainer>
   );
 };
