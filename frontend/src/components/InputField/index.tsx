@@ -2,7 +2,9 @@
 import { useField } from 'formik';
 import {
   Autocomplete,
+  Checkbox,
   FormControl,
+  FormControlLabel,
   MenuItem,
   TextField,
   useMediaQuery,
@@ -18,10 +20,7 @@ export interface IInputProps {
   isDisabled?: boolean;
 }
 
-const InputField: FunctionComponent<IInputProps> = ({
-  name,
-  isDisabled = false,
-}) => {
+const InputField: FunctionComponent<IInputProps> = ({ name, isDisabled = false }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [field, _, helpers] = useField(name);
   const [openDialog, setOpenDialog] = useState(false);
@@ -40,6 +39,10 @@ const InputField: FunctionComponent<IInputProps> = ({
     helpers.setValue({ ...field.value, coin: Number(value) });
   };
 
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    helpers.setValue({ ...field.value, isGuest: event.target.checked });
+  };
+
   const isTablet = useMediaQuery(theme.screens.tablet);
 
   return (
@@ -48,9 +51,7 @@ const InputField: FunctionComponent<IInputProps> = ({
         <Autocomplete
           options={users}
           getOptionLabel={(option) => option.nickname}
-          value={
-            users.find((user) => user.nickname === field.value.nickname) || null
-          }
+          value={users.find((user) => user.nickname === field.value.nickname) || null}
           onChange={(_, newValue) => {
             if (newValue) {
               handleNicknameChange(newValue.nickname);
@@ -58,19 +59,14 @@ const InputField: FunctionComponent<IInputProps> = ({
               handleNicknameChange('');
             }
           }}
-          renderInput={(params) => (
-            <TextField {...params} label="Нікнейм" variant="outlined" />
-          )}
+          renderInput={(params) => <TextField {...params} label="Нікнейм" variant="outlined" />}
           renderOption={(props, option) => (
             <MenuItem {...props} key={option.nickname} value={option.nickname}>
               {option.nickname}
             </MenuItem>
           )}
           noOptionsText={
-            <MenuItem
-              sx={{ fontWeight: '500' }}
-              onClick={() => setOpenDialog(true)}
-            >
+            <MenuItem sx={{ fontWeight: '500' }} onClick={() => setOpenDialog(true)}>
               Додати
             </MenuItem>
           }
@@ -86,10 +82,12 @@ const InputField: FunctionComponent<IInputProps> = ({
         onChange={handleCoinsChange}
         sx={{ m: 1, width: isTablet ? 100 : '100%' }}
       />
-      <CreateUserDialog
-        onClose={() => setOpenDialog(false)}
-        open={openDialog}
+      <FormControlLabel
+        control={<Checkbox value={field.value.isGuest} onChange={handleCheckboxChange} />}
+        label="Гість"
       />
+
+      <CreateUserDialog onClose={() => setOpenDialog(false)} open={openDialog} />
     </FieldContainer>
   );
 };
