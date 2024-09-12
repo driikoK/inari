@@ -40,9 +40,9 @@ export class UserController {
   }
 
   @Post('/tracks')
-  @ApiBody({ type: [CreateTrackData] })
-  async addNewTrack(@Body() tracks: CreateTrackData[]) {
-    return this.trackService.tracks(tracks);
+  @ApiBody({ type: CreateTrackData })
+  async addNewTrack(@Body() track: CreateTrackData) {
+    return this.trackService.createTrack(track);
   }
 
   @Put('/track/:id')

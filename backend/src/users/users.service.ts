@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { INickname } from './interfaces/nickname.interface';
 import { UserData } from './data/nickname.data';
@@ -8,17 +8,29 @@ export class UserService {
     @Inject('NICKNAME_MODEL') private readonly nicknameModel: Model<INickname>,
   ) {}
 
-  async findAll(): Promise<INickname[]> {
+  findAll(): Promise<INickname[]> {
     return this.nicknameModel.find().exec();
   }
 
-  async createUser(user: UserData): Promise<INickname> {
-    const createdNickname = this.nicknameModel.create(user);
-
-    return createdNickname;
+  createUser(user: UserData): Promise<INickname> {
+    return this.nicknameModel.create(user);
   }
 
   async updateUser(user: UserData) {
-    this.nicknameModel.updateOne(user, user);
+    await this.nicknameModel.updateOne({ nickname: user.nickname }, user);
+  }
+
+  async findUser(nickname: string) {
+    const user = await this.nicknameModel
+      .findOne({
+        nickname: nickname,
+      })
+      .exec();
+
+    if (!user) {
+      throw new HttpException('User not found', 406);
+    }
+
+    return user;
   }
 }
