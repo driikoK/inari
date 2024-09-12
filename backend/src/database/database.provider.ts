@@ -1,6 +1,8 @@
 import * as mongoose from 'mongoose';
 import config from 'src/config';
 
+mongoose.set('debug', true);
+
 export const databaseProviders = [
   {
     provide: 'DATABASE_CONNECTION',
