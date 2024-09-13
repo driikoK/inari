@@ -1,16 +1,17 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
-import { CreateTrackData } from './data/create-track.data';
+import { Inject, Injectable } from '@nestjs/common';
+import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { Model } from 'mongoose';
 import { ITrack } from './interfaces/track.interface';
-import { INickname } from './interfaces/nickname.interface';
 import { determineAnimeSeason } from './helper/season.helper';
 import { FilterTrackData } from './data/filter-track.data';
+import { UserService } from './users.service';
+import { MULTIPLIERS } from './enums/types.enum';
 
 @Injectable()
 export class TrackService {
   constructor(
     @Inject('TRACK_MODEL') private readonly trackModel: Model<ITrack>,
-    @Inject('NICKNAME_MODEL') private readonly userModel: Model<INickname>,
+    private readonly usersService: UserService,
   ) {}
 
   async getTracks(filter: FilterTrackData) {
@@ -23,21 +24,16 @@ export class TrackService {
     });
 
     if (track) {
-      const user = await this.userModel
-        .findOne({
-          nickname: track.nickname,
-        })
-        .exec();
+      const user = await this.usersService.findUser(track.nickname);
 
       if (user) {
-        await this.userModel.updateOne<INickname>(
-          {
-            nickname: track.nickname,
-          },
-          {
-            coin: Number(user.coin) - Number(track.coin),
-          },
-        );
+        const updatedUser = {
+          nickname: user.nickname,
+          coin: Number(user.coin) - Number(track.coin),
+          types: user.types,
+        };
+
+        await this.usersService.updateUser(updatedUser);
       }
 
       await this.trackModel.deleteOne({
@@ -61,37 +57,53 @@ export class TrackService {
 
   async updateTrack(track: CreateTrackData) {}
 
-  async tracks(tracks: CreateTrackData[]) {
-    for (const track of tracks) {
-      const user = await this.userModel
-        .findOne({
-          nickname: track.nickname,
-        })
-        .exec();
+  getCoinsWithMultipliers(
+    multipliers: Omit<CreateTrackData, 'membersInfo'>,
+    member: MemberInfo,
+  ) {
+    if (member.isGuest && member.coin) member.coin = member.coin / 2;
 
-      if (!user) {
-        throw new HttpException('User not found', 406);
-      }
+    let additionalCoins = 0;
+
+    if (multipliers.isFast) {
+      additionalCoins += member.coin * MULTIPLIERS.FAST;
+    }
+    if (multipliers.isOngoing) {
+      additionalCoins += member.coin * MULTIPLIERS.ONGOING;
+    }
+    if (multipliers.isPriority) {
+      additionalCoins += member.coin * MULTIPLIERS.PRIORITY;
+    }
+    if (multipliers.isInTime) {
+      additionalCoins += member.coin * MULTIPLIERS.IN_TIME;
+    }
+
+    member.coin += additionalCoins;
+
+    return member;
+  }
+
+  async createTrack(track: CreateTrackData) {
+    for (const member of track.membersInfo) {
+      const user = await this.usersService.findUser(member.nickname);
+
+      const memberWithMultipliers = this.getCoinsWithMultipliers(track, member);
+      const date = new Date();
 
       await this.trackModel.create({
-        ...track,
-        season: determineAnimeSeason(
-          new Date().getMonth(),
-          new Date().getFullYear(),
-        ),
+        ...memberWithMultipliers,
+        season: determineAnimeSeason(date.getMonth(), date.getFullYear()),
       });
 
-      await this.userModel.updateOne<INickname>(
-        {
-          nickname: track.nickname,
-        },
-        {
-          coin: Number(user.coin) + Number(track.coin),
-          types: user.types.includes(track.typeRole)
-            ? user.types
-            : [...user.types, track.typeRole],
-        },
-      );
+      const updatedUser = {
+        nickname: member.nickname,
+        coin: Number(user.coin) + Number(member.coin),
+        types: user.types.includes(member.typeRole)
+          ? user.types
+          : [...user.types, member.typeRole],
+      };
+
+      await this.usersService.updateUser(updatedUser);
     }
   }
 }
