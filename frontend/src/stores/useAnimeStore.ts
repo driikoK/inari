@@ -27,7 +27,7 @@ const useAnimeStore = create<IState>((set) => ({
   addAnime: async (newAnime: string) => {
     try {
       const response = await axios.post(`${process.env.API_URL}/team-animes`, { name: newAnime });
-      set(response.data);
+      set((state) => ({ animeNames: [...state.animeNames, response.data] }));
     } catch (error) {
       throw error;
     }
