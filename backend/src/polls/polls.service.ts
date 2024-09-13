@@ -73,12 +73,6 @@ export class PollsService {
           throw new Error('Anime not found');
         }
 
-        const existingVote = await this.voteModel.findOne({ userName }).exec();
-
-        if (existingVote) {
-          continue;
-        }
-
         const vote = new this.voteModel({
           userName: userName.toLowerCase(),
           anime,
