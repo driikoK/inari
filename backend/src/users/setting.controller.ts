@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import config from 'src/config';
 
 @ApiTags('Settings')
-@Controller()
+@Controller('settings')
 export class SettingController {
   @Get('/coins')
   async getCoin() {
@@ -20,6 +20,12 @@ export class SettingController {
         maxAdditionalOnRole: 20,
         bonusDirector: 30,
       },
+      shortFilm: {
+        type: 'shortFilm',
+        coin: 200,
+        maxAdditionalOnRole: 20,
+        bonusDirector: 30,
+      },
     };
   }
 
@@ -30,7 +36,6 @@ export class SettingController {
       dub: 46,
       sound: 12,
       additional: 20,
-      fastMultiplier: 1.2,
     };
   }
 
