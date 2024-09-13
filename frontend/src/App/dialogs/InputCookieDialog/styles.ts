@@ -6,7 +6,7 @@ export const DialogContainer = styled(Dialog)`
   .${dialogClasses.paper} {
     ${({ theme }) =>
       theme.mq({
-        padding: ['16px', '16px', '16px', '48px'],
+        padding: ['16px', '16px', '16px', '30px'],
       })}
     ${({ theme }) =>
       theme.mq({
@@ -46,7 +46,7 @@ export const Title = styled.span`
   ${({ theme }) =>
     theme.mq({
       fontSize: ['17px', '17px', '17px', '21px'],
-  })}
+    })}
   text-align: center;
 `;
 
@@ -69,7 +69,7 @@ export const ErrorText = styled.span`
   color: red;
 `;
 
-export const ButtonsWrapper = styled.div`
+export const Wrapper = styled.div`
   display: flex;
   flex-direction: row;
   gap: 16px;
@@ -87,14 +87,14 @@ export const DubControlWrapper = styled.div`
   display: flex;
   ${({ theme }) =>
     theme.mq({
-      flexDirection: ["column", "column", "row", "row"],
-  })};
+      flexDirection: ['column', 'column', 'row', 'row'],
+    })};
   align-items: center;
   gap: 10px;
 `;
 
 export const DubSelect = styled(Select)`
-  .${selectClasses.select}{
+  .${selectClasses.select} {
     padding: 0 10px;
   }
 `;

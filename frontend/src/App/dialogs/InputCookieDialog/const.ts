@@ -5,7 +5,7 @@ export const initialValuesSetup = (
   nameTitle: string,
   cof: CofType,
   coins: CoinsType,
-  currentEpisode: string,
+  currentEpisode: string
 ): ValuesType => ({
   main: {
     sub: {
@@ -14,6 +14,7 @@ export const initialValuesSetup = (
       coin: getPartialValue(cof.sub, coins.coin),
       typeRole: 'sub',
       currentEpisode: parseFloat(currentEpisode),
+      isGuest: false,
     },
     sound: {
       nickname: '',
@@ -21,6 +22,7 @@ export const initialValuesSetup = (
       coin: getPartialValue(cof.sound, coins.coin),
       typeRole: 'sound',
       currentEpisode: parseFloat(currentEpisode),
+      isGuest: false,
     },
     director: {
       nickname: '',
@@ -28,6 +30,7 @@ export const initialValuesSetup = (
       coin: coins.bonusDirector,
       typeRole: 'director',
       currentEpisode: parseFloat(currentEpisode),
+      isGuest: false,
     },
     fixer: {
       nickname: '',
@@ -35,6 +38,7 @@ export const initialValuesSetup = (
       coin: 0,
       typeRole: 'other',
       currentEpisode: parseFloat(currentEpisode),
+      isGuest: false,
     },
     roleBreaker: {
       nickname: '',
@@ -42,6 +46,7 @@ export const initialValuesSetup = (
       coin: 0,
       typeRole: 'other',
       currentEpisode: parseFloat(currentEpisode),
+      isGuest: false,
     },
     release: {
       nickname: '',
@@ -49,6 +54,7 @@ export const initialValuesSetup = (
       coin: 0,
       typeRole: 'other',
       currentEpisode: parseFloat(currentEpisode),
+      isGuest: false,
     },
     another: {
       nickname: '',
@@ -56,6 +62,7 @@ export const initialValuesSetup = (
       coin: 0,
       typeRole: 'other',
       currentEpisode: parseFloat(currentEpisode),
+      isGuest: false,
     },
     dub1: {
       nickname: '',
@@ -63,7 +70,12 @@ export const initialValuesSetup = (
       coin: 0,
       typeRole: 'dub',
       currentEpisode: parseFloat(currentEpisode),
+      isGuest: false,
     },
   },
   dubs: [''],
+  isFast: false,
+  isOngoing: false,
+  isPriority: false,
+  isInTime: false,
 });

@@ -1,16 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FunctionComponent, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { Formik } from 'formik';
 import {
   Autocomplete,
   Checkbox,
   MenuItem,
   SelectChangeEvent,
-  Snackbar,
   TextField,
+  Select,
   type DialogProps,
+  InputLabel,
+  FormControl,
 } from '@mui/material';
+
 import {
-  ButtonsWrapper,
   CheckboxWrapper,
   ColorText,
   DialogContainer,
@@ -21,16 +25,14 @@ import {
   FormWrapper,
   Paragraph,
   PlusMinusWrapper,
-  RowWrapper,
   SubParagraph,
   Title,
   TitleWrapper,
 } from './styles';
 import Button from '@components/Button';
 import InputField from '@components/InputField';
-import { Formik } from 'formik';
 import { validate } from './validate';
-import { AnimeStatusEnum, CoinsType, DubStatusEnum, ValuesType } from './types';
+import { AnimeTypeEnum, CoinsType, DubStatusEnum, ValuesType } from './types';
 import { initialValuesSetup } from './const';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KBInputField from '@components/KBInputField';
@@ -48,37 +50,45 @@ import useCofStore from '@/stores/useCofStore';
 import useCoinsStore from '@/stores/useCoinsStore';
 import useAnimeStore from '@/stores/useAnimeStore';
 import AddAnimeDialog from '../AddAnimeDialog';
+import { FlexWrapper } from '@/components/ListCard/styles';
+
+const titleTypeOptions = [
+  {
+    label: 'Фільм',
+    value: AnimeTypeEnum.FILM,
+  },
+  {
+    label: 'Серіал',
+    value: AnimeTypeEnum.SERIES,
+  },
+  {
+    label: 'Короткометражка',
+    value: AnimeTypeEnum.SHORT_FILM,
+  },
+];
 
 export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
 }
 
-const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
-  open,
-  onClose,
-}) => {
-  const [animeStatus, setAnimeStatus] = useState<AnimeStatusEnum>(
-    AnimeStatusEnum.NONE
-  );
-  const [dubFields, setDubFields] = useState<number>(1);
-  const [dubStatus, setDubStatus] = useState<DubStatusEnum>(
-    DubStatusEnum.COOKIE
-  );
+const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, onClose }) => {
   const { cof, getCof } = useCofStore();
   const { coinsTypes, getCoins } = useCoinsStore();
+  const { addTracks } = useTracksStore();
+  const { animeNames, getAnime } = useAnimeStore();
+
+  const [animeType, setAnimeType] = useState<AnimeTypeEnum>(AnimeTypeEnum.NONE);
+  const [dubFields, setDubFields] = useState<number>(1);
+  const [dubStatus, setDubStatus] = useState<DubStatusEnum>(DubStatusEnum.COOKIE);
   const [coins, setCoins] = useState<CoinsType>(coinsTypes.series);
-  const [nameTitle, setNameTitle] = useState('');
-  const [currentEpisode, setCurrentEpisode] = useState('1');
+  const [nameTitle, setNameTitle] = useState<string>('');
+  const [currentEpisode, setCurrentEpisode] = useState<string>('1');
   const [note, setNote] = useState<string | null>(null);
   const [initialValues, setInitialValues] = useState<ValuesType>(() => {
     return initialValuesSetup(nameTitle, cof, coins, currentEpisode);
   });
-  const [isPopOpen, setPopOpen] = useState<boolean>(false);
-  const [popMessage, setPopMessage] = useState('');
-  const { addTracks } = useTracksStore();
-  const { animeNames, getAnime } = useAnimeStore();
   const [openDialog, setOpenDialog] = useState(false);
-  const [isFast, setIsFast] = useState(false);
+  const [isNextStep, setIsNextStep] = useState(false);
 
   useEffect(() => {
     getCof();
@@ -87,20 +97,18 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
   }, []);
 
   useEffect(() => {
-    if (animeStatus === AnimeStatusEnum.FILM) {
-      setCoins(coinsTypes.film);
-    } else if (animeStatus === AnimeStatusEnum.SERIES) {
-      setCoins(coinsTypes.series);
+    switch (animeType) {
+      case AnimeTypeEnum.FILM:
+        return setCoins(coinsTypes.film);
+      case AnimeTypeEnum.SERIES:
+        return setCoins(coinsTypes.series);
+      case AnimeTypeEnum.SHORT_FILM:
+        return setCoins(coinsTypes.shortFilm);
     }
-  }, [animeStatus, coinsTypes]);
+  }, [animeType, coinsTypes]);
 
   useEffect(() => {
-    const updatedMain = initialValuesSetup(
-      nameTitle,
-      cof,
-      coins,
-      currentEpisode
-    ).main;
+    const updatedMain = initialValuesSetup(nameTitle, cof, coins, currentEpisode).main;
 
     Object.keys(updatedMain).forEach((key) => {
       updatedMain[key] = {
@@ -127,24 +135,56 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
     setDubFields(newDubFields);
   }, [initialValues]);
 
+  useEffect(() => {
+    if (animeType === AnimeTypeEnum.FILM || animeType === AnimeTypeEnum.SHORT_FILM) {
+      setCurrentEpisode('1');
+    }
+  }, [animeType]);
+
+  const handleClose = () => {
+    setNameTitle('');
+    setAnimeType(AnimeTypeEnum.NONE);
+    setIsNextStep(false);
+    setTimeout(() => {
+      onClose();
+    }, 1000);
+  };
+
+  const handleSubmitForm = async (values: ValuesType) => {
+    console.log(values);
+
+    const payload = {
+      membersInfo: Object.values(values.main).filter((value) => value.nickname !== ''),
+      isFast: values.isFast,
+      isOngoing: values.isOngoing,
+      isPriority: values.isPriority,
+      isInTime: values.isInTime,
+    };
+
+    try {
+      await addTracks(payload);
+
+      handleClose();
+      toast.success('Успішно');
+    } catch (e) {
+      toast.error('Помилка');
+    }
+  };
+
   return (
-    <DialogContainer open={open} scroll={'body'} onClose={onClose}>
+    <DialogContainer open={open} scroll={'body'} onClose={onClose} fullWidth>
       <DialogWrapper>
-        {animeStatus === AnimeStatusEnum.NONE && (
+        {!isNextStep && (
           <>
             <Title>Назва тайтлу і номер епізоду</Title>
-            <RowWrapper>
+            <FlexWrapper>
               <Autocomplete
                 options={animeNames}
-                getOptionLabel={(option) => option._id}
-                value={
-                  nameTitle
-                    ? animeNames.find((anime) => anime._id === nameTitle)
-                    : null
-                }
+                getOptionLabel={(option) => option.name}
+                value={nameTitle ? animeNames.find((anime) => anime.name === nameTitle) : null}
                 onChange={(_, newValue) => {
                   if (newValue) {
-                    setNameTitle(newValue._id);
+                    setNameTitle(newValue.name);
                   } else {
                     setNameTitle('');
                   }
@@ -157,128 +197,76 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                     variant="outlined"
                   />
                 )}
-                sx={{ minWidth: '150px', maxWidth: '230px' }}
+                sx={{ minWidth: '85%', maxWidth: '95%' }}
                 renderOption={(props, option) => (
                   <MenuItem {...props} key={option._id} value={option._id}>
-                    {option._id}
+                    {option.name}
                   </MenuItem>
                 )}
                 noOptionsText={
-                  <MenuItem
-                    sx={{ fontWeight: '600' }}
-                    onClick={() => setOpenDialog(true)}
-                  >
+                  <MenuItem sx={{ fontWeight: '600' }} onClick={() => setOpenDialog(true)}>
                     Додати
                   </MenuItem>
                 }
               />
-              {/* <Select
-                  id="name-label"
-                  value={nameTitle}
-                  onChange={(e) => setNameTitle(e.target.value)}
-                  input={<OutlinedInput label="Аніме" />}
-                  placeholder="Вкажіть назву тайтлу"
-                  sx={{ minWidth: '150px', maxWidth: '230px' }}
-                >
-                  {animeNames.map((animeName) => (
-                    <MenuItem key={animeName._id} value={animeName._id}>
-                      {animeName._id}
-                    </MenuItem>
-                  ))}
-                  <MenuItem
-                    sx={{ fontWeight: '600' }}
-                    value={''}
-                    onClick={() => setOpenDialog(true)}
-                  >
-                    Додати
-                  </MenuItem>
-                </Select> */}
+
               <TextField
                 error={!isEpisodeValid(currentEpisode)}
                 placeholder="Епізод"
                 value={currentEpisode || ''}
+                disabled={
+                  animeType === AnimeTypeEnum.FILM || animeType === AnimeTypeEnum.SHORT_FILM
+                }
                 type="text"
-                sx={{ width: '85px' }}
-                onChange={(e) =>
-                  handleChangeCurrentEpisode(e, setCurrentEpisode)
-                }
+                onChange={(e) => handleChangeCurrentEpisode(e, setCurrentEpisode)}
               />
-            </RowWrapper>
+            </FlexWrapper>
+
             <Title>Аніме належить до:</Title>
-            <ButtonsWrapper>
-              <Button
-                variant="contained"
-                disabled={
-                  nameTitle.length < 3 || !isEpisodeValid(currentEpisode)
-                }
-                onClick={() => setAnimeStatus(AnimeStatusEnum.SERIES)}
+
+            <FormControl>
+              <InputLabel id="title-type">Тип</InputLabel>
+              <Select
+                labelId="title-type"
+                value={animeType === AnimeTypeEnum.NONE ? '' : animeType}
+                onChange={(e) => {
+                  setAnimeType(e.target.value as AnimeTypeEnum);
+                }}
+                disabled={nameTitle.length < 3 || !isEpisodeValid(currentEpisode)}
               >
-                Серіал
-              </Button>
-              <Button
-                variant="contained"
-                disabled={
-                  nameTitle.length < 3 || !isEpisodeValid(currentEpisode)
-                }
-                onClick={() => setAnimeStatus(AnimeStatusEnum.FILM)}
-              >
-                Фільм
-              </Button>
-            </ButtonsWrapper>
-            <AddAnimeDialog
-              onClose={() => setOpenDialog(false)}
-              open={openDialog}
-            />
+                {titleTypeOptions.map((type) => (
+                  <MenuItem value={type.value} key={type.value}>
+                    {type.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Button onClick={() => setIsNextStep(true)} disabled={animeType === AnimeTypeEnum.NONE}>
+              Далі
+            </Button>
+
+            <AddAnimeDialog onClose={() => setOpenDialog(false)} open={openDialog} />
           </>
         )}
 
-        {animeStatus !== AnimeStatusEnum.NONE && (
+        {isNextStep && (
           <Formik
             enableReinitialize
             initialValues={initialValues}
-            onSubmit={async (values) => {
-              try {
-                const valuesArray = [...Object.values(values.main)].filter(
-                  (value) => value.nickname !== ''
-                );
-                const updValuesArray = valuesArray.map((value) => {
-                  const updatedCoins = isFast
-                    ? Math.round(value.coin * cof.fastMultiplier)
-                    : value.coin;
-                  return {
-                    ...value,
-                    note,
-                    coin: updatedCoins,
-                  };
-                });
-                await addTracks(updValuesArray);
-                // alert(JSON.stringify(updValuesArray, null, 2));
-                setPopMessage('Успішно');
-                setPopOpen(true);
-                setTimeout(() => {
-                  onClose();
-                }, 1000);
-              } catch (e) {
-                setPopMessage('Помилка');
-                setPopOpen(true);
-              }
-            }}
+            onSubmit={handleSubmitForm}
             validate={(values) => validate(values, coins, cof)}
           >
-            {({ isValid, isSubmitting, isValidating, errors, values }) => (
+            {({ isValid, isSubmitting, isValidating, errors, values, handleChange }) => (
               <FormWrapper>
-                <Button
-                  startIcon={<ArrowBackIcon />}
-                  onClick={() => setAnimeStatus(AnimeStatusEnum.NONE)}
-                >
+                <Button startIcon={<ArrowBackIcon />} onClick={() => setIsNextStep(false)}>
                   Назад
                 </Button>
                 <TitleWrapper>
                   <Title>
                     Крихти -{' '}
                     <ColorText>
-                      {totalMainCoins(values)}/
-                      {coins.coin + coins.bonusDirector}
+                      {totalMainCoins(values)}/{coins.coin + coins.bonusDirector}
                     </ColorText>
                   </Title>
                 </TitleWrapper>
@@ -303,49 +291,38 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                         )
                       }
                     >
-                      {Array.from({ length: 20 }, (_, i) => i + 1).map(
-                        (num) => (
-                          <MenuItem key={num} value={num}>
-                            {num}
-                          </MenuItem>
-                        )
-                      )}
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                        <MenuItem key={num} value={num}>
+                          {num}
+                        </MenuItem>
+                      ))}
                     </DubSelect>
                   </div>
                   <DubSelect
                     value={dubStatus}
                     onChange={(e) => handleChangeDubStatus(e, setDubStatus)}
                   >
-                    <MenuItem value={DubStatusEnum.KB}>
-                      {DubStatusEnum.KB}
-                    </MenuItem>
-                    <MenuItem value={DubStatusEnum.COOKIE}>
-                      {DubStatusEnum.COOKIE}
-                    </MenuItem>
+                    <MenuItem value={DubStatusEnum.KB}>{DubStatusEnum.KB}</MenuItem>
+                    <MenuItem value={DubStatusEnum.COOKIE}>{DubStatusEnum.COOKIE}</MenuItem>
                   </DubSelect>
                 </DubControlWrapper>
                 <SubParagraph>
-                  Для розподілу дозволено {getPartialValue(cof.dub, coins.coin)}{' '}
-                  крихт
+                  Для розподілу дозволено {getPartialValue(cof.dub, coins.coin)} крихт
                 </SubParagraph>
                 {dubStatus === DubStatusEnum.COOKIE &&
-                  Array.from({ length: dubFields }, (_, i) => i).map(
-                    (_, index) => (
-                      <InputField name={`main.dub${index + 1}`} key={index} />
-                    )
-                  )}
+                  Array.from({ length: dubFields }, (_, i) => i).map((_, index) => (
+                    <InputField name={`main.dub${index + 1}`} key={index} />
+                  ))}
                 {dubStatus === DubStatusEnum.KB &&
-                  Array.from({ length: dubFields }, (_, i) => i).map(
-                    (_, index) => (
-                      <KBInputField
-                        mainName={`main.dub${index + 1}`}
-                        dubName={`dubs.${index}`}
-                        key={index}
-                        sumOfAllFiles={totalKbs(values)}
-                        allPoints={getPartialValue(cof.dub, coins.coin)}
-                      />
-                    )
-                  )}
+                  Array.from({ length: dubFields }, (_, i) => i).map((_, index) => (
+                    <KBInputField
+                      mainName={`main.dub${index + 1}`}
+                      dubName={`dubs.${index}`}
+                      key={index}
+                      sumOfAllFiles={totalKbs(values)}
+                      allPoints={getPartialValue(cof.dub, coins.coin)}
+                    />
+                  ))}
                 <PlusMinusWrapper>
                   <Button
                     sx={{ padding: 0 }}
@@ -365,6 +342,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                   >
                     +
                   </Button>
+
                   <Button
                     onClick={() => {
                       const newValue = Math.min(Math.max(dubFields - 1, 1), 20);
@@ -403,12 +381,20 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
                   sx={{ m: 1, width: '100%' }}
                 />
                 <CheckboxWrapper>
-                  <Checkbox
-                    value={isFast}
-                    onChange={() => setIsFast(!isFast)}
-                  />
+                  <Checkbox name="isFast" value={values.isFast} onChange={handleChange} />
                   <SubParagraph>Зроблено швидко</SubParagraph>
+
+                  <Checkbox name="isOngoing" value={values.isOngoing} onChange={handleChange} />
+                  <SubParagraph>Онґоїнґ</SubParagraph>
                 </CheckboxWrapper>
+                <CheckboxWrapper>
+                  <Checkbox name="isPriority" value={values.isPriority} onChange={handleChange} />
+                  <SubParagraph>Пріоритет</SubParagraph>
+
+                  <Checkbox name="isInTime" value={values.isInTime} onChange={handleChange} />
+                  <SubParagraph>Зроблено вчасно</SubParagraph>
+                </CheckboxWrapper>
+
                 {errors.main && (
                   <ErrorText>
                     <>{errors.main}</>
@@ -426,13 +412,6 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({
           </Formik>
         )}
       </DialogWrapper>
-      <Snackbar
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={isPopOpen}
-        autoHideDuration={2000}
-        onClose={() => setPopOpen(false)}
-        message={popMessage}
-      />
     </DialogContainer>
   );
 };
