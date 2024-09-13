@@ -17,19 +17,19 @@ const Cookie: FunctionComponent = () => {
   return (
     <Container>
       <ElementContainer onClick={() => setOpenCookieDialog(true)}>
-        <ElementImage $url='/cookie.png'/>
+        <ElementImage $url="/cookie.png" />
         <Title>Додати нові крихти</Title>
       </ElementContainer>
-      <ElementContainer onClick={ () => handleLink('list') }>
-        <ElementImage $url='/general.png'/>
+      <ElementContainer onClick={() => handleLink('list')}>
+        <ElementImage $url="/general.png" />
         <Title>Список крихт</Title>
       </ElementContainer>
-      <ElementContainer onClick={ () => handleLink('rating') }>
-        <ElementImage $url='/roles.png'/>
+      <ElementContainer onClick={() => handleLink('rating')}>
+        <ElementImage $url="/roles.png" />
         <Title>Рейтинг крихт</Title>
       </ElementContainer>
       <InputCookieDialog onClose={() => setOpenCookieDialog(false)} open={openCookieDialog} />
-      <PasswordDialog onSubmit={()=> {setOpenPasswordDialog(false);} } onClose={() => {} } open={openPasswordDialog} />
+      {/* <PasswordDialog onSubmit={()=> {setOpenPasswordDialog(false);} } onClose={() => {} } open={openPasswordDialog} /> */}
     </Container>
   );
 };
