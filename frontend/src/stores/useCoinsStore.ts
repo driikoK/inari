@@ -6,6 +6,7 @@ interface IState {
   coinsTypes: {
     film: CoinsType;
     series: CoinsType;
+    shortFilm: CoinsType;
   };
   getCoins: () => Promise<void>;
 }
@@ -20,6 +21,12 @@ const useCoinsStore = create<IState>((set) => ({
     },
     series: {
       type: 'series',
+      coin: 0,
+      maxAdditionalOnRole: 0,
+      bonusDirector: 0,
+    },
+    shortFilm: {
+      type: 'shortFilm',
       coin: 0,
       maxAdditionalOnRole: 0,
       bonusDirector: 0,

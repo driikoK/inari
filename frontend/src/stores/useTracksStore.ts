@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 import { TrackType } from '@/types';
+import { CreateTrackType } from '@/App/dialogs/InputCookieDialog/types';
 
 interface IState {
   tracks: TrackType[];
@@ -11,7 +12,7 @@ interface IState {
     nameTitle?: string;
     typeRole?: string;
   }) => Promise<void>;
-  addTracks: (newTracks: unknown[]) => Promise<void>;
+  addTracks: (newTracks: CreateTrackType) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;
 }
 
@@ -27,7 +28,7 @@ const useTracksStore = create<IState>((set) => ({
     }
   },
 
-  addTracks: async (newTracks: unknown[]) => {
+  addTracks: async (newTracks: CreateTrackType) => {
     try {
       await axios.post(`${process.env.API_URL}/users/tracks`, newTracks);
     } catch (error) {
