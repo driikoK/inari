@@ -1,10 +1,13 @@
-export interface ValuesType {
-  main: TrackType;
-  dubs: string[];
+interface Multipliers {
   isFast: boolean;
   isOngoing: boolean;
   isPriority: boolean;
   isInTime: boolean;
+}
+
+export interface ValuesType extends Multipliers {
+  main: TrackType;
+  dubs: string[];
 }
 
 export interface MemberInfo {
@@ -20,12 +23,8 @@ export interface TrackType {
   [key: string]: MemberInfo;
 }
 
-export interface CreateTrackType {
+export interface CreateTrackType extends Multipliers {
   membersInfo: MemberInfo[];
-  isFast: boolean;
-  isOngoing: boolean;
-  isPriority: boolean;
-  isInTime: boolean;
 }
 
 export interface CofType {
@@ -57,4 +56,23 @@ export enum DubStatusEnum {
 export interface FormErrorsType {
   main: string;
   bonus: string;
+}
+
+export interface FieldFormValue {
+  nickname: string;
+  coins: string;
+  isGuest?: boolean;
+}
+
+export interface CreateTrackFormValues extends Multipliers {
+  sound: FieldFormValue;
+  director: FieldFormValue;
+  sub: FieldFormValue;
+  editor: FieldFormValue;
+  dubs: FieldFormValue[];
+  fixer: FieldFormValue;
+  roleBreaker?: FieldFormValue;
+  releasers: FieldFormValue[];
+  another?: FieldFormValue;
+  note?: string;
 }
