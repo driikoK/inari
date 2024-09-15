@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { TypesEnum } from '../enums/types.enum';
+import { MEMBER_ROLE } from '../enums/types.enum';
 
 export const TracksSchema = new mongoose.Schema({
   nickname: String,
@@ -9,7 +9,7 @@ export const TracksSchema = new mongoose.Schema({
   currentEpisode: Number,
   typeRole: {
     type: String,
-    enum: TypesEnum,
+    enum: MEMBER_ROLE,
   },
-  coin: Number,
+  coins: Number,
 });
