@@ -1,17 +1,20 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { Model } from 'mongoose';
-import { ITrack } from './interfaces/track.interface';
-import { determineAnimeSeason } from './helper/season.helper';
+import { Inject, Injectable } from '@nestjs/common';
+
+import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
 import { UserService } from './users.service';
-import { MULTIPLIERS } from './enums/types.enum';
+import { ITrack } from './interfaces/track.interface';
+import { determineAnimeSeason } from './helper/season.helper';
+import { MEMBER_ROLE, MULTIPLIER } from './enums/types.enum';
+import { SettingsService } from './settings.service';
 
 @Injectable()
 export class TrackService {
   constructor(
     @Inject('TRACK_MODEL') private readonly trackModel: Model<ITrack>,
     private readonly usersService: UserService,
+    private readonly settingsService: SettingsService,
   ) {}
 
   async getTracks(filter: FilterTrackData) {
@@ -29,7 +32,7 @@ export class TrackService {
       if (user) {
         const updatedUser = {
           nickname: user.nickname,
-          coin: Number(user.coin) - Number(track.coin),
+          coin: Number(user.coin) - Number(track.coins),
           types: user.types,
         };
 
@@ -61,29 +64,42 @@ export class TrackService {
     multipliers: Omit<CreateTrackData, 'membersInfo'>,
     member: MemberInfo,
   ) {
-    if (member.isGuest && member.coin) member.coin = member.coin / 2;
+    if (member.isGuest && member.coins) member.coins = member.coins / 2;
 
     let additionalCoins = 0;
 
     if (multipliers.isFast) {
-      additionalCoins += member.coin * MULTIPLIERS.FAST;
+      additionalCoins += member.coins * MULTIPLIER.FAST;
     }
     if (multipliers.isOngoing) {
-      additionalCoins += member.coin * MULTIPLIERS.ONGOING;
+      additionalCoins += member.coins * MULTIPLIER.ONGOING;
     }
     if (multipliers.isPriority) {
-      additionalCoins += member.coin * MULTIPLIERS.PRIORITY;
+      additionalCoins += member.coins * MULTIPLIER.PRIORITY;
     }
     if (multipliers.isInTime) {
-      additionalCoins += member.coin * MULTIPLIERS.IN_TIME;
+      additionalCoins += member.coins * MULTIPLIER.IN_TIME;
     }
 
-    member.coin += additionalCoins;
+    member.coins += additionalCoins;
 
     return member;
   }
 
   async createTrack(track: CreateTrackData) {
+    const editor = track.membersInfo.find(
+      (member) => member.typeRole === MEMBER_ROLE.EDITOR,
+    );
+
+    // ** add additional coins to translator when team doesn't have an editor
+    if (!editor) {
+      const subIndex = track.membersInfo.findIndex(
+        (member) => member.typeRole === MEMBER_ROLE.SUB,
+      );
+      track.membersInfo[subIndex].coins +=
+        this.settingsService.getCoins()[track.titleType].editor;
+    }
+
     for (const member of track.membersInfo) {
       const user = await this.usersService.findUser(member.nickname);
 
@@ -93,11 +109,13 @@ export class TrackService {
       await this.trackModel.create({
         ...memberWithMultipliers,
         season: determineAnimeSeason(date.getMonth(), date.getFullYear()),
+        currentEpisode: track.currentEpisode,
+        nameTitle: track.nameTitle,
       });
 
       const updatedUser = {
         nickname: member.nickname,
-        coin: Number(user.coin) + Number(member.coin),
+        coin: Number(user.coin) + Number(member.coins),
         types: user.types.includes(member.typeRole)
           ? user.types
           : [...user.types, member.typeRole],
