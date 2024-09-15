@@ -1,24 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TypesEnum } from '../enums/types.enum';
+import { MEMBER_ROLE } from '../enums/types.enum';
 
 export class MemberInfo {
   @ApiProperty()
   nickname: string;
 
   @ApiProperty()
-  nameTitle: string;
-
-  @ApiPropertyOptional({ nullable: true })
-  note?: string;
+  typeRole: MEMBER_ROLE;
 
   @ApiProperty()
-  currentEpisode: number;
-
-  @ApiProperty()
-  typeRole: TypesEnum;
-
-  @ApiProperty()
-  coin: number;
+  coins: number;
 
   @ApiPropertyOptional()
   isGuest?: boolean;
@@ -39,4 +30,16 @@ export class CreateTrackData {
 
   @ApiPropertyOptional()
   isInTime?: boolean;
+
+  @ApiProperty()
+  currentEpisode: number;
+
+  @ApiProperty()
+  nameTitle: string;
+
+  @ApiProperty()
+  titleType: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  note?: string;
 }

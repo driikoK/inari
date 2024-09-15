@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { UserService } from './users.service';
 import { CreateUserData } from './data/create-user.data';
-import { TypesEnum } from './enums/types.enum';
-import { TrackService } from './track.service';
+import { MEMBER_ROLE } from './enums/types.enum';
+import { TrackService } from './tracks.service';
 import { CreateTrackData } from './data/create-track.data';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { FilterTrackData } from './data/filter-track.data';
@@ -67,11 +67,15 @@ export class UserController {
   @Get('/types')
   async getTypes() {
     return [
-      TypesEnum.DIRECTOR,
-      TypesEnum.DUB,
-      TypesEnum.OTHER,
-      TypesEnum.SOUND,
-      TypesEnum.SUB,
+      MEMBER_ROLE.DIRECTOR,
+      MEMBER_ROLE.DUB,
+      MEMBER_ROLE.ANOTHER,
+      MEMBER_ROLE.SOUND,
+      MEMBER_ROLE.EDITOR,
+      MEMBER_ROLE.FIXER,
+      MEMBER_ROLE.RELEASER,
+      MEMBER_ROLE.ROLE_BREAKER,
+      MEMBER_ROLE.SUB,
     ];
   }
 }
