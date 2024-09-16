@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+
 import { CoinsType } from '@/types';
 
 interface IState {
@@ -15,28 +16,57 @@ const useCoinsStore = create<IState>((set) => ({
   coinsTypes: {
     film: {
       type: 'film',
-      coin: 0,
-      maxAdditionalOnRole: 0,
-      bonusDirector: 0,
+      coins: 0,
+      sub: 0,
+      editor: 0,
+      dub: {
+        double: 0,
+        multi: 0,
+      },
+      fixer: 0,
+      roleBreaker: 0,
+      sound: 0,
+      releaser: 0,
+      director: 0,
+      another: 0,
     },
     series: {
       type: 'series',
-      coin: 0,
-      maxAdditionalOnRole: 0,
-      bonusDirector: 0,
+      coins: 0,
+      sub: 0,
+      editor: 0,
+      dub: {
+        double: 0,
+        multi: 0,
+      },
+      fixer: 0,
+      roleBreaker: 0,
+      sound: 0,
+      releaser: 0,
+      director: 0,
+      another: 0,
     },
     shortFilm: {
       type: 'shortFilm',
-      coin: 0,
-      maxAdditionalOnRole: 0,
-      bonusDirector: 0,
+      coins: 0,
+      sub: 0,
+      editor: 0,
+      dub: {
+        double: 0,
+        multi: 0,
+      },
+      fixer: 0,
+      roleBreaker: 0,
+      sound: 0,
+      releaser: 0,
+      director: 0,
+      another: 0,
     },
   },
   loading: false,
   error: null,
 
   getCoins: async () => {
-    // eslint-disable-next-line no-useless-catch
     try {
       const response = await axios.get(`${process.env.API_URL}/settings/coins`);
       set({ coinsTypes: response.data });

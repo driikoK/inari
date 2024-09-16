@@ -1,23 +1,23 @@
 export type TAnime = {
-  _id: string,
-  name: string,
-  link: string,
-  posterUrl: string,
-  isOngoing: boolean,
-  isPriority: boolean,
+  _id: string;
+  name: string;
+  link: string;
+  posterUrl: string;
+  isOngoing: boolean;
+  isPriority: boolean;
   isDecided: boolean;
   isSponsored: boolean;
-}
+};
 
 export type TResultAnime = {
   anime: TAnime & {
     votes: {
-      _id: string,
-      userName: string,
-    }[],
-  },
-  voteCount: number,
-}
+      _id: string;
+      userName: string;
+    }[];
+  };
+  voteCount: number;
+};
 
 export interface ValuesType {
   main: TracksType;
@@ -36,7 +36,7 @@ export interface TracksType {
 }
 
 export interface TrackType {
-  _id: string
+  _id: string;
   nickname: string;
   nameTitle: string;
   season: number;
@@ -46,31 +46,41 @@ export interface TrackType {
   typeRole: string;
 }
 
-export interface CofType{
-  sub: number,
-  dub: number,
-  sound: number,
-  additional: number,
-  fastMultiplier: number,
+export interface CofType {
+  sub: number;
+  dub: number;
+  sound: number;
+  additional: number;
+  fastMultiplier: number;
 }
 
 export interface CoinsType {
   type: string;
-  coin: number;
-  maxAdditionalOnRole: number,
-  bonusDirector: number;
+  coins: number;
+  sub: number;
+  editor: number;
+  dub: {
+    double: number;
+    multi: number;
+  };
+  fixer: number;
+  roleBreaker: number;
+  sound: number;
+  releaser: number;
+  director: number;
+  another: number;
 }
 
 export enum AnimeStatusEnum {
   NONE = 'none',
   FILM = 'film',
-  STANDART = 'inTimeStandardAnime',
+  STANDARD = 'inTimeStandardAnime',
   DELAY = 'delayStandardAnime',
 }
 
-export enum DubStatusEnum {
+export enum DUB_COIN_VALUE {
   KB = 'кб',
-  COOKIE = 'крихти'
+  COOKIE = 'крихти',
 }
 
 export interface FormErrorsType {
@@ -79,9 +89,8 @@ export interface FormErrorsType {
 }
 
 export interface UserType {
-  _id: string,
-  nickname: string,
-  types: string[],
-  coin: number,
-  __v: number
+  _id: string;
+  nickname: string;
+  types: string[];
+  coin: number;
 }

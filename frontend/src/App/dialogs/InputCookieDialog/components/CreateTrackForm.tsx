@@ -1,134 +1,232 @@
 import { FC, useEffect, useMemo, useState } from 'react';
-import { Form, Formik } from 'formik';
 
 import { Box, Button, Checkbox, TextField } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import toast from 'react-hot-toast';
+import { useForm, FormProvider } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 import { FormField } from './FormField';
 import { createTrackFormSchema, initialFormValues } from '../const';
-import { CreateTrackFormValues } from '../types';
+import {
+  ANIME_TYPE,
+  CreateTrackFormValues,
+  CreateTrackType,
+  FieldFormValue,
+  MemberInfo,
+} from '../types';
 import { CheckboxWrapper, ColorText, SubParagraph, Title, TitleWrapper } from '../styles';
-import { totalMainCoins } from '../utils';
 import useUsersStore from '@/stores/useUsersStore';
 import useCoinsStore from '@/stores/useCoinsStore';
+import useTracksStore from '@/stores/useTracksStore';
 import { CoinsType } from '@/types';
-import { PlusMinusButton } from './PlusMinusButton';
 
 interface CreateTrackFormProps {
   titleName: string;
-  currentEpisode: number;
+  currentEpisode: string;
+  onBack: () => void;
+  onClose: () => void;
+  animeType: ANIME_TYPE;
 }
 
-export const CreateTrackForm: FC<CreateTrackFormProps> = ({ titleName, currentEpisode }) => {
+const startNameForMemberField = 'membersInfo';
+
+export const CreateTrackForm: FC<CreateTrackFormProps> = ({
+  titleName,
+  currentEpisode,
+  onBack,
+  onClose,
+  animeType,
+}) => {
   const { getUsers } = useUsersStore();
+  const { coinsTypes } = useCoinsStore();
+  const { addTracks } = useTracksStore();
 
-  const { coinsTypes, getCoins } = useCoinsStore();
-
-  const [coins, setCoins] = useState<CoinsType>(coinsTypes.series);
+  const [coins, setCoins] = useState<CoinsType>(coinsTypes[animeType as keyof typeof coinsTypes]);
 
   useEffect(() => {
     getUsers();
   }, []);
 
-  const initialValues: CreateTrackFormValues = initialFormValues;
+  const defaultValues: CreateTrackFormValues = useMemo(() => {
+    return {
+      ...initialFormValues,
+      membersInfo: Object.entries(initialFormValues.membersInfo).reduce((acc, [key, value]) => {
+        // ** Values like 'dubs' or 'releasers' where don't need to change default coins value. Coins = 0 by default
+        if (Array.isArray(value)) {
+          (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue[]) = [...value];
 
-  const handleSubmit = (form: CreateTrackFormValues) => {
-    console.log(form, 'form');
+          return acc;
+        }
+
+        // ** Optional roles. For them also don't need to change default coins value. Coins = 0 by default
+        // if (key === 'editor' || key === 'another') {
+        //   acc[key] = {
+        //     ...value,
+        //   };
+
+        //   return acc;
+        // }
+
+        // ** Main roles with coins value from endpoint
+        (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue) = {
+          ...value,
+          coins: coins[key as keyof typeof coins].toString(),
+        } as FieldFormValue;
+
+        return acc;
+      }, {} as CreateTrackFormValues['membersInfo']),
+    };
+  }, [coins]);
+
+  const methods = useForm<CreateTrackFormValues>({
+    defaultValues: defaultValues,
+    resolver: yupResolver(createTrackFormSchema),
+  });
+
+  const {
+    handleSubmit,
+    register,
+    watch,
+    formState: { isValid },
+  } = methods;
+
+  const watchDubs = watch('membersInfo.dubs').length;
+
+  const onSubmitForm = async (form: CreateTrackFormValues) => {
+    const payload: CreateTrackType = {
+      membersInfo: Object.entries(form.membersInfo).flatMap(([key, value]) => {
+        if (Array.isArray(value)) {
+          return value.map((member) => ({
+            ...member,
+            typeRole: key,
+            coins: Number(member.coins),
+          }));
+        }
+
+        return value?.nickname !== ''
+          ? { ...value, typeRole: key, coins: Number(value?.coins) }
+          : [];
+      }) as MemberInfo[],
+      isFast: form.isFast,
+      isOngoing: form.isOngoing,
+      isPriority: form.isPriority,
+      isInTime: form.isInTime,
+      nameTitle: titleName,
+      currentEpisode: parseInt(currentEpisode),
+      titleType: animeType,
+    };
+
+    try {
+      await addTracks(payload);
+
+      onClose();
+      toast.success('Успішно');
+    } catch (e) {
+      toast.error('Помилка');
+    }
   };
 
   return (
-    <Formik
-      validationSchema={createTrackFormSchema}
-      initialValues={initialValues}
-      onSubmit={handleSubmit}
-    >
-      {({ isValid, isSubmitting, isValidating, errors, values, handleChange }) => {
-        // console.log(values);
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmitForm)}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}
+        >
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={onBack}
+            sx={{
+              color: 'black',
+              fontSize: '16px',
+              alignSelf: 'flex-start',
+            }}
+          >
+            <Title>Назад</Title>
+          </Button>
+          <TitleWrapper>
+            <Title>
+              Крихти — <ColorText>{coins.coins}</ColorText>
+            </Title>
+          </TitleWrapper>
 
-        console.log(errors);
+          <FormField name={`${startNameForMemberField}.sound`} label="Звукач" isDisabled />
+          <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
+          <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
+          <FormField
+            name={`${startNameForMemberField}.editor`}
+            label="Редактор (не обов'язково)"
+            isDisabled
+          />
 
-        return (
-          <Form>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
-              {/* <Button startIcon={<ArrowBackIcon />} onClick={() => setIsNextStep(false)}> */}
-              <Button
-                startIcon={<ArrowBackIcon />}
-                sx={{
-                  color: 'black',
-                  fontSize: '16px',
-                  alignSelf: 'flex-start',
-                }}
-              >
-                <Title>Назад</Title>
-              </Button>
-              <TitleWrapper>
-                <Title>
-                  Крихти -{' '}
-                  <ColorText>
-                    {/* {totalMainCoins(values)}/{coins.coin + coins.bonusDirector} */}
-                    {123123123}
-                  </ColorText>
-                </Title>
-              </TitleWrapper>
+          <FormField name={`${startNameForMemberField}.fixer`} label="Фіксер" isDisabled />
+          <FormField
+            name={`${startNameForMemberField}.roleBreaker`}
+            label="Розбивач ролей"
+            isDisabled
+          />
 
-              <FormField name="sound" label="Звукач" />
-              <FormField name="director" label="Куратор" />
-              <FormField name="sub" label="Перекладач" />
-              <FormField name="editor" label="Редактор" />
+          <FormField
+            name={`${startNameForMemberField}.another`}
+            label="Додаткова роль (не обов'язкова)"
+            isDisabled
+          />
 
-              <FormField name="dubs" label="Дабери" isArray />
-              <PlusMinusButton name="dubs" maxValue={10} />
+          <SubParagraph>
+            {watchDubs <= 2
+              ? `Доступно ${coins.dub.double} крихт`
+              : `Доступно ${coins.dub.multi} крихт`}
+          </SubParagraph>
+          <FormField
+            name={`${startNameForMemberField}.dubs`}
+            label="Дабери"
+            isArray
+            maxLength={10}
+          />
 
-              <FormField name="fixer" label="Фіксер" />
-              <FormField name="roleBreaker" label="Розбивач ролей" />
+          <SubParagraph>{`Доступно ${coins.releaser} крихт`}</SubParagraph>
+          <FormField
+            name={`${startNameForMemberField}.releasers`}
+            label="Релізери"
+            isArray
+            maxLength={2}
+          />
 
-              <FormField name="releasers" label="Релізери" isArray />
-              <PlusMinusButton name="releasers" maxValue={2} />
+          <TextField
+            {...register('note')}
+            placeholder="Не обов'язкове поле"
+            sx={{ width: '100%' }}
+            multiline
+            rows={4}
+          />
 
-              <FormField name="another" label="Додаткова роль (не обов'язкова)" />
+          <Box>
+            <CheckboxWrapper>
+              <Checkbox {...register('isFast')} />
+              <SubParagraph>Зроблено швидко</SubParagraph>
 
-              <TextField
-                placeholder="Не обов'язкове поле"
-                name="note"
-                sx={{ width: '100%' }}
-                multiline
-                rows={4}
-              />
+              <Checkbox {...register('isOngoing')} />
+              <SubParagraph>Онґоїнґ</SubParagraph>
+            </CheckboxWrapper>
 
-              <Box>
-                <CheckboxWrapper>
-                  <Checkbox name="isFast" value={values.isFast} onChange={handleChange} />
-                  <SubParagraph>Зроблено швидко</SubParagraph>
+            <CheckboxWrapper>
+              <Checkbox {...register('isPriority')} />
+              <SubParagraph>Пріоритет</SubParagraph>
 
-                  <Checkbox name="isOngoing" value={values.isOngoing} onChange={handleChange} />
-                  <SubParagraph>Онґоїнґ</SubParagraph>
-                </CheckboxWrapper>
+              <Checkbox {...register('isInTime')} />
+              <SubParagraph>Зроблено вчасно</SubParagraph>
+            </CheckboxWrapper>
+          </Box>
 
-                <Checkbox name="isPriority" value={values.isPriority} onChange={handleChange} />
-                <SubParagraph>Пріоритет</SubParagraph>
-
-                <Checkbox name="isInTime" value={values.isInTime} onChange={handleChange} />
-                <SubParagraph>Зроблено вчасно</SubParagraph>
-                <CheckboxWrapper></CheckboxWrapper>
-              </Box>
-
-              <Button
-                variant="contained"
-                type="submit"
-                disabled={isSubmitting || isValidating || !isValid}
-              >
-                Зберегти
-              </Button>
-            </Box>
-          </Form>
-        );
-      }}
-    </Formik>
+          <Button variant="contained" type="submit" disabled={!isValid}>
+            Зберегти
+          </Button>
+        </Box>
+      </form>
+    </FormProvider>
   );
 };

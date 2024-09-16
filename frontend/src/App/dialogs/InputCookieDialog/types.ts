@@ -12,10 +12,8 @@ export interface ValuesType extends Multipliers {
 
 export interface MemberInfo {
   nickname: string;
-  nameTitle: string;
-  coin: number;
+  coins: number;
   typeRole: string;
-  currentEpisode: number;
   isGuest: boolean;
 }
 
@@ -25,6 +23,9 @@ export interface TrackType {
 
 export interface CreateTrackType extends Multipliers {
   membersInfo: MemberInfo[];
+  currentEpisode: number;
+  nameTitle: string;
+  titleType: string;
 }
 
 export interface CofType {
@@ -34,21 +35,14 @@ export interface CofType {
   additional: number;
 }
 
-export interface CoinsType {
-  type: string;
-  coin: number;
-  maxAdditionalOnRole: number;
-  bonusDirector: number;
-}
-
-export enum AnimeTypeEnum {
+export enum ANIME_TYPE {
   NONE = 'none',
   FILM = 'film',
-  SERIES = 'inTimeStandardAnime',
+  SERIES = 'series',
   SHORT_FILM = 'shortFilm',
 }
 
-export enum DubStatusEnum {
+export enum DUB_COIN_VALUE {
   KB = 'кб',
   COOKIE = 'крихти',
 }
@@ -64,15 +58,19 @@ export interface FieldFormValue {
   isGuest?: boolean;
 }
 
+export interface NotRequiredFieldFormValue extends Partial<FieldFormValue> {}
+
 export interface CreateTrackFormValues extends Multipliers {
-  sound: FieldFormValue;
-  director: FieldFormValue;
-  sub: FieldFormValue;
-  editor: FieldFormValue;
-  dubs: FieldFormValue[];
-  fixer: FieldFormValue;
-  roleBreaker?: FieldFormValue;
-  releasers: FieldFormValue[];
-  another?: FieldFormValue;
+  membersInfo: {
+    sound: FieldFormValue;
+    director: FieldFormValue;
+    sub: FieldFormValue;
+    editor?: NotRequiredFieldFormValue | null;
+    dubs: FieldFormValue[];
+    fixer: FieldFormValue;
+    roleBreaker: FieldFormValue;
+    releasers: FieldFormValue[];
+    another?: NotRequiredFieldFormValue | null;
+  };
   note?: string;
 }

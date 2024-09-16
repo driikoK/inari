@@ -1,4 +1,13 @@
-import { FastField, Field, FieldArray, useField } from 'formik';
+import { FC, FunctionComponent, useEffect, useState } from 'react';
+import {
+  Controller,
+  ControllerRenderProps,
+  FieldValues,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
+import { ErrorMessage } from '@hookform/error-message';
 import {
   Autocomplete,
   Box,
@@ -8,13 +17,11 @@ import {
   TextField,
   useMediaQuery,
 } from '@mui/material';
-import { Dispatch, FC, FunctionComponent, SetStateAction, useState, useTransition } from 'react';
 
-import CreateUserDialog from '@/App/dialogs/CreateUserDialog';
+import { PlusMinusButton } from './PlusMinusButton';
+import { ErrorText, FieldContainer, Paragraph } from '../styles';
 import theme from '@theme';
-import { FieldContainer } from '@/components/InputField/styles';
-import { FieldFormValue } from '../types';
-import { Paragraph } from '../styles';
+import CreateUserDialog from '@/App/dialogs/CreateUserDialog';
 import { UserType } from '@/types';
 import useUsersStore from '@/stores/useUsersStore';
 
@@ -24,6 +31,7 @@ export interface FormFieldProps {
   label: string;
   isArray?: boolean;
   users?: UserType[];
+  maxLength?: number;
 }
 
 export const FormField: FunctionComponent<FormFieldProps> = ({
@@ -31,9 +39,8 @@ export const FormField: FunctionComponent<FormFieldProps> = ({
   isDisabled,
   label,
   isArray,
-  // users,
+  maxLength = 10,
 }) => {
-  const [field] = useField<FieldFormValue | FieldFormValue[]>(name);
   const [openDialog, setOpenDialog] = useState(false);
 
   return (
@@ -41,29 +48,14 @@ export const FormField: FunctionComponent<FormFieldProps> = ({
       <Paragraph>{label}:</Paragraph>
 
       {isArray ? (
-        <FieldArray name={`${field.name}`}>
-          {() => (
-            <>
-              {(field.value as FieldFormValue[]).map((_, index) => (
-                <div key={index}>
-                  <InputFields
-                    name={`${field.name}.${index}`}
-                    setOpenDialog={setOpenDialog}
-                    isDisabled={isDisabled}
-                    // users={users}
-                  />
-                </div>
-              ))}
-            </>
-          )}
-        </FieldArray>
-      ) : (
-        <InputFields
-          name={`${field.name}`}
-          setOpenDialog={setOpenDialog}
+        <ArrayField
+          name={name}
+          onOpenDialog={() => setOpenDialog(true)}
           isDisabled={isDisabled}
-          // users={users}
+          maxLength={maxLength}
         />
+      ) : (
+        <InputFields name={name} onOpenDialog={() => setOpenDialog(true)} isDisabled={isDisabled} />
       )}
 
       {openDialog && <CreateUserDialog onClose={() => setOpenDialog(false)} open={openDialog} />}
@@ -71,133 +63,140 @@ export const FormField: FunctionComponent<FormFieldProps> = ({
   );
 };
 
-interface InputFieldsProps {
+interface ArrayFieldProps {
   name: string;
-  setOpenDialog: Dispatch<SetStateAction<boolean>>;
+  onOpenDialog: () => void;
   isDisabled?: boolean;
-  users?: UserType[];
+  maxLength: number;
 }
 
-const InputFields: FC<InputFieldsProps> = ({ name, setOpenDialog, isDisabled }) => {
-  const { users } = useUsersStore();
-  const handleCoinsChange = (value: string, currentField: any) => {
-    if (Number(value) < 0) return;
-
-    currentField.onChange({
-      target: {
-        name: currentField.name,
-        value: value,
-      },
-    });
-  };
-
-  const isTablet = useMediaQuery(theme.screens.tablet);
-
-  if (!users) return <div>Loading...</div>;
+const ArrayField: FC<ArrayFieldProps> = ({ name, onOpenDialog, isDisabled, maxLength }) => {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name,
+    rules: { maxLength, minLength: 1 },
+  });
 
   return (
-    <FieldContainer>
-      <FastField name={`${name}.nickname`}>
-        {({ field }: any) => (
-          <AutocompleteField field={field} />
-          // <Autocomplete
-          //   options={users}
-          //   getOptionLabel={(option) => option.nickname}
-          //   value={users.find((user) => user.nickname === field.value) || null}
-          //   onChange={(_, newValue) => {
-          //     field.onChange({
-          //       target: {
-          //         name: field.name,
-          //         value: newValue?.nickname,
-          //       },
-          //     });
-          //   }}
-          //   renderInput={(params) => <TextField {...params} label="Нікнейм" variant="outlined" />}
-          //   renderOption={(props, option) => (
-          //     <MenuItem {...props} key={option.nickname} value={option.nickname}>
-          //       {option.nickname}
-          //     </MenuItem>
-          //   )}
-          //   noOptionsText={
-          //     <MenuItem sx={{ fontWeight: '500' }} onClick={() => setOpenDialog(true)}>
-          //       Додати
-          //     </MenuItem>
-          //   }
-          //   sx={{ width: isTablet ? '80%' : '100%' }}
-          // />
-        )}
-      </FastField>
-
-      <FastField name={`${name}.coins`}>
-        {({ field }: any) => (
-          <TextField
-            disabled={isDisabled}
-            variant="outlined"
-            placeholder="0"
-            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-            type="number"
-            {...field}
-            onChange={(e) => {
-              handleCoinsChange(e.target.value, field);
-            }}
-            sx={{ width: isTablet ? '20%' : '100%' }}
+    <>
+      {fields.map((field, index) => (
+        <div key={field.id}>
+          <InputFields
+            name={`${name}.${index}`}
+            onOpenDialog={onOpenDialog}
+            isDisabled={isDisabled}
           />
-        )}
-      </FastField>
+        </div>
+      ))}
 
-      <FastField name={`${name}.isGuest`}>
-        {({ field: checkboxField }: any) => (
-          <FormControlLabel
-            label="Гість"
-            control={
-              <Checkbox
-                name={checkboxField.name}
-                checked={checkboxField.value}
-                onChange={(e) => {
-                  checkboxField.onChange({
-                    target: {
-                      name: checkboxField.name,
-                      value: e.target.checked,
-                    },
-                  });
-                }}
-              />
-            }
-          />
-        )}
-      </FastField>
-    </FieldContainer>
+      <PlusMinusButton maxValue={maxLength} append={append} remove={remove} fields={fields} />
+    </>
   );
 };
 
-const AutocompleteField = ({ field }: any) => {
+interface InputFieldsProps extends Omit<ArrayFieldProps, 'maxLength'> {}
+
+const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) => {
   const { users } = useUsersStore();
+  const {
+    register,
+    control,
+    resetField,
+    formState: { errors },
+  } = useFormContext();
+
   const isTablet = useMediaQuery(theme.screens.tablet);
 
+  const nickname = useWatch({
+    name: `${name}.nickname`,
+  });
+
+  const handleCoinsChange = (
+    value: string,
+    currentField: ControllerRenderProps<FieldValues, `${string}.coins`>
+  ) => {
+    const numberValue = Number(value.replace(/[^0-9]/g, ''));
+    currentField.onChange(numberValue);
+  };
+
+  useEffect(() => {
+    if (!nickname) {
+      resetField(`${name}.coins`);
+    }
+  }, [nickname]);
+
   return (
-    <Autocomplete
-      options={users}
-      getOptionLabel={(option) => option.nickname}
-      value={users.find((user) => user.nickname === field.value) || null}
-      onChange={(_, newValue) => {
-        field.onChange({
-          target: {
-            name: field.name,
-            value: newValue?.nickname,
-          },
-        });
-      }}
-      renderInput={(params) => <TextField {...params} label="Нікнейм" variant="outlined" />}
-      renderOption={(props, option) => (
-        <MenuItem {...props} key={option.nickname} value={option.nickname}>
-          {option.nickname}
-        </MenuItem>
-      )}
-      noOptionsText={
-        // <MenuItem sx={{ fontWeight: '500' }} onClick={() => setOpenDialog(true)}>
-        <MenuItem sx={{ fontWeight: '500' }}>Додати</MenuItem>
-      }
-      sx={{ width: isTablet ? '80%' : '100%' }}
-    />
+    <>
+      <FieldContainer>
+        <Controller
+          control={control}
+          name={`${name}.nickname`}
+          render={({ field }) => (
+            <Autocomplete
+              options={users}
+              getOptionLabel={(option) => option.nickname}
+              value={users.find((user) => user.nickname === field.value) || null}
+              onChange={(_, newValue) => {
+                field.onChange(newValue?.nickname);
+              }}
+              renderInput={(params) => <TextField {...params} label="Нікнейм" variant="outlined" />}
+              renderOption={(props, option) => (
+                <MenuItem {...props} key={option.nickname} value={option.nickname}>
+                  {option.nickname}
+                </MenuItem>
+              )}
+              noOptionsText={
+                <MenuItem sx={{ fontWeight: '500' }} onClick={onOpenDialog}>
+                  Додати
+                </MenuItem>
+              }
+              sx={{ width: isTablet ? '80%' : '100%' }}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name={`${name}.coins`}
+          render={({ field }) => (
+            <TextField
+              disabled={isDisabled || !nickname}
+              variant="outlined"
+              placeholder="0"
+              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+              type="text"
+              value={field.value}
+              onChange={(e) => {
+                handleCoinsChange(e.target.value, field);
+              }}
+              sx={{ width: isTablet ? '20%' : '100%' }}
+            />
+          )}
+        />
+
+        <FormControlLabel label="Гість" control={<Checkbox {...register(`${name}.isGuest`)} />} />
+      </FieldContainer>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          gap: '8px',
+        }}
+      >
+        <ErrorMessage
+          errors={errors}
+          name={`${name}.nickname`}
+          render={({ message }) => <ErrorText>{message}</ErrorText>}
+        />
+        <ErrorMessage
+          errors={errors}
+          name={`${name}.coins`}
+          render={({ message }) => <ErrorText>{message}</ErrorText>}
+        />
+      </Box>
+    </>
   );
 };

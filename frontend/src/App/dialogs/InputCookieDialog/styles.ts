@@ -67,6 +67,7 @@ export const ErrorText = styled.span`
   font-style: normal;
   font-size: 16px;
   color: red;
+  margin-bottom: 0.3rem;
 `;
 
 export const Wrapper = styled.div`
@@ -109,12 +110,23 @@ export const RowWrapper = styled.div`
 export const PlusMinusWrapper = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: center;
 `;
 
 export const CheckboxWrapper = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
+`;
+
+export const FieldContainer = styled.div`
+  display: flex;
+  ${({ theme }) =>
+    theme.mq({
+      flexDirection: ['column', 'column', 'row', 'row'],
+      alignItems: ['flex-start', 'flex-start', 'center', 'center'],
+    })};
+  gap: 16px;
+  align-items: center;
+  margin: 10px 0;
 `;

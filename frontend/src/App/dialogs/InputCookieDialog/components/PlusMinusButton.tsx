@@ -1,7 +1,8 @@
-import { Button, ButtonGroup } from '@mui/material';
-import { useFormikContext, useField } from 'formik';
-import { FieldFormValue } from '../types';
 import { FC } from 'react';
+import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
+import { Button, ButtonGroup } from '@mui/material';
+
+import { FieldFormValue } from '../types';
 
 const defaultValue: FieldFormValue = {
   nickname: '',
@@ -10,31 +11,19 @@ const defaultValue: FieldFormValue = {
 };
 
 interface PlusMinusButtonProps {
-  name: string;
   maxValue: number;
+  append: UseFieldArrayAppend<FieldValues, string>;
+  remove: UseFieldArrayRemove;
+  fields: Record<'id', string>[];
 }
 
-export const PlusMinusButton: FC<PlusMinusButtonProps> = ({ name, maxValue }) => {
-  const { setFieldValue } = useFormikContext();
-  const [field] = useField<FieldFormValue[]>(name);
-
-  const handleOnAddField = () => {
-    setFieldValue(name, [...field.value, defaultValue]);
-  };
-
-  const handleOnRemoveField = () => {
-    if (field.value.length > 1) {
-      const newValue = field.value.slice(0, -1);
-      setFieldValue(name, newValue);
-    }
-  };
-
+export const PlusMinusButton: FC<PlusMinusButtonProps> = ({ maxValue, append, remove, fields }) => {
   return (
     <ButtonGroup disableElevation variant="contained" aria-label="Basic button group">
-      <Button onClick={handleOnAddField} disabled={field.value.length >= maxValue}>
+      <Button onClick={() => append({ ...defaultValue })} disabled={fields.length >= maxValue}>
         +
       </Button>
-      <Button onClick={handleOnRemoveField} disabled={field.value.length <= 1}>
+      <Button onClick={() => remove(-1)} disabled={fields.length <= 1}>
         -
       </Button>
     </ButtonGroup>
