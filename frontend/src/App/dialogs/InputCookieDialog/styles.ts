@@ -1,5 +1,4 @@
 import { Dialog, Select, dialogClasses, selectClasses } from '@mui/material';
-import { Form } from 'formik';
 import styled from 'styled-components';
 
 export const DialogContainer = styled(Dialog)`
@@ -75,13 +74,6 @@ export const Wrapper = styled.div`
   flex-direction: row;
   gap: 16px;
   justify-content: center;
-`;
-
-export const FormWrapper = styled(Form)`
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  gap: 6px;
 `;
 
 export const DubControlWrapper = styled.div`
