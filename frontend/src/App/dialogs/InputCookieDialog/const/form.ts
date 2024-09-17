@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 
-import { CreateTrackFormValues, FieldFormValue } from './types';
+import { CreateTrackFormValues, FieldFormValue } from '../types';
 import { CoinsType } from '@/types';
 
 const testIsNotZero = Yup.string()

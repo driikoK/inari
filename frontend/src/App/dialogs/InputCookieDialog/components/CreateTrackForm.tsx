@@ -7,7 +7,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { FormField } from './FormField';
-import { createTrackFormSchema, initialFormValues } from '../const';
+import { createTrackFormSchema, initialFormValues } from '../const/form';
 import {
   ANIME_TYPE,
   CreateTrackFormValues,
