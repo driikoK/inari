@@ -117,6 +117,10 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
     currentField: ControllerRenderProps<FieldValues, `${string}.coins`>
   ) => {
     const numberValue = Number(value.replace(/[^0-9]/g, ''));
+
+    // ** While don't have validation of field value
+    if (numberValue > 999) return;
+
     currentField.onChange(numberValue);
   };
 

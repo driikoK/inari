@@ -81,7 +81,8 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
   const methods = useForm<CreateTrackFormValues>({
     defaultValues: defaultValues,
-    resolver: yupResolver(createTrackFormSchema),
+    resolver: yupResolver(createTrackFormSchema(coins)),
+    criteriaMode: 'all',
   });
 
   const {
@@ -91,6 +92,8 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     formState: { isValid },
   } = methods;
 
+  /* Triggers full form re-render when any field in 'membersInfo.dubs' changes.
+     Maybe should remove this watch and then remove dynamic value of coins */
   const watchDubs = watch('membersInfo.dubs').length;
 
   const onSubmitForm = async (form: CreateTrackFormValues) => {
@@ -222,7 +225,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             </CheckboxWrapper>
           </Box>
 
-          <Button variant="contained" type="submit" disabled={!isValid}>
+          <Button variant="contained" type="submit">
             Зберегти
           </Button>
         </Box>
