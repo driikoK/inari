@@ -16,6 +16,7 @@
     "@hookform/resolvers": "^3.9.0",
     "@mui/icons-material": "^6.1.0",
     "@mui/material": "^6.1.0",
+    "@mui/x-data-grid": "^7.17.0",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "facepaint": "^1.2.1",
