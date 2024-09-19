@@ -15,6 +15,7 @@ import { TrackService } from './tracks.service';
 import { CreateTrackData } from './data/create-track.data';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { FilterTrackData } from './data/filter-track.data';
+import { UpdateTrackData } from './data/update-track.data';
 
 @ApiTags('Users')
 @Controller('users')
@@ -46,8 +47,10 @@ export class UserController {
   }
 
   @Put('/track/:id')
-  @ApiBody({ type: [CreateTrackData] })
-  async updateTrack(@Body() tracks: CreateTrackData) {}
+  @ApiBody({ type: UpdateTrackData })
+  updateTrack(@Param('id') id: string, @Body() track: UpdateTrackData) {
+    return this.trackService.updateTrack(id, track);
+  }
 
   @Delete('/track/:id')
   async deleteTrack(@Param('id') id: string) {
@@ -64,18 +67,8 @@ export class UserController {
     return this.trackService.getTrackSeasons();
   }
 
-  @Get('/types')
+  @Get('/roles')
   async getTypes() {
-    return [
-      MEMBER_ROLE.DIRECTOR,
-      MEMBER_ROLE.DUB,
-      MEMBER_ROLE.ANOTHER,
-      MEMBER_ROLE.SOUND,
-      MEMBER_ROLE.EDITOR,
-      MEMBER_ROLE.FIXER,
-      MEMBER_ROLE.RELEASER,
-      MEMBER_ROLE.ROLE_BREAKER,
-      MEMBER_ROLE.SUB,
-    ];
+    return this.usersService.getAllRoles();
   }
 }

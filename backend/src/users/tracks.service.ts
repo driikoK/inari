@@ -8,6 +8,7 @@ import { ITrack } from './interfaces/track.interface';
 import { determineAnimeSeason } from './helper/season.helper';
 import { MEMBER_ROLE, MULTIPLIER } from './enums/types.enum';
 import { SettingsService } from './settings.service';
+import { UpdateTrackData } from './data/update-track.data';
 
 @Injectable()
 export class TrackService {
@@ -32,7 +33,7 @@ export class TrackService {
       if (user) {
         const updatedUser = {
           nickname: user.nickname,
-          coin: Number(user.coin) - Number(track.coins),
+          coins: Number(user.coins) - Number(track.coins),
           types: user.types,
         };
 
@@ -58,7 +59,22 @@ export class TrackService {
     ]);
   }
 
-  async updateTrack(track: CreateTrackData) {}
+  async updateTrack(id: string, track: UpdateTrackData) {
+    await this.trackModel.updateOne(
+      {
+        _id: id,
+      },
+      {
+        $set: track,
+      },
+    );
+
+    const updatedTrack = await this.trackModel.findOne({
+      _id: id,
+    });
+
+    return updatedTrack;
+  }
 
   getCoinsWithMultipliers(
     multipliers: Omit<CreateTrackData, 'membersInfo'>,
@@ -115,7 +131,7 @@ export class TrackService {
 
       const updatedUser = {
         nickname: member.nickname,
-        coin: Number(user.coin) + Number(member.coins),
+        coins: Number(user.coins) + Number(member.coins),
         types: user.types.includes(member.typeRole)
           ? user.types
           : [...user.types, member.typeRole],
