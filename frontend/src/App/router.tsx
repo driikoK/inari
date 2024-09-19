@@ -1,12 +1,14 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import Vote from './pages/Vote';
-import Layout from './Layout';
-import Result from './pages/Result';
-import Cookie from './pages/Cookie';
-import Home from './pages/Home';
-import CookieRating from './pages/CookieRating';
-import CookieList from './pages/CookieList';
 
+import Layout from './Layout';
+
+const Vote = lazy(() => import('./pages/Vote'));
+const Result = lazy(() => import('./pages/Result'));
+const Cookie = lazy(() => import('./pages/Cookie'));
+const Home = lazy(() => import('./pages/Home'));
+const CookieRating = lazy(() => import('./pages/CookieRating'));
+const CookieList = lazy(() => import('./pages/CookieList'));
 
 const router = createBrowserRouter([
   {
@@ -27,16 +29,16 @@ const router = createBrowserRouter([
       },
       {
         path: 'cookie',
-        element: <Cookie />
+        element: <Cookie />,
       },
       {
         path: 'cookie/rating',
-        element: <CookieRating />
+        element: <CookieRating />,
       },
       {
         path: 'cookie/list',
-        element: <CookieList />
-      }
+        element: <CookieList />,
+      },
     ],
   },
 ]);

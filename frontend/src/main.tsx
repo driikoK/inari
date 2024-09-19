@@ -1,9 +1,10 @@
 import ReactDOM from 'react-dom/client';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
 
 import './global.css';
 import App from './App';
+import FallbackComponent from './components/Fallback';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -17,6 +18,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         },
       }}
     />
-    <App />
+    <Suspense fallback={<FallbackComponent />}>
+      <App />
+    </Suspense>
   </React.StrictMode>
 );
