@@ -10,5 +10,5 @@ export class CreateUserData {
   @ApiPropertyOptional({
     type: Number,
   })
-  coin = 0;
+  coins = 0;
 }

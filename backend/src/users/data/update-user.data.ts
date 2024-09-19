@@ -8,5 +8,5 @@ export class UpdateUserData {
   types: string[];
 
   @ApiProperty()
-  coin: number;
+  coins: number;
 }
