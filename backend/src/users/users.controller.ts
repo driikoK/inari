@@ -10,12 +10,12 @@ import {
 } from '@nestjs/common';
 import { UserService } from './users.service';
 import { CreateUserData } from './data/create-user.data';
-import { MEMBER_ROLE } from './enums/types.enum';
 import { TrackService } from './tracks.service';
 import { CreateTrackData } from './data/create-track.data';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { FilterTrackData } from './data/filter-track.data';
 import { UpdateTrackData } from './data/update-track.data';
+import { NicknameFilterData } from './data/nicknames-filter.data';
 
 @ApiTags('Users')
 @Controller('users')
@@ -26,8 +26,8 @@ export class UserController {
   ) {}
 
   @Get()
-  async getUsers() {
-    return this.usersService.findAll();
+  async getUsers(@Query() filter: NicknameFilterData) {
+    return this.usersService.findAll(filter);
   }
 
   @Post()

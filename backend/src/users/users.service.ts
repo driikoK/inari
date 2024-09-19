@@ -3,14 +3,26 @@ import { Model } from 'mongoose';
 import { INickname } from './interfaces/nickname.interface';
 import { UserData } from './data/nickname.data';
 import { MEMBER_ROLE } from './enums/types.enum';
+import { NicknameFilterData } from './data/nicknames-filter.data';
+
 @Injectable()
 export class UserService {
   constructor(
     @Inject('NICKNAME_MODEL') private readonly nicknameModel: Model<INickname>,
   ) {}
 
-  findAll(): Promise<INickname[]> {
-    return this.nicknameModel.find().exec();
+  async findAll(filter: NicknameFilterData): Promise<INickname[]> {
+    const query: any = {};
+
+    if (filter.id) {
+      query._id = filter.id;
+    }
+
+    if (filter.role) {
+      query.types = { $in: [filter.role] };
+    }
+
+    return this.nicknameModel.find(query);
   }
 
   createUser(user: UserData): Promise<INickname> {
@@ -24,7 +36,21 @@ export class UserService {
   async findUser(nickname: string) {
     const user = await this.nicknameModel
       .findOne({
-        nickname: nickname,
+        nickname,
+      })
+      .exec();
+
+    if (!user) {
+      throw new HttpException('User not found', 406);
+    }
+
+    return user;
+  }
+
+  async findUserById(id: string) {
+    const user = await this.nicknameModel
+      .findOne({
+        _id: id,
       })
       .exec();
 
