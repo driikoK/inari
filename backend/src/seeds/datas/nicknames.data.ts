@@ -4,11 +4,11 @@ export const nicknames: UserData[] = [
   {
     nickname: 'Dixy',
     types: ['sound', 'dub'],
-    coin: 0,
+    coins: 0,
   },
   {
     nickname: 'Luthien',
     types: ['sound', 'dub', 'sub'],
-    coin: 0,
+    coins: 0,
   },
 ];
