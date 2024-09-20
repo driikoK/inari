@@ -1,139 +1,73 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { FunctionComponent, useEffect, useState } from 'react';
-import {
-  PageContainer,
-  RatingBlock,
-  RatingContainer,
-  SelectWrapper,
-  Title,
-  TitleWrapper,
-} from './styles';
-import RatingRow from '@/components/RatingRow';
-import theme from '@theme';
-import { useMediaQuery } from '@mui/material';
+import { FunctionComponent, useEffect } from 'react';
+
+import { Box, Paper } from '@mui/material';
+import { GridColDef } from '@mui/x-data-grid';
+
+import { PageContainer, Title, TitleWrapper } from './styles';
 import useSeasonsStore from '@/stores/useSeasons';
-import { reverseDetermineAnimeSeason } from '@/utils/season.utils';
 import useTracksStore from '@/stores/useTracksStore';
-import { processTracks } from '@/utils/tracks.utils';
-import useAnimeStore from '@/stores/useAnimeStore';
-import useTypeStore from '@/stores/useTypesStore';
+import useRolesStore from '@/stores/useRolesStore';
 import useUsersStore from '@/stores/useUsersStore';
-import SelectField from '@/components/SelectField';
+import { CustomTable } from '@/components/CustomTable';
+import { RatingFilters } from './RatingFilters';
 
 const CookieRating: FunctionComponent = () => {
   const { seasons, getSeasons } = useSeasonsStore();
-  const { tracks, getTracks } = useTracksStore();
-  const { animeNames, getAnime } = useAnimeStore();
-  const { types, getTypes } = useTypeStore();
+  const { getTracks } = useTracksStore();
+  const { getRoles } = useRolesStore();
   const { users, getUsers } = useUsersStore();
-  const [selectedSeason, setSelectedSeason] = useState<number | undefined>(
-    undefined
-  );
-  const [selectedAnime, setSelectedAnime] = useState<string | undefined>(
-    undefined
-  );
-  const [selectedRole, setSelectedRole] = useState<string | undefined>(
-    undefined
-  );
-  const [selectedUser, setSelectedUser] = useState<string | undefined>(
-    undefined
-  );
 
-  const { tracksFirstHalf, tracksSecondHalf, tracksHalfIndex, sortedTracks } =
-    processTracks(tracks);
-
-  const isDesktop = useMediaQuery(theme.screens.desktop);
+  const sortedUsers = [...users].sort((a, b) => b.coins - a.coins);
 
   useEffect(() => {
-    getSeasons();
+    // getSeasons();
     getTracks();
-    getAnime();
-    getTypes();
+    getRoles();
     getUsers();
   }, []);
 
-  useEffect(() => {
-    getTracks({
-      season: selectedSeason,
-      nameTitle: selectedAnime,
-      nickname: selectedUser,
-      typeRole: selectedRole,
-    });
-  }, [selectedSeason, selectedAnime, selectedRole, selectedUser]);
+  const columns: GridColDef<(typeof rows)[number]>[] = [
+    {
+      field: 'place',
+      headerName: 'Місце',
+    },
+    {
+      field: 'nickname',
+      headerName: 'Нікнейм',
+      width: 200,
+    },
+    {
+      field: 'coins',
+      headerName: 'Крихти',
+    },
+  ];
+
+  const rows = sortedUsers.map((user, index) => {
+    return {
+      ...user,
+      id: user._id,
+      place: index + 1,
+    };
+  });
 
   return (
     <PageContainer>
       <TitleWrapper>
         <Title>Рейтинг крихт</Title>
       </TitleWrapper>
-      <SelectWrapper>
-        <SelectField
-          label="Сезон"
-          value={selectedSeason}
-          onChange={setSelectedSeason}
-          options={seasons.map((season) => ({
-            value: season._id,
-            label: reverseDetermineAnimeSeason(season._id),
-          }))}
-        />
-        <SelectField
-          label="Роль"
-          value={selectedRole}
-          onChange={setSelectedRole}
-          options={types.map((type) => ({ value: type, label: type }))}
-        />
-        <SelectField
-          label="Нікнейм"
-          value={selectedUser}
-          onChange={setSelectedUser}
-          options={users.map((user) => ({
-            value: user.nickname,
-            label: user.nickname,
-          }))}
-        />
-        <SelectField
-          label="Аніме"
-          value={selectedAnime}
-          onChange={setSelectedAnime}
-          options={animeNames.map((anime) => ({
-            value: anime._id,
-            label: anime._id,
-          }))}
-        />
-      </SelectWrapper>
-      {isDesktop ? (
-        <RatingContainer>
-          <RatingBlock>
-            {tracksFirstHalf.map((rating, index) => (
-              <RatingRow
-                key={index}
-                number={index + 1}
-                nickname={rating.nickname}
-                coins={rating.coin}
-              />
-            ))}
-          </RatingBlock>
-          <RatingBlock>
-            {tracksSecondHalf.map((rating, index) => (
-              <RatingRow
-                key={index + tracksHalfIndex}
-                number={index + tracksHalfIndex + 1}
-                nickname={rating.nickname}
-                coins={rating.coin}
-              />
-            ))}
-          </RatingBlock>
-        </RatingContainer>
-      ) : (
-        sortedTracks.map((rating, index) => (
-          <RatingRow
-            key={index}
-            number={index + 1}
-            nickname={rating.nickname}
-            coins={rating.coin}
-          />
-        ))
-      )}
+
+      <RatingFilters />
+
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        <Paper sx={{ width: '80%', alignContent: 'center' }}>
+          <CustomTable columns={columns} rows={rows} hideFooterPagination pageSizeOptions={[100]} />
+        </Paper>
+      </Box>
     </PageContainer>
   );
 };
