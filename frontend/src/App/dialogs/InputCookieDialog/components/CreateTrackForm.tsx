@@ -225,7 +225,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             </CheckboxWrapper>
           </Box>
 
-          <Button variant="contained" type="submit">
+          <Button variant="contained" type="submit" disabled={!isValid}>
             Зберегти
           </Button>
         </Box>
