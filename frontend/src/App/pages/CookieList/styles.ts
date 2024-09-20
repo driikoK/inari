@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const PageContainer = styled.div`
   display: flex;
@@ -6,8 +6,8 @@ export const PageContainer = styled.div`
   gap: 10px;
   ${({ theme }) =>
     theme.mq({
-      padding: ["16px", "16px", "20px 80px", "20px 80px"],
-  })};
+      padding: ['16px', '16px', '20px 80px', '20px 80px'],
+    })};
 `;
 
 export const Title = styled.span`
@@ -24,16 +24,4 @@ export const TitleWrapper = styled.div`
   text-align: center;
   justify-content: center;
   margin-bottom: 10px;
-`;
-
-export const ListWrapper = styled.div`
-  display: grid;
-  flex-wrap: wrap;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  justify-items: center;
-  gap: 16px 12px;
-`;
-
-export const SelectWrapper = styled.div`
-  display: flex;
 `;
