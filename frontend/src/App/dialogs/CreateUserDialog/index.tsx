@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { FunctionComponent, useEffect, useState } from 'react';
 import {
   FormControl,
@@ -11,10 +10,11 @@ import {
   type DialogProps,
 } from '@mui/material';
 import toast from 'react-hot-toast';
+
 import { DialogContainer, InputWrapper, Title, TitleWrapper } from './styles';
 import Button from '@/components/Button';
 import useUsersStore from '@/stores/useUsersStore';
-import useTypeStore from '@/stores/useTypesStore';
+import useRolesStore from '@/stores/useRolesStore';
 
 export interface IRequiredAuthorizationDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -27,10 +27,10 @@ const CreateUserDialog: FunctionComponent<IRequiredAuthorizationDialogProps> = (
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [nickname, setNickname] = useState<string>('');
   const { addUser } = useUsersStore();
-  const { types, getTypes } = useTypeStore();
+  const { roles, getRoles } = useRolesStore();
 
   useEffect(() => {
-    getTypes();
+    getRoles();
   }, []);
 
   const handleSelectChange = (event: SelectChangeEvent<typeof selectedTypes>) => {
@@ -47,7 +47,7 @@ const CreateUserDialog: FunctionComponent<IRequiredAuthorizationDialogProps> = (
 
   const handleSubmit = async () => {
     try {
-      await addUser({ nickname, types: selectedTypes, coin: 0 });
+      await addUser({ nickname, types: selectedTypes, coins: 0 });
 
       toast.success('Новий мембер створений успішно!');
 
@@ -76,9 +76,9 @@ const CreateUserDialog: FunctionComponent<IRequiredAuthorizationDialogProps> = (
             onChange={handleSelectChange}
             input={<OutlinedInput label="Типи" />}
           >
-            {types.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
+            {roles.map((role, index) => (
+              <MenuItem key={index} value={role.value}>
+                {role.label}
               </MenuItem>
             ))}
           </Select>
