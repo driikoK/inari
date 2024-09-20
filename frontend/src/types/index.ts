@@ -29,7 +29,7 @@ export interface TracksType {
   [key: string]: {
     nickname: string;
     nameTitle: string;
-    coin: number;
+    coins: number;
     typeRole: string;
     currentEpisode: number;
   };
@@ -41,8 +41,8 @@ export interface TrackType {
   nameTitle: string;
   season: number;
   currentEpisode: number;
-  note: string | null;
-  coin: number;
+  note?: string;
+  coins: number;
   typeRole: string;
 }
 
@@ -92,5 +92,5 @@ export interface UserType {
   _id: string;
   nickname: string;
   types: string[];
-  coin: number;
+  coins: number;
 }
