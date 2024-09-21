@@ -120,13 +120,13 @@ export class TrackService {
       const user = await this.usersService.findUser(member.nickname);
 
       const memberWithMultipliers = this.getCoinsWithMultipliers(track, member);
-      const date = new Date();
 
       await this.trackModel.create({
         ...memberWithMultipliers,
-        season: determineAnimeSeason(date.getMonth(), date.getFullYear()),
         currentEpisode: track.currentEpisode,
         nameTitle: track.nameTitle,
+        season: track.season,
+        year: Number(track.year),
       });
 
       const updatedUser = {

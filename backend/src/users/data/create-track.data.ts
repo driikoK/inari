@@ -40,6 +40,12 @@ export class CreateTrackData {
   @ApiProperty()
   titleType: string;
 
+  @ApiProperty()
+  season: string;
+
+  @ApiProperty()
+  year: number;
+
   @ApiPropertyOptional({ nullable: true })
   note?: string;
 }
