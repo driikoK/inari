@@ -168,7 +168,6 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
               disabled={isDisabled || !nickname}
               variant="outlined"
               placeholder="0"
-              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
               type="text"
               value={field.value}
               onChange={(e) => {
