@@ -23,20 +23,24 @@ import { CoinsType } from '@/types';
 
 interface CreateTrackFormProps {
   titleName: string;
-  currentEpisode: string;
+  episode: string;
   onBack: () => void;
   onClose: () => void;
   animeType: ANIME_TYPE;
+  season: string;
+  year: string;
 }
 
 const startNameForMemberField = 'membersInfo';
 
 export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   titleName,
-  currentEpisode,
+  episode,
   onBack,
   onClose,
   animeType,
+  season,
+  year,
 }) => {
   const { getUsers } = useUsersStore();
   const { coinsTypes } = useCoinsStore();
@@ -83,6 +87,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     defaultValues: defaultValues,
     resolver: yupResolver(createTrackFormSchema(coins)),
     criteriaMode: 'all',
+    mode: 'onChange',
   });
 
   const {
@@ -116,8 +121,10 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
       isPriority: form.isPriority,
       isInTime: form.isInTime,
       nameTitle: titleName,
-      currentEpisode: parseInt(currentEpisode),
+      currentEpisode: parseInt(episode),
       titleType: animeType,
+      season,
+      year: Number(year),
     };
 
     try {
