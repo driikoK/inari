@@ -1,8 +1,9 @@
 import * as Yup from 'yup';
 
-import { CreateTrackFormValues, FieldFormValue } from '../types';
+import { ChooseAnimeFormValues, CreateTrackFormValues, FieldFormValue } from '../types';
 import { CoinsType } from '@/types';
 
+// ** For create track form
 const testIsNotZero = Yup.string()
   .test('is-not-zero', 'Дай хоча б 1 крихту', (value) => value !== '' && value !== '0')
   .required('Дай хоча б 1 крихту');
@@ -110,4 +111,26 @@ export const initialFormValues: CreateTrackFormValues = {
   isOngoing: false,
   isPriority: false,
   isInTime: false,
+};
+
+// ** For choose anime form
+export const createChooseAnimeForm = () => {
+  return Yup.object().shape({
+    titleName: Yup.string().required('Обов’язкове поле'),
+    episode: Yup.number()
+      .min(1, 'Епізод мусить бути мінімум 1')
+      .max(999, 'Епізод мусить бути максимум 999')
+      .required('Обов’язкове поле'),
+    animeType: Yup.string().required('Обов’язкове поле'),
+    season: Yup.string().required('Обов’язкове поле'),
+    year: Yup.string().required('Обов’язкове поле'),
+  });
+};
+
+export const chooseAnimeInitialFormValues: ChooseAnimeFormValues = {
+  titleName: '',
+  episode: 1,
+  animeType: '',
+  season: '',
+  year: '',
 };

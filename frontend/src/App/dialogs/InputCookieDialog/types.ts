@@ -26,6 +26,8 @@ export interface CreateTrackType extends Multipliers {
   currentEpisode: number;
   nameTitle: string;
   titleType: string;
+  year: number;
+  season: string;
 }
 
 export interface CofType {
@@ -73,4 +75,12 @@ export interface CreateTrackFormValues extends Multipliers {
     another?: NotRequiredFieldFormValue | null;
   };
   note?: string;
+}
+
+export interface ChooseAnimeFormValues {
+  titleName: string;
+  episode: number;
+  animeType: string;
+  season: string;
+  year: string;
 }
