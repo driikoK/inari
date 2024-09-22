@@ -26,6 +26,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
   const handleClose = () => {
     onClose();
     setIsNextStep(false);
+    setChosenAnime(null);
   };
 
   const saveFormValues = (values: ChooseAnimeFormValues) => {
