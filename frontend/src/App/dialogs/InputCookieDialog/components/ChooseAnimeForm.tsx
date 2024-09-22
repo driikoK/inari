@@ -3,22 +3,18 @@ import { useForm, FormProvider, Controller, ControllerRenderProps } from 'react-
 import { ErrorMessage } from '@hookform/error-message';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { Autocomplete, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { Autocomplete, FormControl, MenuItem, TextField } from '@mui/material';
 
 import { ANIME_TYPE, ChooseAnimeFormValues } from '../types';
 import { DialogWrapper, ErrorText, Title } from '../styles';
+import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
+import AddAnimeDialog from '../../AddAnimeDialog';
 import useUsersStore from '@/stores/useUsersStore';
 import { FlexWrapper } from '@/components/ListCard/styles';
 import Button from '@components/Button';
+import SelectField from '@/components/SelectField';
 import useAnimeStore from '@/stores/useAnimeStore';
-import AddAnimeDialog from '../../AddAnimeDialog';
-import {
-  seasonOptions,
-  titleTypeOptions,
-  yearOptions,
-  chooseAnimeInitialFormValues,
-  createChooseAnimeForm,
-} from '../const';
+import { seasonOptions, yearOptions } from '@/consts';
 
 interface FormProps {
   saveFormValues: (values: ChooseAnimeFormValues) => void;
@@ -27,15 +23,13 @@ interface FormProps {
 
 export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }) => {
   const { getUsers } = useUsersStore();
-  const { animeNames, getAnime } = useAnimeStore();
+  const { animeNames } = useAnimeStore();
 
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     getUsers();
   }, []);
-
-  // console.log(initialValues);
 
   const methods = useForm<ChooseAnimeFormValues>({
     defaultValues: initialValues ? initialValues : chooseAnimeInitialFormValues,
@@ -143,26 +137,18 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
           <Title>Аніме належить до:</Title>
 
           <FormControl>
-            <InputLabel id="title-type">Тип</InputLabel>
-
             <Controller
               control={control}
               name="animeType"
               render={({ field }) => (
-                <Select
-                  labelId="title-type"
-                  value={field.value === ANIME_TYPE.NONE ? '' : field.value}
-                  onChange={(e) => {
-                    field.onChange(e.target.value as ANIME_TYPE);
-                  }}
-                  sx={{ width: '100%' }}
-                >
-                  {titleTypeOptions.map((type) => (
-                    <MenuItem value={type.value} key={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <SelectField
+                  label="Тип"
+                  options={titleTypeOptions.map((type) => ({
+                    value: type.value,
+                    label: type.label,
+                  }))}
+                  {...field}
+                />
               )}
             />
           </FormControl>
@@ -171,37 +157,35 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
           <FlexWrapper>
             <FormControl sx={{ width: '50%' }}>
-              <InputLabel id="season">Сезон</InputLabel>
-
               <Controller
                 control={control}
                 name="season"
                 render={({ field }) => (
-                  <Select labelId="season" sx={{ width: '100%' }} variant="outlined" {...field}>
-                    {seasonOptions.map((type) => (
-                      <MenuItem value={type.value} key={type.value}>
-                        {type.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                  <SelectField
+                    label="Сезон"
+                    options={seasonOptions.map((season) => ({
+                      value: season.value,
+                      label: season.label,
+                    }))}
+                    {...field}
+                  />
                 )}
               />
             </FormControl>
 
             <FormControl sx={{ width: '50%' }}>
-              <InputLabel id="year">Рік</InputLabel>
-
               <Controller
                 control={control}
                 name="year"
                 render={({ field }) => (
-                  <Select labelId="year" placeholder="Рік" sx={{ width: '100%' }} {...field}>
-                    {yearOptions.map((type) => (
-                      <MenuItem value={type.value} key={type.value}>
-                        {type.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                  <SelectField
+                    label="Рік"
+                    options={yearOptions.map((year) => ({
+                      value: year.value,
+                      label: year.label,
+                    }))}
+                    {...field}
+                  />
                 )}
               />
             </FormControl>
