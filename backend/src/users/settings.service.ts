@@ -1,56 +1,73 @@
 import { Injectable } from '@nestjs/common';
 
+import { ICoins, IDub } from './interfaces/coins.interface';
+
 @Injectable()
 export class SettingsService {
+  private readonly defaultValueOfCoins: ICoins = {
+    coins: 190,
+    sub: 30,
+    editor: 10,
+    dub: {
+      double: 50,
+      multi: 80,
+    },
+    fixer: 10,
+    roleBreaker: 5,
+    sound: 30,
+    releaser: 10,
+    director: 10,
+    another: 10,
+  };
+
+  private getUpdatedCoinsForObject(coeff: number, obj: IDub): IDub {
+    const updatedObj: IDub = {} as IDub;
+
+    Object.entries(obj).forEach(([key, value]) => {
+      updatedObj[key] = value * coeff;
+    });
+
+    return updatedObj;
+  }
+
+  private getCoinsByAnimeType(type: 'film' | 'shortFilm') {
+    const getUpdatedCoins = (coeff: number, defaultValue: ICoins): ICoins => {
+      const updatedValues: ICoins = {} as ICoins;
+
+      Object.entries(defaultValue).forEach(([key, value]) => {
+        if (typeof value === 'number') {
+          updatedValues[key] = value * coeff;
+        } else if (typeof value === 'object' && value !== null) {
+          updatedValues[key] = this.getUpdatedCoinsForObject(coeff, value);
+        } else {
+          updatedValues[key] = value;
+        }
+      });
+
+      return updatedValues;
+    };
+
+    switch (type) {
+      case 'film':
+        return getUpdatedCoins(2, this.defaultValueOfCoins);
+      case 'shortFilm':
+        return getUpdatedCoins(0.5, this.defaultValueOfCoins);
+    }
+  }
+
   getCoins() {
     return {
-      film: {
-        type: 'film',
-        coins: 380,
-        sub: 60,
-        editor: 10,
-        dub: {
-          double: 100,
-          multi: 160,
-        },
-        fixer: 20,
-        roleBreaker: 10,
-        sound: 60,
-        releaser: 20,
-        director: 20,
-        another: 20,
-      },
       series: {
         type: 'series',
-        coins: 190,
-        sub: 30,
-        editor: 5,
-        dub: {
-          double: 50,
-          multi: 80,
-        },
-        fixer: 10,
-        roleBreaker: 5,
-        sound: 30,
-        releaser: 10,
-        director: 10,
-        another: 10,
+        ...this.defaultValueOfCoins,
+      },
+      film: {
+        type: 'film',
+        ...this.getCoinsByAnimeType('film'),
       },
       shortFilm: {
         type: 'shortFilm',
-        coins: 190,
-        sub: 30,
-        editor: 5,
-        dub: {
-          double: 50,
-          multi: 80,
-        },
-        fixer: 10,
-        roleBreaker: 5,
-        sound: 30,
-        releaser: 10,
-        director: 10,
-        another: 10,
+        ...this.getCoinsByAnimeType('shortFilm'),
       },
     };
   }
