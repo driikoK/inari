@@ -3,51 +3,35 @@ import { useEffect, useState } from 'react';
 import SelectField from '@/components/SelectField';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useRolesStore from '@/stores/useRolesStore';
-import useSeasonsStore from '@/stores/useSeasons';
 import useUsersStore from '@/stores/useUsersStore';
 import useTracksStore from '@/stores/useTracksStore';
+import { seasonOptions, yearOptions } from '@/consts';
 import { SelectWrapper } from './styles';
 
 export const CookiesFilters = () => {
-  const [selectedSeason, setSelectedSeason] = useState<number>();
+  const [selectedSeason, setSelectedSeason] = useState<string>();
+  const [selectedYear, setSelectedYear] = useState<number>();
   const [selectedAnime, setSelectedAnime] = useState<string>();
   const [selectedRole, setSelectedRole] = useState<string>();
   const [selectedUser, setSelectedUser] = useState<string>();
 
-  const { seasons } = useSeasonsStore();
   const { animeNames } = useAnimeStore();
   const { roles } = useRolesStore();
   const { users } = useUsersStore();
   const { getTracks } = useTracksStore();
 
   useEffect(() => {
-    if (selectedSeason || selectedAnime || selectedUser || selectedRole) {
-      getTracks({
-        season: selectedSeason,
-        nameTitle: selectedAnime,
-        nickname: selectedUser,
-        typeRole: selectedRole,
-      });
-    }
-  }, [selectedSeason, selectedAnime, selectedRole, selectedUser]);
+    getTracks({
+      season: selectedSeason,
+      nameTitle: selectedAnime,
+      nickname: selectedUser,
+      typeRole: selectedRole,
+      year: selectedYear,
+    });
+  }, [selectedSeason, selectedAnime, selectedRole, selectedUser, selectedSeason, selectedYear]);
 
   return (
     <SelectWrapper>
-      {/* <SelectField
-        label="Сезон"
-        value={selectedSeason}
-        onChange={setSelectedSeason}
-        options={seasons.map((season) => ({
-          value: season._id,
-          label: reverseDetermineAnimeSeason(season._id),
-        }))}
-      /> */}
-      <SelectField
-        label="Роль"
-        value={selectedRole}
-        onChange={setSelectedRole}
-        options={roles.map((role) => ({ value: role.value, label: role.label }))}
-      />
       <SelectField
         label="Нікнейм"
         value={selectedUser}
@@ -57,6 +41,7 @@ export const CookiesFilters = () => {
           label: user.nickname,
         }))}
       />
+
       <SelectField
         label="Аніме"
         value={selectedAnime}
@@ -64,6 +49,33 @@ export const CookiesFilters = () => {
         options={animeNames.map((anime) => ({
           value: anime.name,
           label: anime.name,
+        }))}
+      />
+
+      <SelectField
+        label="Роль"
+        value={selectedRole}
+        onChange={setSelectedRole}
+        options={roles.map((role) => ({ value: role.value, label: role.label }))}
+      />
+
+      <SelectField
+        label="Сезон"
+        value={selectedSeason}
+        onChange={setSelectedSeason}
+        options={seasonOptions.map((season) => ({
+          value: season.value,
+          label: season.label,
+        }))}
+      />
+
+      <SelectField
+        label="Рік"
+        value={selectedYear}
+        onChange={setSelectedYear}
+        options={yearOptions.map((year) => ({
+          value: Number(year.value),
+          label: year.label,
         }))}
       />
     </SelectWrapper>

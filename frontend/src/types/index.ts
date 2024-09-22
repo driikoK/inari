@@ -39,11 +39,12 @@ export interface TrackType {
   _id: string;
   nickname: string;
   nameTitle: string;
-  season: number;
+  season: string;
   currentEpisode: number;
   note?: string;
   coins: number;
   typeRole: string;
+  year: number;
 }
 
 export interface CofType {
@@ -93,4 +94,5 @@ export interface UserType {
   nickname: string;
   types: string[];
   coins: number;
+  seasons: { season: string; year: number; coins: number }[];
 }

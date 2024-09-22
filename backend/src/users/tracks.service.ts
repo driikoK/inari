@@ -5,7 +5,6 @@ import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
 import { UserService } from './users.service';
 import { ITrack } from './interfaces/track.interface';
-import { determineAnimeSeason } from './helper/season.helper';
 import { MEMBER_ROLE, MULTIPLIER } from './enums/types.enum';
 import { SettingsService } from './settings.service';
 import { UpdateTrackData } from './data/update-track.data';
@@ -30,11 +29,19 @@ export class TrackService {
     if (track) {
       const user = await this.usersService.findUser(track.nickname);
 
+      const existedSeasonIndex = user.seasons.findIndex(
+        (season) =>
+          season.season === track.season && season.year === track.year,
+      );
+
+      user.seasons[existedSeasonIndex].coins -= track.coins;
+
       if (user) {
         const updatedUser = {
           nickname: user.nickname,
           coins: Number(user.coins) - Number(track.coins),
           types: user.types,
+          seasons: user.seasons,
         };
 
         await this.usersService.updateUser(updatedUser);
@@ -129,12 +136,28 @@ export class TrackService {
         year: Number(track.year),
       });
 
+      const existedSeasonIndex = user.seasons.findIndex(
+        (season) =>
+          season.season === track.season && season.year === track.year,
+      );
+
+      if (existedSeasonIndex !== -1) {
+        user.seasons[existedSeasonIndex].coins += memberWithMultipliers.coins;
+      } else {
+        user.seasons.push({
+          season: track.season,
+          year: track.year,
+          coins: memberWithMultipliers.coins,
+        });
+      }
+
       const updatedUser = {
         nickname: member.nickname,
-        coins: Number(user.coins) + Number(member.coins),
+        coins: Number(user.coins) + Number(memberWithMultipliers.coins),
         types: user.types.includes(member.typeRole)
           ? user.types
           : [...user.types, member.typeRole],
+        seasons: user.seasons,
       };
 
       await this.usersService.updateUser(updatedUser);

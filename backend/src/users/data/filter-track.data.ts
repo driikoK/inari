@@ -5,8 +5,15 @@ export class FilterTrackData {
   @ApiPropertyOptional({ nullable: true })
   nickname: string;
 
+  @ApiPropertyOptional({
+    nullable: true,
+    enum: ['winter', 'spring', 'summer', 'fall'],
+    enumName: 'Season',
+  })
+  season: 'winter' | 'spring' | 'summer' | 'fall';
+
   @ApiPropertyOptional({ nullable: true })
-  season: number;
+  year: number;
 
   @ApiPropertyOptional({ nullable: true })
   nameTitle: string;

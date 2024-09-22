@@ -15,6 +15,7 @@ import { TrackType } from '@/types';
 import { CustomTable } from '@/components/CustomTable';
 import { CookiesFilters } from './CookiesFilters';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
+import { convertSeasonEngToUkr } from '@/utils/season.utils';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {
@@ -68,7 +69,7 @@ const CookieList: FunctionComponent = () => {
       field: 'currentEpisode',
       headerName: 'Номер епізоду',
       sortable: false,
-      flex: 0.2,
+      flex: 0.3,
       resizable: false,
     },
     {
@@ -78,13 +79,13 @@ const CookieList: FunctionComponent = () => {
       flex: 0.5,
       resizable: false,
     },
-    // {
-    //   field: 'season',
-    //   headerName: 'Сезон',
-    //   sortable: false,
-    //   width: 100,
-    //   resizable: false,
-    // },
+    {
+      field: 'season',
+      headerName: 'Сезон',
+      sortable: false,
+      resizable: false,
+      flex: 0.3,
+    },
     {
       field: 'note',
       headerName: 'Нотатка',
@@ -116,6 +117,7 @@ const CookieList: FunctionComponent = () => {
       id: track._id,
       typeRole: roles.find((role) => role.value === track.typeRole)?.label || '',
       note: track.note || '-',
+      season: `${convertSeasonEngToUkr(track.season)} ${track.year}`,
     };
   });
 

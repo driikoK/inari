@@ -3,7 +3,7 @@ import { Model } from 'mongoose';
 import { INickname } from './interfaces/nickname.interface';
 import { UserData } from './data/nickname.data';
 import { MEMBER_ROLE } from './enums/types.enum';
-import { NicknameFilterData } from './data/nicknames-filter.data';
+import { NicknameFilterData } from './data/filter-nicknames.data';
 
 @Injectable()
 export class UserService {
@@ -20,6 +20,12 @@ export class UserService {
 
     if (filter.role) {
       query.types = { $in: [filter.role] };
+    }
+
+    if (filter.season && filter.year) {
+      query.seasons = {
+        $elemMatch: { season: filter.season, year: filter.year },
+      };
     }
 
     return this.nicknameModel.find(query);

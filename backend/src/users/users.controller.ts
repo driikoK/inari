@@ -15,7 +15,7 @@ import { CreateTrackData } from './data/create-track.data';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { FilterTrackData } from './data/filter-track.data';
 import { UpdateTrackData } from './data/update-track.data';
-import { NicknameFilterData } from './data/nicknames-filter.data';
+import { NicknameFilterData } from './data/filter-nicknames.data';
 
 @ApiTags('Users')
 @Controller('users')

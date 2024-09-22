@@ -11,9 +11,10 @@ interface IState {
   tracks: TrackType[];
   getTracks: (filters?: {
     nickname?: string;
-    season?: number;
+    season?: string;
     nameTitle?: string;
     typeRole?: string;
+    year?: number;
   }) => Promise<void>;
   addTracks: (newTracks: CreateTrackType) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;

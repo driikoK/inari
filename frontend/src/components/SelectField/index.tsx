@@ -21,13 +21,13 @@ function SelectField<T extends string | number>({
   };
 
   return (
-    <FormControl sx={{ m: 1, width }}>
+    <FormControl sx={{ width }}>
       <InputLabel id={`${label.toLowerCase()}-label`}>{label}</InputLabel>
       <StyledSelect
         labelId={`${label.toLowerCase()}-label`}
         input={<OutlinedInput label={label} />}
         value={value || ''}
-        onChange={(e) => handleChange(e)}
+        onChange={handleChange}
       >
         <MenuItem value={undefined}>
           <ClearOptionItem> Скасувати вибір </ClearOptionItem>
