@@ -7,7 +7,7 @@ export enum MEMBER_ROLE {
   FIXER = 'fixer',
   ROLE_BREAKER = 'roleBreaker',
   RELEASER = 'releasers',
-  ANOTHER = 'another',
+  TYPESETTER = 'typesetter',
 }
 
 export enum MULTIPLIER {

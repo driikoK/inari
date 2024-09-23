@@ -81,7 +81,7 @@ export const createTrackFormSchema = (titleCoins: CoinsType) => {
           testIsMoreThanNeedCoins(releasers, 'releasers', context, titleCoins)
         )
         .required(),
-      another: notRequiredFieldSchema.nullable().notRequired(),
+      typesetter: notRequiredFieldSchema.nullable().notRequired(),
     }),
     note: Yup.string(),
     isFast: Yup.boolean().required(),
@@ -104,7 +104,7 @@ export const initialFormValues: CreateTrackFormValues = {
     fixer: { nickname: '', coins: '', isGuest: false },
     roleBreaker: { nickname: '', coins: '', isGuest: false },
     releasers: [{ nickname: '', coins: '', isGuest: false }],
-    another: { nickname: '', coins: '', isGuest: false },
+    typesetter: { nickname: '', coins: '', isGuest: false },
   },
   note: '',
   isFast: false,

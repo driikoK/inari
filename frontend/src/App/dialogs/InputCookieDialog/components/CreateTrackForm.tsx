@@ -15,7 +15,7 @@ import {
   FieldFormValue,
   MemberInfo,
 } from '../types';
-import { CheckboxWrapper, ColorText, SubParagraph, Title, TitleWrapper } from '../styles';
+import { CheckboxWrapper, Paragraph, SubParagraph, Title, TitleWrapper } from '../styles';
 import useUsersStore from '@/stores/useUsersStore';
 import useCoinsStore from '@/stores/useCoinsStore';
 import useTracksStore from '@/stores/useTracksStore';
@@ -64,7 +64,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
         }
 
         // ** Optional roles. For them also don't need to change default coins value. Coins = 0 by default
-        // if (key === 'editor' || key === 'another') {
+        // if (key === 'editor' || key === 'typesetter') {
         //   acc[key] = {
         //     ...value,
         //   };
@@ -154,24 +154,18 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
               color: 'black',
               fontSize: '16px',
               alignSelf: 'flex-start',
+              textTransform: 'none',
             }}
           >
-            <Title>Назад</Title>
+            Назад
           </Button>
           <TitleWrapper>
-            <Title>
-              Крихти — <ColorText>{coins.coins}</ColorText>
-            </Title>
+            <Title>{titleName}</Title>
           </TitleWrapper>
 
           <FormField name={`${startNameForMemberField}.sound`} label="Звукач" isDisabled />
           <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
           <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
-          <FormField
-            name={`${startNameForMemberField}.editor`}
-            label="Редактор (не обов'язково)"
-            isDisabled
-          />
 
           <FormField name={`${startNameForMemberField}.fixer`} label="Фіксер" isDisabled />
           <FormField
@@ -181,8 +175,13 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
           />
 
           <FormField
-            name={`${startNameForMemberField}.another`}
-            label="Додаткова роль (не обов'язкова)"
+            name={`${startNameForMemberField}.editor`}
+            label="Редактор (не обов'язково)"
+            isDisabled
+          />
+          <FormField
+            name={`${startNameForMemberField}.typesetter`}
+            label="Тайпсеттер (не обов'язкова)"
             isDisabled
           />
 
@@ -206,6 +205,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             maxLength={2}
           />
 
+          <Paragraph style={{ alignSelf: 'flex-start' }}>Нотатка:</Paragraph>
           <TextField
             {...register('note')}
             placeholder="Не обов'язкове поле"

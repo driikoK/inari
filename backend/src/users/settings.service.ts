@@ -17,7 +17,7 @@ export class SettingsService {
     sound: 30,
     releaser: 10,
     director: 10,
-    another: 10,
+    typesetter: 10,
   };
 
   private getUpdatedCoinsForObject(coeff: number, obj: IDub): IDub {

@@ -13,7 +13,7 @@ export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
 }
 
 const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, onClose }) => {
-  const { animeNames, getAnime } = useAnimeStore();
+  const { getAnime } = useAnimeStore();
   const { getCoins } = useCoinsStore();
   const [isNextStep, setIsNextStep] = useState(false);
   const [chosenAnime, setChosenAnime] = useState<ChooseAnimeFormValues | null>(null);

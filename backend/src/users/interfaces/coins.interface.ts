@@ -8,7 +8,7 @@ export interface ICoins {
   sound: number;
   releaser: number;
   director: number;
-  another: number;
+  typesetter: number;
 }
 
 export interface IDub {

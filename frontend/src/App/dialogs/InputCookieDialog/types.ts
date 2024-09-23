@@ -72,7 +72,7 @@ export interface CreateTrackFormValues extends Multipliers {
     fixer: FieldFormValue;
     roleBreaker: FieldFormValue;
     releasers: FieldFormValue[];
-    another?: NotRequiredFieldFormValue | null;
+    typesetter?: NotRequiredFieldFormValue | null;
   };
   note?: string;
 }
