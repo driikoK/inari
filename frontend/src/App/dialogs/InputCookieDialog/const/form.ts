@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 
-import { ChooseAnimeFormValues, CreateTrackFormValues, FieldFormValue } from '../types';
+import { ANIME_TYPE, ChooseAnimeFormValues, CreateTrackFormValues, FieldFormValue } from '../types';
 import { CoinsType } from '@/types';
 
 // ** For create track form
@@ -88,6 +88,8 @@ export const createTrackFormSchema = (titleCoins: CoinsType) => {
     isOngoing: Yup.boolean().required(),
     isPriority: Yup.boolean().required(),
     isInTime: Yup.boolean().required(),
+    isGiveEditorCoins: Yup.boolean(),
+    isGiveTypesetterCoins: Yup.boolean(),
   });
 };
 
@@ -111,6 +113,8 @@ export const initialFormValues: CreateTrackFormValues = {
   isOngoing: false,
   isPriority: false,
   isInTime: false,
+  isGiveEditorCoins: false,
+  isGiveTypesetterCoins: false,
 };
 
 // ** For choose anime form
@@ -124,6 +128,14 @@ export const createChooseAnimeForm = () => {
     animeType: Yup.string().required('Обов’язкове поле'),
     season: Yup.string().required('Обов’язкове поле'),
     year: Yup.string().required('Обов’язкове поле'),
+    duration: Yup.number()
+      .min(1, 'Тривалість мусить бути мінімум 1')
+      .max(999, 'Тривалість мусить бути максимум 999')
+      .when('animeType', {
+        is: (val: string) => val === ANIME_TYPE.SHORT_FILM,
+        then: (schema) => schema.required('Обов’язкове поле'),
+        otherwise: (schema) => schema.notRequired(),
+      }),
   });
 };
 
@@ -133,4 +145,5 @@ export const chooseAnimeInitialFormValues: ChooseAnimeFormValues = {
   animeType: '',
   season: '',
   year: '',
+  duration: 1,
 };

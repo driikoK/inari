@@ -52,11 +52,13 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     if (watchAnimeType === ANIME_TYPE.FILM || watchAnimeType === ANIME_TYPE.SHORT_FILM) {
       resetField('episode');
     }
+
+    if (watchAnimeType !== ANIME_TYPE.SHORT_FILM) resetField('duration');
   }, [watchAnimeType]);
 
-  const handleEpisodeChange = (
+  const handleTextInputChange = (
     value: string,
-    currentField: ControllerRenderProps<ChooseAnimeFormValues, 'episode'>
+    currentField: ControllerRenderProps<ChooseAnimeFormValues, 'episode' | 'duration'>
   ) => {
     const numberValue = Number(value.replace(/[^0-9]/g, ''));
 
@@ -121,7 +123,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                   }
                   type="text"
                   onChange={(e) => {
-                    handleEpisodeChange(e.target.value, field);
+                    handleTextInputChange(e.target.value, field);
                   }}
                 />
               )}
@@ -153,6 +155,34 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
               )}
             />
           </FormControl>
+
+          {watchAnimeType === ANIME_TYPE.SHORT_FILM && (
+            <>
+              <Title>Тривалість:</Title>
+
+              <Controller
+                control={control}
+                name="duration"
+                render={({ field }) => (
+                  <TextField
+                    value={field.value}
+                    type="text"
+                    placeholder="1"
+                    onChange={(e) => {
+                      handleTextInputChange(e.target.value, field);
+                    }}
+                    sx={{ width: '15%' }}
+                  />
+                )}
+              />
+
+              <ErrorMessage
+                name="duration"
+                errors={errors}
+                render={({ message }) => <ErrorText>{message}</ErrorText>}
+              />
+            </>
+          )}
 
           <Title>У якому сезоні робилося:</Title>
 

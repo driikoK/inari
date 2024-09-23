@@ -1,9 +1,9 @@
 import { FC, useEffect, useMemo, useState } from 'react';
 
-import { Box, Button, Checkbox, TextField } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel, TextField } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import toast from 'react-hot-toast';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { FormField } from './FormField';
@@ -29,9 +29,12 @@ interface CreateTrackFormProps {
   animeType: ANIME_TYPE;
   season: string;
   year: string;
+  duration?: number;
 }
 
 const startNameForMemberField = 'membersInfo';
+// ** If exceed then counts as series
+const maxDurationForShortFilm = 13;
 
 export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   titleName,
@@ -41,12 +44,17 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   animeType,
   season,
   year,
+  duration = 1,
 }) => {
   const { getUsers } = useUsersStore();
   const { coinsTypes } = useCoinsStore();
   const { addTracks } = useTracksStore();
 
-  const [coins, setCoins] = useState<CoinsType>(coinsTypes[animeType as keyof typeof coinsTypes]);
+  const [coins, setCoins] = useState<CoinsType>(
+    coinsTypes[
+      duration > maxDurationForShortFilm ? 'series' : (animeType as keyof typeof coinsTypes)
+    ]
+  );
 
   useEffect(() => {
     getUsers();
@@ -94,6 +102,8 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     handleSubmit,
     register,
     watch,
+    resetField,
+    control,
     formState: { isValid },
   } = methods;
 
@@ -101,8 +111,29 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
      Maybe should remove this watch and then remove dynamic value of coins */
   const watchDubs = watch('membersInfo.dubs').length;
 
+  const watchEditor = watch('membersInfo.editor.nickname');
+  const watchTypesetter = watch('membersInfo.typesetter.nickname');
+
+  const watchIsGiveEditorCoins = watch('isGiveEditorCoins');
+  const watchIsGiveTypesetterCoins = watch('isGiveTypesetterCoins');
+
+  useEffect(() => {
+    if (watchEditor) resetField('isGiveEditorCoins');
+  }, [watchEditor]);
+  useEffect(() => {
+    if (watchTypesetter) resetField('isGiveTypesetterCoins');
+  }, [watchTypesetter]);
+
+  useEffect(() => {
+    if (watchIsGiveEditorCoins) resetField('membersInfo.editor.nickname');
+  }, [watchIsGiveEditorCoins]);
+  useEffect(() => {
+    if (watchIsGiveTypesetterCoins) resetField('membersInfo.typesetter.nickname');
+  }, [watchIsGiveTypesetterCoins]);
+
   const onSubmitForm = async (form: CreateTrackFormValues) => {
     const payload: CreateTrackType = {
+      ...form,
       membersInfo: Object.entries(form.membersInfo).flatMap(([key, value]) => {
         if (Array.isArray(value)) {
           return value.map((member) => ({
@@ -112,19 +143,18 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
           }));
         }
 
-        return value?.nickname !== ''
+        if (!value?.hasOwnProperty('nickname')) return [];
+
+        return value?.nickname !== '' || !value.hasOwnProperty('nickname')
           ? { ...value, typeRole: key, coins: Number(value?.coins) }
           : [];
       }) as MemberInfo[],
-      isFast: form.isFast,
-      isOngoing: form.isOngoing,
-      isPriority: form.isPriority,
-      isInTime: form.isInTime,
       nameTitle: titleName,
       currentEpisode: parseInt(episode),
       titleType: animeType,
       season,
       year: Number(year),
+      note: form.note || '',
     };
 
     try {
@@ -174,16 +204,47 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             isDisabled
           />
 
-          <FormField
-            name={`${startNameForMemberField}.editor`}
-            label="Редактор (не обов'язково)"
-            isDisabled
-          />
-          <FormField
-            name={`${startNameForMemberField}.typesetter`}
-            label="Тайпсеттер (не обов'язкова)"
-            isDisabled
-          />
+          <div>
+            <FormField
+              name={`${startNameForMemberField}.editor`}
+              label="Редактор (не обов'язково)"
+              isDisabled
+            />
+
+            <FormControlLabel
+              label="Віддати перекладачу"
+              control={
+                <Controller
+                  name="isGiveEditorCoins"
+                  control={control}
+                  render={({ field: { value, ...field } }) => (
+                    <Checkbox {...field} checked={!!value} />
+                  )}
+                />
+              }
+            />
+          </div>
+
+          <div>
+            <FormField
+              name={`${startNameForMemberField}.typesetter`}
+              label="Тайпсеттер (не обов'язкова)"
+              isDisabled
+            />
+
+            <FormControlLabel
+              label="Віддати перекладачу"
+              control={
+                <Controller
+                  name="isGiveTypesetterCoins"
+                  control={control}
+                  render={({ field: { value, ...field } }) => (
+                    <Checkbox {...field} checked={!!value} />
+                  )}
+                />
+              }
+            />
+          </div>
 
           <SubParagraph>
             {watchDubs <= 2
