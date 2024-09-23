@@ -28,6 +28,9 @@ export interface CreateTrackType extends Multipliers {
   titleType: string;
   year: number;
   season: string;
+  note: string;
+  isGiveEditorCoins?: boolean;
+  isGiveTypesetterCoins?: boolean;
 }
 
 export interface CofType {
@@ -75,6 +78,8 @@ export interface CreateTrackFormValues extends Multipliers {
     typesetter?: NotRequiredFieldFormValue | null;
   };
   note?: string;
+  isGiveEditorCoins?: boolean;
+  isGiveTypesetterCoins?: boolean;
 }
 
 export interface ChooseAnimeFormValues {
@@ -83,4 +88,5 @@ export interface ChooseAnimeFormValues {
   animeType: string;
   season: string;
   year: string;
+  duration?: number;
 }

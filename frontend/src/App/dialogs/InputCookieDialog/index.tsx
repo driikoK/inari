@@ -48,6 +48,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
             {...chosenAnime}
             animeType={chosenAnime.animeType as ANIME_TYPE}
             episode={chosenAnime.episode.toString()}
+            duration={chosenAnime.duration}
           />
         )}
       </DialogWrapper>
