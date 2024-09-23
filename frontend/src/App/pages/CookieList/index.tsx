@@ -25,6 +25,13 @@ function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   return null;
 }
 
+type RowType = {
+  isFast: string;
+  isOngoing: string;
+  isPriority: string;
+  isInTime: string;
+} & Omit<TrackType, 'isFast' | 'isOngoing' | 'isPriority' | 'isInTime'>;
+
 const CookieList: FunctionComponent = () => {
   const { getSeasons } = useSeasonsStore();
   const { tracks, getTracks, deleteTracks, updateTrack } = useTracksStore();
@@ -42,7 +49,7 @@ const CookieList: FunctionComponent = () => {
 
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<TrackType | null>(null);
+  const [selectedItem, setSelectedItem] = useState<RowType | null>(null);
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
     {
@@ -59,15 +66,13 @@ const CookieList: FunctionComponent = () => {
       field: 'coins',
       headerName: 'Крихти',
       type: 'number',
-      flex: 0.2,
-      headerAlign: 'left',
-      align: 'left',
+      flex: 0.3,
       sortable: false,
       editable: true,
     },
     {
       field: 'currentEpisode',
-      headerName: 'Номер епізоду',
+      headerName: 'Епізод',
       sortable: false,
       flex: 0.3,
       resizable: false,
@@ -84,11 +89,39 @@ const CookieList: FunctionComponent = () => {
       headerName: 'Сезон',
       sortable: false,
       resizable: false,
-      flex: 0.3,
+      flex: 0.4,
     },
     {
       field: 'titleType',
       headerName: 'Тип',
+      sortable: false,
+      resizable: false,
+      flex: 0.4,
+    },
+    {
+      field: 'isFast',
+      headerName: 'Швидко',
+      sortable: false,
+      resizable: false,
+      flex: 0.4,
+    },
+    {
+      field: 'isOngoing',
+      headerName: 'Онґоїнґ',
+      sortable: false,
+      resizable: false,
+      flex: 0.4,
+    },
+    {
+      field: 'isPriority',
+      headerName: 'Пріоритет',
+      sortable: false,
+      resizable: false,
+      flex: 0.4,
+    },
+    {
+      field: 'isInTime',
+      headerName: 'Вчасно',
       sortable: false,
       resizable: false,
       flex: 0.4,
@@ -118,7 +151,7 @@ const CookieList: FunctionComponent = () => {
     },
   ];
 
-  const rows: TrackType[] = tracks.map((track) => {
+  const rows: RowType[] = tracks.map((track) => {
     return {
       ...track,
       id: track._id,
@@ -126,10 +159,14 @@ const CookieList: FunctionComponent = () => {
       note: track.note || '-',
       season: `${convertSeasonEngToUkr(track.season)} ${track.year}`,
       titleType: convertAnimeTypeEngToUkr(track.titleType),
+      isFast: track.isFast ? 'Так' : 'Ні',
+      isInTime: track.isInTime ? 'Так' : 'Ні',
+      isOngoing: track.isOngoing ? 'Так' : 'Ні',
+      isPriority: track.isPriority ? 'Так' : 'Ні',
     };
   });
 
-  const handleDeleteClick = async (item: TrackType) => {
+  const handleDeleteClick = async (item: RowType) => {
     setOpenDeleteDialog(true);
     setSelectedItem(item);
   };

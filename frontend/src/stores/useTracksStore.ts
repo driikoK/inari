@@ -14,7 +14,7 @@ interface IState {
     season?: string;
     nameTitle?: string;
     typeRole?: string;
-    year?: number;
+    year?: string;
   }) => Promise<void>;
   addTracks: (newTracks: CreateTrackType) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;

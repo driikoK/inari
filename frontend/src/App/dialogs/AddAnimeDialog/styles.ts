@@ -12,6 +12,7 @@ export const DialogContainer = styled(Dialog)`
         gap: ['16px', '16px', '16px', '28px'],
       })}
     border-radius: 12px;
+    width: 40%;
   }
 `;
 
@@ -36,7 +37,7 @@ export const Title = styled.span`
   ${({ theme }) =>
     theme.mq({
       fontSize: ['17px', '17px', '17px', '21px'],
-  })}
+    })}
   text-align: center;
 `;
 

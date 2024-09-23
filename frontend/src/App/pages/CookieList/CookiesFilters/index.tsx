@@ -10,7 +10,7 @@ import { SelectWrapper } from './styles';
 
 export const CookiesFilters = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>();
-  const [selectedYear, setSelectedYear] = useState<number>();
+  const [selectedYear, setSelectedYear] = useState<string>();
   const [selectedAnime, setSelectedAnime] = useState<string>();
   const [selectedRole, setSelectedRole] = useState<string>();
   const [selectedUser, setSelectedUser] = useState<string>();
@@ -74,7 +74,7 @@ export const CookiesFilters = () => {
         value={selectedYear}
         onChange={setSelectedYear}
         options={yearOptions.map((year) => ({
-          value: Number(year.value),
+          value: year.value,
           label: year.label,
         }))}
       />
