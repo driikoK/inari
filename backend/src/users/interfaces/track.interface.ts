@@ -8,4 +8,5 @@ export interface ITrack extends Document {
   season: string;
   year: number;
   currentEpisode: number;
+  titleType: string;
 }

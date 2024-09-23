@@ -4,6 +4,7 @@ import { MEMBER_ROLE } from '../enums/types.enum';
 export const TracksSchema = new mongoose.Schema({
   nickname: String,
   nameTitle: String,
+  titleType: String,
   season: String,
   year: Number,
   note: String,

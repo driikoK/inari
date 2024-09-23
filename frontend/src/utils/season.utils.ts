@@ -12,3 +12,16 @@ export const convertSeasonEngToUkr = (season: string): string => {
       return '';
   }
 };
+
+export const convertAnimeTypeEngToUkr = (type: string): string => {
+  switch (type) {
+    case 'series':
+      return 'Серіал';
+    case 'film':
+      return 'Фільм';
+    case 'shortFilm':
+      return 'Короткометражка';
+    default:
+      return '';
+  }
+};

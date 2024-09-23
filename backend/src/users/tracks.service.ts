@@ -134,6 +134,7 @@ export class TrackService {
         nameTitle: track.nameTitle,
         season: track.season,
         year: Number(track.year),
+        titleType: track.titleType,
       });
 
       const existedSeasonIndex = user.seasons.findIndex(

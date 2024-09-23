@@ -45,6 +45,7 @@ export interface TrackType {
   coins: number;
   typeRole: string;
   year: number;
+  titleType: string;
 }
 
 export interface CofType {
