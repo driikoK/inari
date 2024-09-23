@@ -147,7 +147,8 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     value: type.value,
                     label: type.label,
                   }))}
-                  {...field}
+                  value={field.value}
+                  onChange={field.onChange}
                 />
               )}
             />
@@ -167,7 +168,8 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                       value: season.value,
                       label: season.label,
                     }))}
-                    {...field}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -184,7 +186,8 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                       value: year.value,
                       label: year.label,
                     }))}
-                    {...field}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />

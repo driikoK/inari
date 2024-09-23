@@ -1,5 +1,13 @@
-import { FormControl, InputLabel, MenuItem, OutlinedInput, SelectChangeEvent } from '@mui/material';
-import { ClearOptionItem, StyledSelect } from './styles';
+import {
+  FormControl,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  SelectChangeEvent,
+} from '@mui/material';
+import { Close } from '@mui/icons-material';
+
+import { StyledInput, StyledInputLabel, StyledSelect } from './styles';
 
 interface SelectFieldProps<T> {
   label: string;
@@ -9,29 +17,41 @@ interface SelectFieldProps<T> {
   width?: string | number;
 }
 
-function SelectField<T extends string | number>({
+function SelectField<T extends string>({
   label,
   value,
   onChange,
   options,
   width = '100%',
 }: SelectFieldProps<T>) {
-  const handleChange = (event: SelectChangeEvent<unknown>) => {
+  const handleChange = (event: SelectChangeEvent<unknown> | undefined) => {
+    if (event === undefined) return onChange(undefined);
+
     onChange(event.target.value as T | undefined);
   };
 
   return (
     <FormControl sx={{ width }}>
-      <InputLabel id={`${label.toLowerCase()}-label`}>{label}</InputLabel>
+      <StyledInputLabel id={`${label.toLowerCase()}-label`}>{label}</StyledInputLabel>
       <StyledSelect
         labelId={`${label.toLowerCase()}-label`}
-        input={<OutlinedInput label={label} />}
+        input={<StyledInput label={label} />}
         value={value || ''}
         onChange={handleChange}
+        endAdornment={
+          value && (
+            <InputAdornment sx={{ marginRight: '20px', cursor: 'pointer' }} position="end">
+              <IconButton
+                onClick={() => {
+                  handleChange(undefined);
+                }}
+              >
+                <Close sx={{ width: '20px', height: '20px' }} />
+              </IconButton>
+            </InputAdornment>
+          )
+        }
       >
-        <MenuItem value={undefined}>
-          <ClearOptionItem> Скасувати вибір </ClearOptionItem>
-        </MenuItem>
         {options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
             {option.label}

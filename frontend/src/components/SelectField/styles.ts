@@ -1,12 +1,17 @@
-import { Select, selectClasses } from "@mui/material";
-import styled from "styled-components";
+import { Select, selectClasses, styled, InputLabel, OutlinedInput } from '@mui/material';
 
-export const StyledSelect = styled(Select)`
-.${selectClasses.select}{
-    background-color: white;
-  }
-`;
+export const StyledSelect = styled(Select)({
+  backgroundColor: 'white',
+});
 
-export const ClearOptionItem = styled.span`
-  font-weight: 500;
-`;
+export const StyledInputLabel = styled(InputLabel)({
+  [`&.${selectClasses.focused}`]: {
+    color: 'black',
+  },
+});
+
+export const StyledInput = styled(OutlinedInput)(() => ({
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(0, 0, 0, 0.23)',
+  },
+}));
