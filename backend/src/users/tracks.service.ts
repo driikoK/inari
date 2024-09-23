@@ -83,7 +83,7 @@ export class TrackService {
     return updatedTrack;
   }
 
-  getCoinsWithMultipliers(
+  private getCoinsWithMultipliers(
     multipliers: Omit<CreateTrackData, 'membersInfo'>,
     member: MemberInfo,
   ) {
@@ -109,19 +109,19 @@ export class TrackService {
     return member;
   }
 
-  async createTrack(track: CreateTrackData) {
-    const editor = track.membersInfo.find(
-      (member) => member.typeRole === MEMBER_ROLE.EDITOR,
+  private addAdditionalCoinsToTranslator(track: CreateTrackData, role: string) {
+    const subIndex = track.membersInfo.findIndex(
+      (member) => member.typeRole === MEMBER_ROLE.SUB,
     );
+    track.membersInfo[subIndex].coins +=
+      this.settingsService.getCoins()[track.titleType][role];
+  }
 
-    // ** add additional coins to translator when team doesn't have an editor
-    if (!editor) {
-      const subIndex = track.membersInfo.findIndex(
-        (member) => member.typeRole === MEMBER_ROLE.SUB,
-      );
-      track.membersInfo[subIndex].coins +=
-        this.settingsService.getCoins()[track.titleType].editor;
-    }
+  async createTrack(track: CreateTrackData) {
+    if (track.isGiveEditorCoins)
+      this.addAdditionalCoinsToTranslator(track, 'editor');
+    if (track.isGiveTypesetterCoins)
+      this.addAdditionalCoinsToTranslator(track, 'typesetter');
 
     for (const member of track.membersInfo) {
       const user = await this.usersService.findUser(member.nickname);
@@ -135,6 +135,10 @@ export class TrackService {
         season: track.season,
         year: Number(track.year),
         titleType: track.titleType,
+        isFast: track.isFast,
+        isOngoing: track.isOngoing,
+        isPriority: track.isPriority,
+        isInTime: track.isInTime,
       });
 
       const existedSeasonIndex = user.seasons.findIndex(

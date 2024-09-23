@@ -31,6 +31,12 @@ export class CreateTrackData {
   @ApiPropertyOptional()
   isInTime?: boolean;
 
+  @ApiPropertyOptional()
+  isGiveEditorCoins?: boolean;
+
+  @ApiPropertyOptional()
+  isGiveTypesetterCoins?: boolean;
+
   @ApiProperty()
   currentEpisode: number;
 
