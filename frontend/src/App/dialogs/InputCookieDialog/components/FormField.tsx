@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 
 import { PlusMinusButton } from './PlusMinusButton';
-import { ErrorText, FieldContainer, Paragraph } from '../styles';
+import { ErrorText, FieldContainer, FlexColumn, Paragraph } from '../styles';
 import theme from '@theme';
 import CreateUserDialog from '@/App/dialogs/CreateUserDialog';
 import { UserType } from '@/types';
@@ -181,14 +181,7 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
         <FormControlLabel label="Гість" control={<Checkbox {...register(`${name}.isGuest`)} />} />
       </FieldContainer>
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          gap: '8px',
-        }}
-      >
+      <FlexColumn>
         <ErrorMessage
           errors={errors}
           name={`${name}.nickname`}
@@ -199,7 +192,7 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
           name={`${name}.coins`}
           render={({ message }) => <ErrorText>{message}</ErrorText>}
         />
-      </Box>
+      </FlexColumn>
     </>
   );
 };

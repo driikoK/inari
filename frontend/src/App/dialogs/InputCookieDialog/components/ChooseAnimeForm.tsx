@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Autocomplete, FormControl, MenuItem, TextField } from '@mui/material';
 
 import { ANIME_TYPE, ChooseAnimeFormValues } from '../types';
-import { DialogWrapper, ErrorText, Title } from '../styles';
+import { DialogWrapper, ErrorText, FlexColumn, Title } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import AddAnimeDialog from '../../AddAnimeDialog';
 import useUsersStore from '@/stores/useUsersStore';
@@ -79,64 +79,73 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
         <DialogWrapper>
           <Title>Назва тайтлу і номер епізоду</Title>
 
-          <FlexWrapper>
-            <Controller
-              control={control}
-              name="titleName"
-              render={({ field }) => (
-                <Autocomplete
-                  options={animeNames}
-                  getOptionLabel={(option) => option.name}
-                  value={animeNames.find((anime) => anime.name === field.value) || null}
-                  onChange={(_, newValue) => {
-                    field.onChange(newValue?.name);
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Аніме"
-                      placeholder="Вкажіть назву тайтлу"
-                      variant="outlined"
-                    />
-                  )}
-                  sx={{ minWidth: '85%', maxWidth: '95%' }}
-                  renderOption={(props, option) => (
-                    <MenuItem {...props} key={option._id} value={option._id}>
-                      {option.name}
-                    </MenuItem>
-                  )}
-                  noOptionsText={
-                    <MenuItem sx={{ fontWeight: '600' }} onClick={() => setOpenDialog(true)}>
-                      Додати
-                    </MenuItem>
-                  }
-                />
-              )}
-            />
+          <div>
+            <FlexWrapper>
+              <Controller
+                control={control}
+                name="titleName"
+                render={({ field }) => (
+                  <Autocomplete
+                    options={animeNames}
+                    getOptionLabel={(option) => option.name}
+                    value={animeNames.find((anime) => anime.name === field.value) || null}
+                    onChange={(_, newValue) => {
+                      field.onChange(newValue?.name);
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Аніме"
+                        placeholder="Вкажіть назву тайтлу"
+                        variant="outlined"
+                      />
+                    )}
+                    sx={{ minWidth: '85%', maxWidth: '95%' }}
+                    renderOption={(props, option) => (
+                      <MenuItem {...props} key={option._id} value={option._id}>
+                        {option.name}
+                      </MenuItem>
+                    )}
+                    noOptionsText={
+                      <MenuItem sx={{ fontWeight: '600' }} onClick={() => setOpenDialog(true)}>
+                        Додати
+                      </MenuItem>
+                    }
+                  />
+                )}
+              />
 
-            <Controller
-              control={control}
-              name="episode"
-              render={({ field }) => (
-                <TextField
-                  value={field.value}
-                  disabled={
-                    watchAnimeType === ANIME_TYPE.FILM || watchAnimeType === ANIME_TYPE.SHORT_FILM
-                  }
-                  type="text"
-                  onChange={(e) => {
-                    handleTextInputChange(e.target.value, field);
-                  }}
-                />
-              )}
-            />
-          </FlexWrapper>
+              <Controller
+                control={control}
+                name="episode"
+                render={({ field }) => (
+                  <TextField
+                    value={field.value}
+                    disabled={
+                      watchAnimeType === ANIME_TYPE.FILM || watchAnimeType === ANIME_TYPE.SHORT_FILM
+                    }
+                    type="text"
+                    onChange={(e) => {
+                      handleTextInputChange(e.target.value, field);
+                    }}
+                  />
+                )}
+              />
+            </FlexWrapper>
 
-          <ErrorMessage
-            name="episode"
-            errors={errors}
-            render={({ message }) => <ErrorText>{message}</ErrorText>}
-          />
+            <FlexColumn>
+              <ErrorMessage
+                errors={errors}
+                name="titleName"
+                render={({ message }) => <ErrorText>{message}</ErrorText>}
+              />
+              <ErrorMessage
+                name="episode"
+                errors={errors}
+                render={({ message }) => <ErrorText>{message}</ErrorText>}
+              />
+            </FlexColumn>
+          </div>
 
           <Title>Аніме належить до:</Title>
 
@@ -155,6 +164,12 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                   onChange={field.onChange}
                 />
               )}
+            />
+
+            <ErrorMessage
+              errors={errors}
+              name="animeType"
+              render={({ message }) => <ErrorText>{message}</ErrorText>}
             />
           </FormControl>
 
@@ -205,6 +220,12 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                   />
                 )}
               />
+
+              <ErrorMessage
+                errors={errors}
+                name="season"
+                render={({ message }) => <ErrorText>{message}</ErrorText>}
+              />
             </FormControl>
 
             <FormControl sx={{ width: '50%' }}>
@@ -223,10 +244,16 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                   />
                 )}
               />
+
+              <ErrorMessage
+                errors={errors}
+                name="year"
+                render={({ message }) => <ErrorText>{message}</ErrorText>}
+              />
             </FormControl>
           </FlexWrapper>
 
-          <Button type="submit" color="inherit" disabled={!isValid}>
+          <Button type="submit" color="inherit">
             Далі
           </Button>
 

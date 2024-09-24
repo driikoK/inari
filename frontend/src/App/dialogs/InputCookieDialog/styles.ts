@@ -122,3 +122,10 @@ export const FieldContainer = styled.div`
   align-items: center;
   margin: 10px 0;
 `;
+
+export const FlexColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+`;
