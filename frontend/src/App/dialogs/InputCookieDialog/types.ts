@@ -73,6 +73,9 @@ export interface CreateTrackFormValues extends Multipliers {
     editor?: NotRequiredFieldFormValue | null;
     dubs: FieldFormValue[];
     fixer: FieldFormValue;
+    /* Actually this role can be not required with type NotRequiredFieldFormValue,
+    but if add the type then form resolver will throw a type error.
+    */
     roleBreaker: FieldFormValue;
     releasers: FieldFormValue[];
     typesetter?: NotRequiredFieldFormValue | null;
@@ -80,6 +83,7 @@ export interface CreateTrackFormValues extends Multipliers {
   note?: string;
   isGiveEditorCoins?: boolean;
   isGiveTypesetterCoins?: boolean;
+  isLastEpisode?: boolean;
 }
 
 export interface ChooseAnimeFormValues {

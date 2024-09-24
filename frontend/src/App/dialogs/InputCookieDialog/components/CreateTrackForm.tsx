@@ -60,6 +60,9 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     getUsers();
   }, []);
 
+  const isOnlyOneEpisode = animeType === ANIME_TYPE.SHORT_FILM || animeType === ANIME_TYPE.FILM;
+  const minEpisodeForSeries = animeType === ANIME_TYPE.SERIES && Number(episode) < 3;
+
   const defaultValues: CreateTrackFormValues = useMemo(() => {
     return {
       ...initialFormValues,
@@ -88,6 +91,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
         return acc;
       }, {} as CreateTrackFormValues['membersInfo']),
+      isLastEpisode: isOnlyOneEpisode,
     };
   }, [coins]);
 
@@ -116,6 +120,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
   const watchIsGiveEditorCoins = watch('isGiveEditorCoins');
   const watchIsGiveTypesetterCoins = watch('isGiveTypesetterCoins');
+  const watchIsLastEpisode = watch('isLastEpisode');
 
   useEffect(() => {
     if (watchEditor) resetField('isGiveEditorCoins');
@@ -132,6 +137,8 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   }, [watchIsGiveTypesetterCoins]);
 
   const onSubmitForm = async (form: CreateTrackFormValues) => {
+    delete form.isLastEpisode;
+
     const payload: CreateTrackType = {
       ...form,
       membersInfo: Object.entries(form.membersInfo).flatMap(([key, value]) => {
@@ -145,7 +152,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
         if (!value?.hasOwnProperty('nickname')) return [];
 
-        return value?.nickname !== '' || !value.hasOwnProperty('nickname')
+        return value?.nickname !== ''
           ? { ...value, typeRole: key, coins: Number(value?.coins) }
           : [];
       }) as MemberInfo[],
@@ -198,11 +205,6 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
           <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
 
           <FormField name={`${startNameForMemberField}.fixer`} label="Фіксер" isDisabled />
-          <FormField
-            name={`${startNameForMemberField}.roleBreaker`}
-            label="Розбивач ролей"
-            isDisabled
-          />
 
           <div>
             <FormField
@@ -266,6 +268,31 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             maxLength={2}
           />
 
+          <FormControlLabel
+            label="Останній епізод"
+            control={
+              <Controller
+                name="isLastEpisode"
+                control={control}
+                render={({ field: { value, ...field } }) => (
+                  <Checkbox
+                    {...field}
+                    checked={!!value}
+                    disabled={isOnlyOneEpisode || minEpisodeForSeries}
+                  />
+                )}
+              />
+            }
+          />
+
+          {watchIsLastEpisode && (
+            <FormField
+              name={`${startNameForMemberField}.roleBreaker`}
+              label="Розбивач ролей"
+              isDisabled
+            />
+          )}
+
           <Paragraph style={{ alignSelf: 'flex-start' }}>Нотатка:</Paragraph>
           <TextField
             {...register('note')}
@@ -293,7 +320,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             </CheckboxWrapper>
           </Box>
 
-          <Button variant="contained" type="submit" disabled={!isValid}>
+          <Button variant="contained" type="submit">
             Зберегти
           </Button>
         </Box>

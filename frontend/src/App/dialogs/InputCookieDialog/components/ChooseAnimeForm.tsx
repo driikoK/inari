@@ -58,7 +58,9 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
   const handleTextInputChange = (
     value: string,
-    currentField: ControllerRenderProps<ChooseAnimeFormValues, 'episode' | 'duration'>
+    currentField:
+      | ControllerRenderProps<ChooseAnimeFormValues, 'episode'>
+      | ControllerRenderProps<ChooseAnimeFormValues, 'duration'>
   ) => {
     const numberValue = Number(value.replace(/[^0-9]/g, ''));
 

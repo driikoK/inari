@@ -73,7 +73,11 @@ export const createTrackFormSchema = (titleCoins: CoinsType) => {
         )
         .required(),
       fixer: fieldSchema.required(),
-      roleBreaker: fieldSchema.required(),
+      roleBreaker: fieldSchema.when('isLastEpisode', {
+        is: (val: boolean) => val === true,
+        then: (schema) => schema.required('Обов’язкове поле'),
+        otherwise: () => notRequiredFieldSchema.notRequired(),
+      }),
       releasers: Yup.array()
         .of(fieldSchema)
         .max(2)
@@ -90,6 +94,7 @@ export const createTrackFormSchema = (titleCoins: CoinsType) => {
     isInTime: Yup.boolean().required(),
     isGiveEditorCoins: Yup.boolean(),
     isGiveTypesetterCoins: Yup.boolean(),
+    isLastEpisode: Yup.boolean(),
   });
 };
 
@@ -115,6 +120,7 @@ export const initialFormValues: CreateTrackFormValues = {
   isInTime: false,
   isGiveEditorCoins: false,
   isGiveTypesetterCoins: false,
+  isLastEpisode: false,
 };
 
 // ** For choose anime form
