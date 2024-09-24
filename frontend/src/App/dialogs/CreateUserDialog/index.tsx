@@ -47,7 +47,7 @@ const CreateUserDialog: FunctionComponent<IRequiredAuthorizationDialogProps> = (
 
   const handleSubmit = async () => {
     try {
-      await addUser({ nickname, types: selectedTypes, coins: 0 });
+      await addUser({ nickname, types: selectedTypes, coins: 0, seasons: [] });
 
       toast.success('Новий мембер створений успішно!');
 

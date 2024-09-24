@@ -69,6 +69,8 @@ const CookieList: FunctionComponent = () => {
       flex: 0.3,
       sortable: false,
       editable: true,
+      align: 'left',
+      headerAlign: 'left',
     },
     {
       field: 'currentEpisode',
