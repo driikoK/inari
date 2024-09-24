@@ -19,7 +19,7 @@ export class TeamAnimesController {
   }
 
   @Delete(':id')
-  async deleteTeamAnime(@Param('id') id: string) {
+  async deleteTeamAnime(@Param('id') id: string): Promise<boolean> {
     return this.teamAnimeService.deleteTeamAnime(id);
   }
 }
