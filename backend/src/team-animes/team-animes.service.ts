@@ -19,7 +19,8 @@ export class TeamAnimesService {
     return this.teamAnimeModel.create({ name: anime.name });
   }
 
-  async deleteTeamAnime(id: string) {
-    return this.teamAnimeModel.deleteOne({ _id: id });
+  async deleteTeamAnime(id: string): Promise<boolean> {
+    this.teamAnimeModel.deleteOne({ _id: id });
+    return true;
   }
 }
