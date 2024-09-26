@@ -130,15 +130,8 @@ export class TrackService {
 
       await this.trackModel.create({
         ...memberWithMultipliers,
-        currentEpisode: track.currentEpisode,
-        nameTitle: track.nameTitle,
-        season: track.season,
+        ...track,
         year: Number(track.year),
-        titleType: track.titleType,
-        isFast: track.isFast,
-        isOngoing: track.isOngoing,
-        isPriority: track.isPriority,
-        isInTime: track.isInTime,
       });
 
       const existedSeasonIndex = user.seasons.findIndex(
@@ -167,5 +160,7 @@ export class TrackService {
 
       await this.usersService.updateUser(updatedUser);
     }
+
+    return 'Success';
   }
 }

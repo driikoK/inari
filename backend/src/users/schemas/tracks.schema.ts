@@ -18,4 +18,5 @@ export const TracksSchema = new mongoose.Schema({
   isOngoing: Boolean,
   isPriority: Boolean,
   isInTime: Boolean,
+  isGuest: Boolean
 });

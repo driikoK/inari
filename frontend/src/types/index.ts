@@ -50,6 +50,7 @@ export interface TrackType {
   isOngoing: boolean;
   isPriority: boolean;
   isInTime: boolean;
+  isGuest: boolean;
 }
 
 export interface CofType {

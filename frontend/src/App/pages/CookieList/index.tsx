@@ -6,7 +6,6 @@ import { Paper } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
-import useSeasonsStore from '@/stores/useSeasons';
 import useTracksStore from '@/stores/useTracksStore';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useRolesStore from '@/stores/useRolesStore';
@@ -30,17 +29,16 @@ type RowType = {
   isOngoing: string;
   isPriority: string;
   isInTime: string;
-} & Omit<TrackType, 'isFast' | 'isOngoing' | 'isPriority' | 'isInTime'>;
+  isGuest: string;
+} & Omit<TrackType, 'isFast' | 'isOngoing' | 'isPriority' | 'isInTime' | 'isGuest'>;
 
 const CookieList: FunctionComponent = () => {
-  const { getSeasons } = useSeasonsStore();
   const { tracks, getTracks, deleteTracks, updateTrack } = useTracksStore();
   const { getAnime } = useAnimeStore();
   const { roles, getRoles } = useRolesStore();
   const { getUsers } = useUsersStore();
 
   useEffect(() => {
-    getSeasons();
     getTracks();
     getAnime();
     getRoles();
@@ -129,6 +127,13 @@ const CookieList: FunctionComponent = () => {
       flex: 0.4,
     },
     {
+      field: 'isGuest',
+      headerName: 'Гість',
+      sortable: false,
+      resizable: false,
+      flex: 0.4,
+    },
+    {
       field: 'note',
       headerName: 'Нотатка',
       sortable: false,
@@ -165,6 +170,7 @@ const CookieList: FunctionComponent = () => {
       isInTime: track.isInTime ? 'Так' : 'Ні',
       isOngoing: track.isOngoing ? 'Так' : 'Ні',
       isPriority: track.isPriority ? 'Так' : 'Ні',
+      isGuest: track.isGuest ? 'Так' : 'Ні',
     };
   });
 

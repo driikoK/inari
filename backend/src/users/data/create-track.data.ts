@@ -37,6 +37,9 @@ export class CreateTrackData {
   @ApiPropertyOptional()
   isGiveTypesetterCoins?: boolean;
 
+  @ApiPropertyOptional()
+  isGuest?: boolean;
+
   @ApiProperty()
   currentEpisode: number;
 

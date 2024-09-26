@@ -102,14 +102,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     mode: 'onChange',
   });
 
-  const {
-    handleSubmit,
-    register,
-    watch,
-    resetField,
-    control,
-    formState: { isValid },
-  } = methods;
+  const { handleSubmit, register, watch, resetField, control } = methods;
 
   /* Triggers full form re-render when any field in 'membersInfo.dubs' changes.
      Maybe should remove this watch and then remove dynamic value of coins */
