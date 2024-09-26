@@ -18,32 +18,43 @@ const Cookie: FunctionComponent = () => {
 
   return (
     <Container>
-      <ElementContainer onClick={() => setOpenCookieDialog(true)}>
-        <ElementImage $url="/cookie.png" />
-        <Title>Додати нові крихти</Title>
-      </ElementContainer>
-      <ElementContainer onClick={() => setOpenAddUsersAndTitlesDialog(true)}>
-        <ElementImage $url="/foxes.png" />
-        <Title>Додати в лисятник</Title>
-      </ElementContainer>
-      <ElementContainer onClick={() => handleLink('list')}>
-        <ElementImage $url="/general.png" />
-        <Title>Список крихт</Title>
-      </ElementContainer>
-      <ElementContainer onClick={() => handleLink('rating')}>
-        <ElementImage $url="/roles.png" />
-        <Title>Рейтинг крихт</Title>
-      </ElementContainer>
-      {openCookieDialog && (
-        <InputCookieDialog onClose={() => setOpenCookieDialog(false)} open={openCookieDialog} />
-      )}
-      {openAddUsersAndTitlesDialog && (
-        <CreateAnimeAndUserDialog
-          onClose={() => setOpenAddUsersAndTitlesDialog(false)}
-          open={openAddUsersAndTitlesDialog}
+      {openPasswordDialog ? (
+        <PasswordDialog
+          onSubmit={() => {
+            setOpenPasswordDialog(false);
+          }}
+          onClose={() => {}}
+          open={openPasswordDialog}
         />
+      ) : (
+        <>
+          <ElementContainer onClick={() => setOpenCookieDialog(true)}>
+            <ElementImage $url="/cookie.png" />
+            <Title>Додати нові крихти</Title>
+          </ElementContainer>
+          <ElementContainer onClick={() => setOpenAddUsersAndTitlesDialog(true)}>
+            <ElementImage $url="/foxes.png" />
+            <Title>Додати в лисятник</Title>
+          </ElementContainer>
+          <ElementContainer onClick={() => handleLink('list')}>
+            <ElementImage $url="/general.png" />
+            <Title>Список крихт</Title>
+          </ElementContainer>
+          <ElementContainer onClick={() => handleLink('rating')}>
+            <ElementImage $url="/roles.png" />
+            <Title>Рейтинг крихт</Title>
+          </ElementContainer>
+          {openCookieDialog && (
+            <InputCookieDialog onClose={() => setOpenCookieDialog(false)} open={openCookieDialog} />
+          )}
+          {openAddUsersAndTitlesDialog && (
+            <CreateAnimeAndUserDialog
+              onClose={() => setOpenAddUsersAndTitlesDialog(false)}
+              open={openAddUsersAndTitlesDialog}
+            />
+          )}
+        </>
       )}
-      {/* <PasswordDialog onSubmit={()=> {setOpenPasswordDialog(false);} } onClose={() => {} } open={openPasswordDialog} /> */}
     </Container>
   );
 };
