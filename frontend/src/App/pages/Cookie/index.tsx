@@ -23,7 +23,7 @@ const Cookie: FunctionComponent = () => {
         <Title>Додати нові крихти</Title>
       </ElementContainer>
       <ElementContainer onClick={() => setOpenAddUsersAndTitlesDialog(true)}>
-        <ElementImage $url="/cookie.png" />
+        <ElementImage $url="/foxes.png" />
         <Title>Додати в лисятник</Title>
       </ElementContainer>
       <ElementContainer onClick={() => handleLink('list')}>

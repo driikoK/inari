@@ -49,7 +49,7 @@ export const CreateAnimeAndUserDialog: FC<IDialogProps> = ({ open, onClose }) =>
   };
 
   return (
-    <DialogContainer open={open} onClose={onClose}>
+    <DialogContainer open={open} onClose={onClose} fullWidth>
       <IconButton
         aria-label="close"
         onClick={onClose}

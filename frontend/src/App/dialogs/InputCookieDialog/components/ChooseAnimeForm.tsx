@@ -43,7 +43,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     watch,
     resetField,
     control,
-    formState: { isValid, errors },
+    formState: { errors },
   } = methods;
 
   const watchAnimeType = watch('animeType');
