@@ -1,5 +1,6 @@
 import { FunctionComponent, useEffect, useState } from 'react';
-import { type DialogProps } from '@mui/material';
+import { IconButton, type DialogProps } from '@mui/material';
+import { Close } from '@mui/icons-material';
 
 import { DialogContainer, DialogWrapper } from './styles';
 import { ANIME_TYPE, ChooseAnimeFormValues } from './types';
@@ -36,6 +37,18 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
 
   return (
     <DialogContainer open={open} scroll={'body'} onClose={onClose} fullWidth>
+      <IconButton
+        aria-label="close"
+        onClick={onClose}
+        sx={() => ({
+          position: 'absolute',
+          right: 8,
+          top: 8,
+        })}
+      >
+        <Close />
+      </IconButton>
+
       <DialogWrapper>
         {!isNextStep && (
           <ChooseAnimeForm saveFormValues={saveFormValues} initialValues={chosenAnime} />
