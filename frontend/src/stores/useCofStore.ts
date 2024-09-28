@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
+import axios from '@/api';
 import { CofType } from '@/types';
 
 interface IState {
@@ -19,9 +19,8 @@ const useCofStore = create<IState>((set) => ({
   error: null,
 
   getCof: async () => {
-    // eslint-disable-next-line no-useless-catch
     try {
-      const response = await axios.get(`${process.env.API_URL}/settings/cof`);
+      const response = await axios.get(`/settings/cof`);
       set({ cof: response.data });
     } catch (error) {
       throw error;

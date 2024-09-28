@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
+import axios from '@/api';
 
 import { CoinsType } from '@/types';
 
@@ -68,7 +68,7 @@ const useCoinsStore = create<IState>((set) => ({
 
   getCoins: async () => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/settings/coins`);
+      const response = await axios.get(`/settings/coins`);
       set({ coinsTypes: response.data });
     } catch (error: unknown) {
       throw error;

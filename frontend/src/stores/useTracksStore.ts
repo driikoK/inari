@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
+import axios from '@/api';
 import { TrackType } from '@/types';
 import { CreateTrackType } from '@/App/dialogs/InputCookieDialog/types';
 
@@ -26,7 +26,7 @@ const useTracksStore = create<IState>((set) => ({
 
   getTracks: async (filters) => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/users/tracks`, { params: filters });
+      const response = await axios.get(`/users/tracks`, { params: filters });
       set({ tracks: response.data });
     } catch (error) {
       throw error;
@@ -35,14 +35,14 @@ const useTracksStore = create<IState>((set) => ({
 
   addTracks: async (newTracks: CreateTrackType) => {
     try {
-      await axios.post(`${process.env.API_URL}/users/tracks`, newTracks);
+      await axios.post(`/users/tracks`, newTracks);
     } catch (error) {
       throw error;
     }
   },
   deleteTracks: async (id: string) => {
     try {
-      await axios.delete(`${process.env.API_URL}/users/track/${id}`);
+      await axios.delete(`/users/track/${id}`);
       set((state) => ({ tracks: state.tracks.filter((item) => item._id !== id) }));
     } catch (error) {
       throw error;
@@ -50,7 +50,7 @@ const useTracksStore = create<IState>((set) => ({
   },
   updateTrack: async (id: string, track: UpdateTrackData) => {
     try {
-      const updatedTrack = await axios.put(`${process.env.API_URL}/users/track/${id}`, {
+      const updatedTrack = await axios.put(`/users/track/${id}`, {
         coins: track.coins,
       });
 

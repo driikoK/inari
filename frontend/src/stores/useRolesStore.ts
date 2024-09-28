@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
+import axios from '@/api';
 
 interface Role {
   value: string;
@@ -16,7 +16,7 @@ const useRolesStore = create<IState>((set) => ({
 
   getRoles: async () => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/users/roles`);
+      const response = await axios.get(`/users/roles`);
       set({ roles: response.data });
     } catch (error) {
       throw error;

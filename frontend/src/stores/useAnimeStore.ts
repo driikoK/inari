@@ -1,6 +1,5 @@
-/* eslint-disable no-useless-catch */
 import { create } from 'zustand';
-import axios from 'axios';
+import axios from '@/api';
 
 interface IAnime {
   _id: string;
@@ -18,7 +17,7 @@ const useAnimeStore = create<IState>((set) => ({
 
   getAnime: async () => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/team-animes`);
+      const response = await axios.get(`/team-animes`);
       set({ animeNames: response.data });
     } catch (error) {
       throw error;
@@ -26,7 +25,7 @@ const useAnimeStore = create<IState>((set) => ({
   },
   addAnime: async (newAnime: string) => {
     try {
-      const response = await axios.post(`${process.env.API_URL}/team-animes`, { name: newAnime });
+      const response = await axios.post(`/team-animes`, { name: newAnime });
       set((state) => ({ animeNames: [...state.animeNames, response.data] }));
     } catch (error) {
       throw error;

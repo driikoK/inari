@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
+import axios from '@/api';
 import { UserType } from '@/types';
 import { isObjEmpty, isObjValuesExist } from '@/utils/utility.utils';
 
@@ -27,7 +27,7 @@ const useUsersStore = create<IState>((set) => ({
 
   getUsers: async (filters) => {
     try {
-      const response = await axios.get(`${process.env.API_URL}/users`, { params: filters });
+      const response = await axios.get(`/users`, { params: filters });
 
       if (filters && !isObjEmpty(filters) && isObjValuesExist(filters)) {
         set({ appliedFilters: filters });
@@ -43,7 +43,7 @@ const useUsersStore = create<IState>((set) => ({
 
   addUser: async (newUser) => {
     try {
-      const response = await axios.post(`${process.env.API_URL}/users`, newUser);
+      const response = await axios.post(`/users`, newUser);
       set((state) => ({ users: [...state.users, response.data] }));
     } catch (error) {
       throw error;
