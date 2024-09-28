@@ -12,17 +12,22 @@ const Cookie: FunctionComponent = () => {
 
   const navigate = useNavigate();
 
+  const handleSubmitPassword = () => {
+    sessionStorage.setItem('password', 'true');
+    setOpenPasswordDialog(false);
+  };
+
+  const isPasswordEntered = sessionStorage.getItem('password') === 'true';
+
   const handleLink = (link: string) => {
     navigate(link);
   };
 
   return (
     <Container>
-      {openPasswordDialog ? (
+      {openPasswordDialog && !isPasswordEntered ? (
         <PasswordDialog
-          onSubmit={() => {
-            setOpenPasswordDialog(false);
-          }}
+          onSubmit={handleSubmitPassword}
           onClose={() => {}}
           open={openPasswordDialog}
         />
