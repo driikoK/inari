@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect, useState } from 'react';
 import { IconButton, type DialogProps } from '@mui/material';
-import { Close } from '@mui/icons-material';
+import Close from '@mui/icons-material/Close';
 
 import { DialogContainer, DialogWrapper } from './styles';
 import { ANIME_TYPE, ChooseAnimeFormValues } from './types';

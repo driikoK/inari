@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import { Button, DialogProps, IconButton, TextField } from '@mui/material';
-import { Close } from '@mui/icons-material';
+import Close from '@mui/icons-material/Close';
 
 import { DialogWrapper, Title } from './styles';
 import { DialogContainer } from '../InfoDialog/styles';
