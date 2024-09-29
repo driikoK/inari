@@ -10,7 +10,7 @@ import useTracksStore from '@/stores/useTracksStore';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useRolesStore from '@/stores/useRolesStore';
 import useUsersStore from '@/stores/useUsersStore';
-import { TrackType } from '@/types';
+import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable } from '@/components/CustomTable';
 import { CookiesFilters } from './CookiesFilters';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
@@ -165,7 +165,7 @@ const CookieList: FunctionComponent = () => {
       typeRole: roles.find((role) => role.value === track.typeRole)?.label || '',
       note: track.note || '-',
       season: `${convertSeasonEngToUkr(track.season)} ${track.year}`,
-      titleType: convertAnimeTypeEngToUkr(track.titleType),
+      titleType: convertAnimeTypeEngToUkr(track.titleType as ANIME_TYPE),
       isFast: track.isFast ? 'Так' : 'Ні',
       isInTime: track.isInTime ? 'Так' : 'Ні',
       isOngoing: track.isOngoing ? 'Так' : 'Ні',

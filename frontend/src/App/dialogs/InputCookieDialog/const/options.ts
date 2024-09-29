@@ -1,4 +1,4 @@
-import { ANIME_TYPE } from '../types';
+import { ANIME_TYPE } from '@/types';
 
 export const titleTypeOptions = [
   {

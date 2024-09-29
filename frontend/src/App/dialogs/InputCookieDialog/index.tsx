@@ -3,9 +3,10 @@ import { IconButton, type DialogProps } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 
 import { DialogContainer, DialogWrapper } from './styles';
-import { ANIME_TYPE, ChooseAnimeFormValues } from './types';
+import { ChooseAnimeFormValues } from './types';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useCoinsStore from '@/stores/useCoinsStore';
+import { ANIME_TYPE } from '@/types';
 import { CreateTrackForm } from './components/CreateTrackForm';
 import { ChooseAnimeForm } from './components/ChooseAnimeForm';
 

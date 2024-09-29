@@ -8,18 +8,12 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import { FormField } from './FormField';
 import { createTrackFormSchema, initialFormValues } from '../const/form';
-import {
-  ANIME_TYPE,
-  CreateTrackFormValues,
-  CreateTrackType,
-  FieldFormValue,
-  MemberInfo,
-} from '../types';
+import { CreateTrackFormValues, CreateTrackType, FieldFormValue, MemberInfo } from '../types';
 import { CheckboxWrapper, Paragraph, SubParagraph, Title, TitleWrapper } from '../styles';
 import useUsersStore from '@/stores/useUsersStore';
 import useCoinsStore from '@/stores/useCoinsStore';
 import useTracksStore from '@/stores/useTracksStore';
-import { CoinsType } from '@/types';
+import { CoinsType, ANIME_TYPE } from '@/types';
 
 interface CreateTrackFormProps {
   titleName: string;

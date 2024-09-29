@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import { Autocomplete, FormControl, MenuItem, TextField } from '@mui/material';
 
-import { ANIME_TYPE, ChooseAnimeFormValues } from '../types';
+import { ChooseAnimeFormValues } from '../types';
 import { DialogWrapper, ErrorText, FlexColumn, Title } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import AddAnimeDialog from '../../AddAnimeDialog';
@@ -15,6 +15,7 @@ import Button from '@components/Button';
 import SelectField from '@/components/SelectField';
 import useAnimeStore from '@/stores/useAnimeStore';
 import { seasonOptions, yearOptions } from '@/consts';
+import { ANIME_TYPE } from '@/types';
 
 interface FormProps {
   saveFormValues: (values: ChooseAnimeFormValues) => void;

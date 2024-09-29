@@ -5,20 +5,11 @@ interface Multipliers {
   isInTime: boolean;
 }
 
-export interface ValuesType extends Multipliers {
-  main: TrackType;
-  dubs: string[];
-}
-
 export interface MemberInfo {
   nickname: string;
   coins: number;
   typeRole: string;
   isGuest: boolean;
-}
-
-export interface TrackType {
-  [key: string]: MemberInfo;
 }
 
 export interface CreateTrackType extends Multipliers {
@@ -31,30 +22,6 @@ export interface CreateTrackType extends Multipliers {
   note: string;
   isGiveEditorCoins?: boolean;
   isGiveTypesetterCoins?: boolean;
-}
-
-export interface CofType {
-  sub: number;
-  dub: number;
-  sound: number;
-  additional: number;
-}
-
-export enum ANIME_TYPE {
-  NONE = 'none',
-  FILM = 'film',
-  SERIES = 'series',
-  SHORT_FILM = 'shortFilm',
-}
-
-export enum DUB_COIN_VALUE {
-  KB = 'кб',
-  COOKIE = 'крихти',
-}
-
-export interface FormErrorsType {
-  main: string;
-  bonus: string;
 }
 
 export interface FieldFormValue {

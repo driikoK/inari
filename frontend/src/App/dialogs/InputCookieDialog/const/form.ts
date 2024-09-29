@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
 
-import { ANIME_TYPE, ChooseAnimeFormValues, CreateTrackFormValues, FieldFormValue } from '../types';
-import { CoinsType } from '@/types';
+import { ChooseAnimeFormValues, CreateTrackFormValues, FieldFormValue } from '../types';
+import { CoinsType, ANIME_TYPE } from '@/types';
 
 // ** For create track form
 const testIsNotZero = Yup.string()

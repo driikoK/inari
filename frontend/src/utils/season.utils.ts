@@ -1,3 +1,5 @@
+import { ANIME_TYPE } from '@/types';
+
 export const convertSeasonEngToUkr = (season: string): string => {
   switch (season) {
     case 'spring':
@@ -13,13 +15,13 @@ export const convertSeasonEngToUkr = (season: string): string => {
   }
 };
 
-export const convertAnimeTypeEngToUkr = (type: string): string => {
+export const convertAnimeTypeEngToUkr = (type: ANIME_TYPE): string => {
   switch (type) {
-    case 'series':
+    case ANIME_TYPE.SERIES:
       return 'Серіал';
-    case 'film':
+    case ANIME_TYPE.FILM:
       return 'Фільм';
-    case 'shortFilm':
+    case ANIME_TYPE.SHORT_FILM:
       return 'Короткометражка';
     default:
       return '';

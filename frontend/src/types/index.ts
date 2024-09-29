@@ -19,22 +19,6 @@ export type TResultAnime = {
   voteCount: number;
 };
 
-export interface ValuesType {
-  main: TracksType;
-  bonus: TracksType;
-  dubs: string[];
-}
-
-export interface TracksType {
-  [key: string]: {
-    nickname: string;
-    nameTitle: string;
-    coins: number;
-    typeRole: string;
-    currentEpisode: number;
-  };
-}
-
 export interface TrackType {
   _id: string;
   nickname: string;
@@ -78,21 +62,16 @@ export interface CoinsType {
   another: number;
 }
 
-export enum AnimeStatusEnum {
-  NONE = 'none',
-  FILM = 'film',
-  STANDARD = 'inTimeStandardAnime',
-  DELAY = 'delayStandardAnime',
-}
-
 export enum DUB_COIN_VALUE {
   KB = 'кб',
   COOKIE = 'крихти',
 }
 
-export interface FormErrorsType {
-  main: string;
-  bonus: string;
+export enum ANIME_TYPE {
+  NONE = 'none',
+  FILM = 'film',
+  SERIES = 'series',
+  SHORT_FILM = 'shortFilm',
 }
 
 export interface UserType {
