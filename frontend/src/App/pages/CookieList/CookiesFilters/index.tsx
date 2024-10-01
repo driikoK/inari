@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import SelectField from '@/components/SelectField';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useRolesStore from '@/stores/useRolesStore';
-import useUsersStore from '@/stores/useUsersStore';
+import useMembersStore from '@/stores/useMembersStore';
 import useTracksStore from '@/stores/useTracksStore';
 import { seasonOptions, yearOptions } from '@/consts';
 import { SelectWrapper } from './styles';
@@ -17,7 +17,7 @@ export const CookiesFilters = () => {
 
   const { animeNames } = useAnimeStore();
   const { roles } = useRolesStore();
-  const { users } = useUsersStore();
+  const { members } = useMembersStore();
   const { getTracks } = useTracksStore();
 
   useEffect(() => {
@@ -36,9 +36,9 @@ export const CookiesFilters = () => {
         label="Нікнейм"
         value={selectedUser}
         onChange={setSelectedUser}
-        options={users.map((user) => ({
-          value: user.nickname,
-          label: user.nickname,
+        options={members.map((member) => ({
+          value: member.nickname,
+          label: member.nickname,
         }))}
       />
 

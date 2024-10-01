@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 
 import { DialogContainer, InputWrapper, Title, TitleWrapper } from './styles';
 import Button from '@/components/Button';
-import useUsersStore from '@/stores/useUsersStore';
+import useMembersStore from '@/stores/useMembersStore';
 import useRolesStore from '@/stores/useRolesStore';
 
 export interface IRequiredAuthorizationDialogProps extends Pick<DialogProps, 'open'> {
@@ -26,7 +26,7 @@ const CreateUserDialog: FunctionComponent<IRequiredAuthorizationDialogProps> = (
 }) => {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [nickname, setNickname] = useState<string>('');
-  const { addUser } = useUsersStore();
+  const { addMember } = useMembersStore();
   const { roles, getRoles } = useRolesStore();
 
   useEffect(() => {
@@ -47,7 +47,7 @@ const CreateUserDialog: FunctionComponent<IRequiredAuthorizationDialogProps> = (
 
   const handleSubmit = async () => {
     try {
-      await addUser({ nickname, types: selectedTypes, coins: 0, seasons: [] });
+      await addMember({ nickname, types: selectedTypes, coins: 0, seasons: [] });
 
       toast.success('Новий мембер створений успішно!');
 

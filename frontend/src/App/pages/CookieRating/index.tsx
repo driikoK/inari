@@ -5,21 +5,21 @@ import { GridColDef } from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import useRolesStore from '@/stores/useRolesStore';
-import useUsersStore from '@/stores/useUsersStore';
+import useMembersStore from '@/stores/useMembersStore';
 import { CustomTable } from '@/components/CustomTable';
 import { RatingFilters } from './RatingFilters';
 import { convertSeasonEngToUkr } from '@/utils/season.utils';
 
 const CookieRating: FunctionComponent = () => {
   const { getRoles } = useRolesStore();
-  const { users, getUsers, appliedFilters } = useUsersStore();
+  const { members, getMembers, appliedFilters } = useMembersStore();
 
   // ** Don't want to mutate the original array
-  const sortedUsers = [...users].sort((a, b) => b.coins - a.coins);
+  const sortedMembers = [...members].sort((a, b) => b.coins - a.coins);
 
   useEffect(() => {
     getRoles();
-    getUsers();
+    getMembers();
   }, []);
 
   const isYearAndSeasonApplied = !!appliedFilters['year'] && !!appliedFilters['season'];
@@ -54,16 +54,16 @@ const CookieRating: FunctionComponent = () => {
       ]
     : basicColumns;
 
-  const rows = sortedUsers.map((user, index) => {
+  const rows = sortedMembers.map((member, index) => {
     const basicInfo = {
-      id: user._id,
+      id: member._id,
       place: index + 1,
     };
 
     if (isYearAndSeasonApplied) {
       return {
-        nickname: user.nickname,
-        coins: user.seasons.find(
+        nickname: member.nickname,
+        coins: member.seasons.find(
           (season) => season.season === appliedFilters.season && season.year === appliedFilters.year
         )?.coins,
         season: `${convertSeasonEngToUkr(appliedFilters.season!)} ${appliedFilters.year}`,
@@ -71,7 +71,7 @@ const CookieRating: FunctionComponent = () => {
       };
     }
     return {
-      ...user,
+      ...member,
       ...basicInfo,
     };
   });

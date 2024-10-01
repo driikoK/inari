@@ -10,7 +10,7 @@ import { FormField } from './FormField';
 import { createTrackFormSchema, initialFormValues } from '../const/form';
 import { CreateTrackFormValues, CreateTrackType, FieldFormValue, MemberInfo } from '../types';
 import { CheckboxWrapper, Paragraph, SubParagraph, Title, TitleWrapper } from '../styles';
-import useUsersStore from '@/stores/useUsersStore';
+import useMembersStore from '@/stores/useMembersStore';
 import useCoinsStore from '@/stores/useCoinsStore';
 import useTracksStore from '@/stores/useTracksStore';
 import { CoinsType, ANIME_TYPE } from '@/types';
@@ -40,7 +40,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   year,
   duration = 1,
 }) => {
-  const { getUsers } = useUsersStore();
+  const { getMembers } = useMembersStore();
   const { coinsTypes } = useCoinsStore();
   const { addTracks } = useTracksStore();
 
@@ -51,7 +51,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   );
 
   useEffect(() => {
-    getUsers();
+    getMembers();
   }, []);
 
   const isOnlyOneEpisode = animeType === ANIME_TYPE.SHORT_FILM || animeType === ANIME_TYPE.FILM;

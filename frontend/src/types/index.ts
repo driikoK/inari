@@ -74,7 +74,7 @@ export enum ANIME_TYPE {
   SHORT_FILM = 'shortFilm',
 }
 
-export interface UserType {
+export interface MemberType {
   _id: string;
   nickname: string;
   types: string[];

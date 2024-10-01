@@ -7,7 +7,7 @@ import Close from '@mui/icons-material/Close';
 import { DialogWrapper, Title } from './styles';
 import { DialogContainer } from '../InfoDialog/styles';
 import useAnimeStore from '@/stores/useAnimeStore';
-import useUsersStore from '@/stores/useUsersStore';
+import useMembersStore from '@/stores/useMembersStore';
 
 export interface IDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -18,7 +18,7 @@ export const CreateAnimeAndUserDialog: FC<IDialogProps> = ({ open, onClose }) =>
   const [titleName, setTitleName] = useState<string>('');
 
   const { addAnime } = useAnimeStore();
-  const { addUser } = useUsersStore();
+  const { addMember } = useMembersStore();
 
   const handleSubmitTitle = async () => {
     try {
@@ -36,7 +36,7 @@ export const CreateAnimeAndUserDialog: FC<IDialogProps> = ({ open, onClose }) =>
 
   const handleSubmitUser = async () => {
     try {
-      await addUser({ nickname, types: [], coins: 0, seasons: [] });
+      await addMember({ nickname, types: [], coins: 0, seasons: [] });
 
       toast.success('Новий учасник створений успішно!');
 

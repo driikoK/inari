@@ -9,7 +9,7 @@ import { ChooseAnimeFormValues } from '../types';
 import { DialogWrapper, ErrorText, FlexColumn, Title } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import AddAnimeDialog from '../../AddAnimeDialog';
-import useUsersStore from '@/stores/useUsersStore';
+import useMembersStore from '@/stores/useMembersStore';
 import { FlexWrapper } from '@/components/ListCard/styles';
 import Button from '@components/Button';
 import SelectField from '@/components/SelectField';
@@ -23,13 +23,13 @@ interface FormProps {
 }
 
 export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }) => {
-  const { getUsers } = useUsersStore();
+  const { getMembers } = useMembersStore();
   const { animeNames } = useAnimeStore();
 
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
-    getUsers();
+    getMembers();
   }, []);
 
   const methods = useForm<ChooseAnimeFormValues>({

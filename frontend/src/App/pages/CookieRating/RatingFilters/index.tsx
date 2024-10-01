@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import SelectField from '@/components/SelectField';
 import useRolesStore from '@/stores/useRolesStore';
-import useUsersStore from '@/stores/useUsersStore';
+import useMembersStore from '@/stores/useMembersStore';
 import { seasonOptions, yearOptions } from '@/consts';
 import { SelectWrapper } from './styles';
 
@@ -13,7 +13,7 @@ export const RatingFilters = () => {
   const [selectedUser, setSelectedUser] = useState<string>();
 
   const { roles } = useRolesStore();
-  const { getUsers, usersDictionary } = useUsersStore();
+  const { getMembers, membersDictionary } = useMembersStore();
 
   const seasonsOfTheYear = seasonOptions.reduce((acc, season) => {
     yearOptions.forEach((year) => {
@@ -24,7 +24,7 @@ export const RatingFilters = () => {
   }, [] as { label: string; value: string }[]);
 
   useEffect(() => {
-    getUsers({
+    getMembers({
       id: selectedUser,
       role: selectedRole,
       season: selectedSeason,
@@ -52,9 +52,9 @@ export const RatingFilters = () => {
         label="Нікнейм"
         value={selectedUser}
         onChange={setSelectedUser}
-        options={usersDictionary.map((user) => ({
-          value: user._id,
-          label: user.nickname,
+        options={membersDictionary.map((member) => ({
+          value: member._id,
+          label: member.nickname,
         }))}
       />
 

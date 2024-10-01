@@ -22,15 +22,15 @@ import { PlusMinusButton } from './PlusMinusButton';
 import { ErrorText, FieldContainer, FlexColumn, Paragraph } from '../styles';
 import theme from '@theme';
 import CreateUserDialog from '@/App/dialogs/CreateUserDialog';
-import { UserType } from '@/types';
-import useUsersStore from '@/stores/useUsersStore';
+import { MemberType } from '@/types';
+import useMembersStore from '@/stores/useMembersStore';
 
 export interface FormFieldProps {
   name: string;
   isDisabled?: boolean;
   label: string;
   isArray?: boolean;
-  users?: UserType[];
+  members?: MemberType[];
   maxLength?: number;
 }
 
@@ -98,7 +98,7 @@ const ArrayField: FC<ArrayFieldProps> = ({ name, onOpenDialog, isDisabled, maxLe
 interface InputFieldsProps extends Omit<ArrayFieldProps, 'maxLength'> {}
 
 const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) => {
-  const { users } = useUsersStore();
+  const { members } = useMembersStore();
   const {
     register,
     control,
@@ -138,9 +138,9 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
           name={`${name}.nickname`}
           render={({ field }) => (
             <Autocomplete
-              options={users}
+              options={members}
               getOptionLabel={(option) => option.nickname}
-              value={users.find((user) => user.nickname === field.value) || null}
+              value={members.find((member) => member.nickname === field.value) || null}
               onChange={(_, newValue) => {
                 field.onChange(newValue?.nickname);
               }}

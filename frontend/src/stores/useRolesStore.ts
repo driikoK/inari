@@ -16,7 +16,7 @@ const useRolesStore = create<IState>((set) => ({
 
   getRoles: async () => {
     try {
-      const response = await axios.get(`/users/roles`);
+      const response = await axios.get(`/members/roles`);
       set({ roles: response.data });
     } catch (error) {
       throw error;

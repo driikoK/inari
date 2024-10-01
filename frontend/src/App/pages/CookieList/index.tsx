@@ -9,7 +9,7 @@ import { PageContainer, Title, TitleWrapper } from './styles';
 import useTracksStore from '@/stores/useTracksStore';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useRolesStore from '@/stores/useRolesStore';
-import useUsersStore from '@/stores/useUsersStore';
+import useMembersStore from '@/stores/useMembersStore';
 import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable } from '@/components/CustomTable';
 import { CookiesFilters } from './CookiesFilters';
@@ -36,13 +36,13 @@ const CookieList: FunctionComponent = () => {
   const { tracks, getTracks, deleteTracks, updateTrack } = useTracksStore();
   const { getAnime } = useAnimeStore();
   const { roles, getRoles } = useRolesStore();
-  const { getUsers } = useUsersStore();
+  const { getMembers } = useMembersStore();
 
   useEffect(() => {
     getTracks();
     getAnime();
     getRoles();
-    getUsers();
+    getMembers();
   }, []);
 
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
