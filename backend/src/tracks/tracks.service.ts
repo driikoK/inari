@@ -1,13 +1,14 @@
 import { Model } from 'mongoose';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { UserService } from '@users/users.service';
+import { SettingsService } from '@users/settings.service';
+import { MEMBER_ROLE } from '@users/enums/types.enum';
+import { UpdateTrackData } from './data/update-track.data';
 import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
-import { UserService } from './users.service';
 import { ITrack } from './interfaces/track.interface';
-import { MEMBER_ROLE, MULTIPLIER } from './enums/types.enum';
-import { SettingsService } from './settings.service';
-import { UpdateTrackData } from './data/update-track.data';
+import { MULTIPLIER } from './enums/types.enum';
 
 @Injectable()
 export class TrackService {

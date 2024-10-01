@@ -1,4 +1,4 @@
-import { MEMBER_ROLE } from '../enums/types.enum';
+import { MEMBER_ROLE } from '@users/enums/types.enum';
 
 export interface ITrack extends Document {
   nickname: string;

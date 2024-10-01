@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { MEMBER_ROLE } from '../enums/types.enum';
+import { MEMBER_ROLE } from '@users/enums/types.enum';
 
 export const TracksSchema = new mongoose.Schema({
   nickname: String,
@@ -18,5 +18,5 @@ export const TracksSchema = new mongoose.Schema({
   isOngoing: Boolean,
   isPriority: Boolean,
   isInTime: Boolean,
-  isGuest: Boolean
+  isGuest: Boolean,
 });

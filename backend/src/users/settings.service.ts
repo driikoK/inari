@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-
-import { ICoins, IDub } from './interfaces/coins.interface';
+import { ICoins, IDub } from './interfaces/settings.interface';
 
 @Injectable()
 export class SettingsService {
