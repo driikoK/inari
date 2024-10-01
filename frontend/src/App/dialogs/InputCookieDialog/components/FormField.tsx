@@ -21,7 +21,7 @@ import {
 import { PlusMinusButton } from './PlusMinusButton';
 import { ErrorText, FieldContainer, FlexColumn, Paragraph } from '../styles';
 import theme from '@theme';
-import CreateUserDialog from '@/App/dialogs/CreateUserDialog';
+import CreateUserDialog from '@/App/dialogs/CreateMemberDialog';
 import { MemberType } from '@/types';
 import useMembersStore from '@/stores/useMembersStore';
 

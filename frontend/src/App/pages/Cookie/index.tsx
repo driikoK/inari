@@ -3,7 +3,7 @@ import InputCookieDialog from '@/App/dialogs/InputCookieDialog';
 import { Container, ElementContainer, ElementImage, Title } from './styles';
 import { useNavigate } from 'react-router-dom';
 import PasswordDialog from '@/App/dialogs/PasswordDialog';
-import { CreateAnimeAndUserDialog } from '@/App/dialogs/CreateAnimeAndUserDialog';
+import { CreateAnimeAndMemberDialog } from '@/App/dialogs/CreateAnimeAndMemberDialog';
 
 const Cookie: FunctionComponent = () => {
   const [openCookieDialog, setOpenCookieDialog] = useState(false);
@@ -53,7 +53,7 @@ const Cookie: FunctionComponent = () => {
             <InputCookieDialog onClose={() => setOpenCookieDialog(false)} open={openCookieDialog} />
           )}
           {openAddUsersAndTitlesDialog && (
-            <CreateAnimeAndUserDialog
+            <CreateAnimeAndMemberDialog
               onClose={() => setOpenAddUsersAndTitlesDialog(false)}
               open={openAddUsersAndTitlesDialog}
             />

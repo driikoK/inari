@@ -13,7 +13,7 @@ export interface IDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
 }
 
-export const CreateAnimeAndUserDialog: FC<IDialogProps> = ({ open, onClose }) => {
+export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) => {
   const [nickname, setNickname] = useState<string>('');
   const [titleName, setTitleName] = useState<string>('');
 
