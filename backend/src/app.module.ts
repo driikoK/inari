@@ -10,6 +10,7 @@ import { UserModule } from './users/users.module';
 import { PollsModule } from './polls/polls.module';
 import { TeamAnimesModule } from './team-animes/team-animes.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
+import { TracksModule } from './tracks/tracks.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     UserModule,
     PollsModule,
     TeamAnimesModule,
+    TracksModule,
   ],
 })
 export class AppModule implements NestModule {
