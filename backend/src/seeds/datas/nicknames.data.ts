@@ -1,6 +1,6 @@
-import { UserData } from 'src/users/data/nickname.data';
+import { MemberData } from '@members/data/member.data';
 
-export const nicknames: UserData[] = [
+export const nicknames: MemberData[] = [
   {
     nickname: 'Dixy',
     types: ['sound', 'dub'],

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { MEMBER_ROLE } from '@users/enums/types.enum';
+import { MEMBER_ROLE } from '@members/enums/types.enum';
 
 export class MemberInfo {
   @ApiProperty()

@@ -1,12 +1,12 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { INickname } from './interfaces/nickname.interface';
-import { UserData } from './data/nickname.data';
+import { MemberData } from './data/member.data';
 import { MEMBER_ROLE } from './enums/types.enum';
-import { NicknameFilterData } from './data/filter-nicknames.data';
+import { NicknameFilterData } from './data/filter-members.data';
 
 @Injectable()
-export class UserService {
+export class MembersService {
   constructor(
     @Inject('NICKNAME_MODEL') private readonly nicknameModel: Model<INickname>,
   ) {}
@@ -31,40 +31,40 @@ export class UserService {
     return this.nicknameModel.find(query);
   }
 
-  createUser(user: UserData): Promise<INickname> {
-    return this.nicknameModel.create(user);
+  createMember(member: MemberData): Promise<INickname> {
+    return this.nicknameModel.create(member);
   }
 
-  async updateUser(user: UserData) {
-    await this.nicknameModel.updateOne({ nickname: user.nickname }, user);
+  async updateMember(member: MemberData) {
+    await this.nicknameModel.updateOne({ nickname: member.nickname }, member);
   }
 
-  async findUser(nickname: string) {
-    const user = await this.nicknameModel
+  async findMember(nickname: string) {
+    const member = await this.nicknameModel
       .findOne({
         nickname,
       })
       .exec();
 
-    if (!user) {
+    if (!member) {
       throw new HttpException('User not found', 406);
     }
 
-    return user;
+    return member;
   }
 
-  async findUserById(id: string) {
-    const user = await this.nicknameModel
+  async findMemberById(id: string) {
+    const member = await this.nicknameModel
       .findOne({
         _id: id,
       })
       .exec();
 
-    if (!user) {
+    if (!member) {
       throw new HttpException('User not found', 406);
     }
 
-    return user;
+    return member;
   }
 
   getAllRoles() {

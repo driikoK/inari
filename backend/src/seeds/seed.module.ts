@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SeedCommand } from './seed.command';
-import { UserModule } from 'src/users/users.module';
+import { MembersModule } from '@members/members.module';
 import { PollsModule } from 'src/polls/polls.module';
 
 @Module({
-  imports: [UserModule, PollsModule],
+  imports: [MembersModule, PollsModule],
   providers: [SeedCommand],
 })
 export class SeedModule {}

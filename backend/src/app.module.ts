@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CommandModule } from 'nestjs-command';
 import { SeedModule } from './seeds/seed.module';
-import { UserModule } from './users/users.module';
+import { MembersModule } from './members/members.module';
 import { PollsModule } from './polls/polls.module';
 import { TeamAnimesModule } from './team-animes/team-animes.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
@@ -16,7 +16,7 @@ import { TracksModule } from './tracks/tracks.module';
   imports: [
     CommandModule,
     SeedModule,
-    UserModule,
+    MembersModule,
     PollsModule,
     TeamAnimesModule,
     TracksModule,

@@ -1,9 +1,9 @@
 import { Model } from 'mongoose';
 import { Inject, Injectable } from '@nestjs/common';
 
-import { UserService } from '@users/users.service';
-import { SettingsService } from '@users/settings.service';
-import { MEMBER_ROLE } from '@users/enums/types.enum';
+import { MembersService } from '@members/members.service';
+import { SettingsService } from '@members/settings.service';
+import { MEMBER_ROLE } from '@members/enums/types.enum';
 import { UpdateTrackData } from './data/update-track.data';
 import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
@@ -14,7 +14,7 @@ import { MULTIPLIER } from './enums/types.enum';
 export class TrackService {
   constructor(
     @Inject('TRACK_MODEL') private readonly trackModel: Model<ITrack>,
-    private readonly usersService: UserService,
+    private readonly membersService: MembersService,
     private readonly settingsService: SettingsService,
   ) {}
 
@@ -28,24 +28,24 @@ export class TrackService {
     });
 
     if (track) {
-      const user = await this.usersService.findUser(track.nickname);
+      const member = await this.membersService.findMember(track.nickname);
 
-      const existedSeasonIndex = user.seasons.findIndex(
+      const existedSeasonIndex = member.seasons.findIndex(
         (season) =>
           season.season === track.season && season.year === track.year,
       );
 
-      user.seasons[existedSeasonIndex].coins -= track.coins;
+      member.seasons[existedSeasonIndex].coins -= track.coins;
 
-      if (user) {
+      if (member) {
         const updatedUser = {
-          nickname: user.nickname,
-          coins: Number(user.coins) - Number(track.coins),
-          types: user.types,
-          seasons: user.seasons,
+          nickname: member.nickname,
+          coins: Number(member.coins) - Number(track.coins),
+          types: member.types,
+          seasons: member.seasons,
         };
 
-        await this.usersService.updateUser(updatedUser);
+        await this.membersService.updateMember(updatedUser);
       }
 
       await this.trackModel.deleteOne({
@@ -125,7 +125,9 @@ export class TrackService {
       this.addAdditionalCoinsToTranslator(track, 'typesetter');
 
     for (const member of track.membersInfo) {
-      const user = await this.usersService.findUser(member.nickname);
+      const existedMember = await this.membersService.findMember(
+        member.nickname,
+      );
 
       const memberWithMultipliers = this.getCoinsWithMultipliers(track, member);
 
@@ -135,15 +137,16 @@ export class TrackService {
         year: Number(track.year),
       });
 
-      const existedSeasonIndex = user.seasons.findIndex(
+      const existedSeasonIndex = existedMember.seasons.findIndex(
         (season) =>
           season.season === track.season && season.year === track.year,
       );
 
       if (existedSeasonIndex !== -1) {
-        user.seasons[existedSeasonIndex].coins += memberWithMultipliers.coins;
+        existedMember.seasons[existedSeasonIndex].coins +=
+          memberWithMultipliers.coins;
       } else {
-        user.seasons.push({
+        existedMember.seasons.push({
           season: track.season,
           year: track.year,
           coins: memberWithMultipliers.coins,
@@ -152,14 +155,15 @@ export class TrackService {
 
       const updatedUser = {
         nickname: member.nickname,
-        coins: Number(user.coins) + Number(memberWithMultipliers.coins),
-        types: user.types.includes(member.typeRole)
-          ? user.types
-          : [...user.types, member.typeRole],
-        seasons: user.seasons,
+        coins:
+          Number(existedMember.coins) + Number(memberWithMultipliers.coins),
+        types: existedMember.types.includes(member.typeRole)
+          ? existedMember.types
+          : [...existedMember.types, member.typeRole],
+        seasons: existedMember.seasons,
       };
 
-      await this.usersService.updateUser(updatedUser);
+      await this.membersService.updateMember(updatedUser);
     }
 
     return 'Success';

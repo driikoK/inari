@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 
-export const NicknameSchema = new mongoose.Schema({
+export const MemberSchema = new mongoose.Schema({
   nickname: { type: String, unique: true },
   types: [String],
   coins: Number,

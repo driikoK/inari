@@ -1,11 +1,11 @@
 import { Mongoose } from 'mongoose';
-import { NicknameSchema } from './schemas/nickname.schemas';
+import { MemberSchema } from './schemas/member.schemas';
 
-export const userProviders = [
+export const membersProviders = [
   {
     provide: 'NICKNAME_MODEL',
     useFactory: (mongoose: Mongoose) =>
-      mongoose.model('Nickname', NicknameSchema),
+      mongoose.model('Nickname', MemberSchema),
     inject: ['DATABASE_CONNECTION'],
   },
 ];

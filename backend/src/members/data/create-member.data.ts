@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateUserData {
+export class CreateMemberData {
   @ApiProperty()
   nickname: string;
 

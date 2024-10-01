@@ -1,8 +1,8 @@
 import { Command } from 'nestjs-command';
 import { Injectable } from '@nestjs/common';
 import { nicknames } from './datas/nicknames.data';
-import { UserData } from 'src/users/data/nickname.data';
-import { UserService } from 'src/users/users.service';
+import { MemberData } from '@members/data/member.data';
+import { MembersService } from '@members/members.service';
 import { animeSeries } from './datas/anime.data';
 import { PollsService } from 'src/polls/polls.service';
 import { AnimeData } from 'src/polls/data/anime.data';
@@ -10,7 +10,7 @@ import { AnimeData } from 'src/polls/data/anime.data';
 @Injectable()
 export class SeedCommand {
   constructor(
-    private readonly usersService: UserService,
+    private readonly membersService: MembersService,
     private readonly pollsService: PollsService,
   ) {}
 
@@ -31,8 +31,8 @@ export class SeedCommand {
   })
   async nicknames() {
     for (const nickname of nicknames) {
-      const nicknameTemplate = Object.assign(new UserData(), nickname);
-      await this.usersService.createUser(nicknameTemplate);
+      const nicknameTemplate = Object.assign(new MemberData(), nickname);
+      await this.membersService.createMember(nicknameTemplate);
     }
   }
 

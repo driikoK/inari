@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '@db/database.module';
-import { UserService } from '@users/users.service';
-import { SettingsService } from '@users/settings.service';
-import { userProviders } from '@users/users.provider';
+import { MembersService } from '@members/members.service';
+import { SettingsService } from '@members/settings.service';
+import { membersProviders } from '@members/members.provider';
 import { TracksController } from './tracks.controller';
 import { TrackService } from './tracks.service';
 import { tracksProviders } from './tracks.provider';
@@ -13,10 +13,10 @@ import { tracksProviders } from './tracks.provider';
   controllers: [TracksController],
   providers: [
     TrackService,
-    UserService,
+    MembersService,
     SettingsService,
     ...tracksProviders,
-    ...userProviders,
+    ...membersProviders,
   ],
 })
 export class TracksModule {}
