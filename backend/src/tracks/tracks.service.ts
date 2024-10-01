@@ -19,7 +19,7 @@ export class TrackService {
   ) {}
 
   async getTracks(filter: FilterTrackData) {
-    return this.trackModel.find(filter);
+    return this.trackModel.find(filter).sort({ createdAt: -1 });
   }
 
   async deleteTrack(id: string) {
