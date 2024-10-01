@@ -42,7 +42,7 @@ const useTracksStore = create<IState>((set) => ({
   },
   deleteTracks: async (id: string) => {
     try {
-      await axios.delete(`/track/${id}`);
+      await axios.delete(`/tracks/${id}`);
       set((state) => ({ tracks: state.tracks.filter((item) => item._id !== id) }));
     } catch (error) {
       throw error;
@@ -50,7 +50,7 @@ const useTracksStore = create<IState>((set) => ({
   },
   updateTrack: async (id: string, track: UpdateTrackData) => {
     try {
-      const updatedTrack = await axios.put(`/track/${id}`, {
+      const updatedTrack = await axios.put(`/tracks/${id}`, {
         coins: track.coins,
       });
 
