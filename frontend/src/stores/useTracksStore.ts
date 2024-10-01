@@ -26,7 +26,7 @@ const useTracksStore = create<IState>((set) => ({
 
   getTracks: async (filters) => {
     try {
-      const response = await axios.get(`/users/tracks`, { params: filters });
+      const response = await axios.get(`/tracks`, { params: filters });
       set({ tracks: response.data });
     } catch (error) {
       throw error;
@@ -35,14 +35,14 @@ const useTracksStore = create<IState>((set) => ({
 
   addTracks: async (newTracks: CreateTrackType) => {
     try {
-      await axios.post(`/users/tracks`, newTracks);
+      await axios.post(`/tracks`, newTracks);
     } catch (error) {
       throw error;
     }
   },
   deleteTracks: async (id: string) => {
     try {
-      await axios.delete(`/users/track/${id}`);
+      await axios.delete(`/track/${id}`);
       set((state) => ({ tracks: state.tracks.filter((item) => item._id !== id) }));
     } catch (error) {
       throw error;
@@ -50,7 +50,7 @@ const useTracksStore = create<IState>((set) => ({
   },
   updateTrack: async (id: string, track: UpdateTrackData) => {
     try {
-      const updatedTrack = await axios.put(`/users/track/${id}`, {
+      const updatedTrack = await axios.put(`/track/${id}`, {
         coins: track.coins,
       });
 
