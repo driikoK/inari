@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect } from 'react';
 
-import { Box, Paper } from '@mui/material';
+import { Box } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
@@ -90,9 +90,7 @@ const CookieRating: FunctionComponent = () => {
           justifyContent: 'center',
         }}
       >
-        <Paper sx={{ height: '69vh', width: '100%' }}>
-          <CustomTable columns={columns} rows={rows} hideFooterPagination pageSizeOptions={[100]} />
-        </Paper>
+        <CustomTable columns={columns} rows={rows} hideFooterPagination pageSizeOptions={[100]} />
       </Box>
     </PageContainer>
   );

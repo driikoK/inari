@@ -28,10 +28,12 @@ export const ConfirmTableChangeDialog: FC<DialogProps> = ({
         {!row ? "Натиснувши 'Так' запис видалиться" : `Натиснувши 'Так' значення ${mutation}.`}
       </DialogContent>
       <DialogActions>
-        <Button ref={noButtonRef} onClick={handleNo}>
+        <Button ref={noButtonRef} onClick={handleNo} sx={{ color: 'black' }}>
           Ні
         </Button>
-        <Button onClick={handleYes}>Так</Button>
+        <Button onClick={handleYes} sx={{ color: 'black' }}>
+          Так
+        </Button>
       </DialogActions>
     </Dialog>
   );

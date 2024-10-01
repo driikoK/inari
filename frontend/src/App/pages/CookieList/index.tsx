@@ -1,18 +1,18 @@
 import { FunctionComponent, useCallback, useEffect, useState } from 'react';
-import { GridActionsCellItem, GridColDef, GridRowModel } from '@mui/x-data-grid';
 import toast from 'react-hot-toast';
 
-import { Paper } from '@mui/material';
+import { useTheme } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import { GridActionsCellItem, GridCellParams, GridColDef, GridRowModel } from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
+import { CookiesFilters } from './CookiesFilters';
 import useTracksStore from '@/stores/useTracksStore';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useRolesStore from '@/stores/useRolesStore';
 import useMembersStore from '@/stores/useMembersStore';
 import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable } from '@/components/CustomTable';
-import { CookiesFilters } from './CookiesFilters';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
 import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season.utils';
 
@@ -38,6 +38,8 @@ const CookieList: FunctionComponent = () => {
   const { roles, getRoles } = useRolesStore();
   const { getMembers } = useMembersStore();
 
+  const theme = useTheme();
+
   useEffect(() => {
     getTracks();
     getAnime();
@@ -53,18 +55,17 @@ const CookieList: FunctionComponent = () => {
     {
       field: 'nickname',
       headerName: 'Нікнейм',
-      flex: 0.5,
+      width: 300,
     },
     {
       field: 'nameTitle',
       headerName: 'Назва тайтлу',
-      flex: 1,
+      width: 400,
     },
     {
       field: 'coins',
       headerName: 'Крихти',
       type: 'number',
-      flex: 0.3,
       sortable: false,
       editable: true,
       align: 'left',
@@ -74,14 +75,13 @@ const CookieList: FunctionComponent = () => {
       field: 'currentEpisode',
       headerName: 'Епізод',
       sortable: false,
-      flex: 0.3,
       resizable: false,
     },
     {
       field: 'typeRole',
       headerName: 'Роль',
       sortable: false,
-      flex: 0.5,
+      width: 170,
       resizable: false,
     },
     {
@@ -89,62 +89,71 @@ const CookieList: FunctionComponent = () => {
       headerName: 'Сезон',
       sortable: false,
       resizable: false,
-      flex: 0.4,
+      width: 120,
     },
     {
       field: 'titleType',
       headerName: 'Тип',
       sortable: false,
       resizable: false,
-      flex: 0.4,
+      width: 150,
     },
     {
       field: 'isFast',
       headerName: 'Швидко',
       sortable: false,
       resizable: false,
-      flex: 0.4,
+      cellClassName: (params: GridCellParams<any>) => {
+        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
+      },
     },
     {
       field: 'isOngoing',
       headerName: 'Онґоїнґ',
       sortable: false,
       resizable: false,
-      flex: 0.4,
+      cellClassName: (params: GridCellParams<any>) => {
+        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
+      },
     },
     {
       field: 'isPriority',
       headerName: 'Пріоритет',
       sortable: false,
       resizable: false,
-      flex: 0.4,
+      cellClassName: (params: GridCellParams<any>) => {
+        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
+      },
     },
     {
       field: 'isInTime',
       headerName: 'Вчасно',
       sortable: false,
       resizable: false,
-      flex: 0.4,
+      cellClassName: (params: GridCellParams<any>) => {
+        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
+      },
     },
     {
       field: 'isGuest',
       headerName: 'Гість',
       sortable: false,
       resizable: false,
-      flex: 0.4,
+      cellClassName: (params: GridCellParams<any>) => {
+        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
+      },
     },
     {
       field: 'note',
       headerName: 'Нотатка',
       sortable: false,
-      flex: 0.5,
+      width: 200,
       resizable: false,
     },
     {
       field: 'actions',
       type: 'actions',
       headerName: 'Дії',
-      cellClassName: 'actions',
       getActions: ({ id, row }) => {
         return [
           <GridActionsCellItem
@@ -241,23 +250,21 @@ const CookieList: FunctionComponent = () => {
 
       <CookiesFilters />
 
-      <Paper sx={{ height: '69vh', width: '100%' }}>
-        <ConfirmTableChangeDialog
-          computeMutation={computeMutation}
-          handleYes={handleDeleteYes}
-          handleNo={handleDeleteNo}
-          open={openDeleteDialog}
-        />
-        <ConfirmTableChangeDialog
-          computeMutation={computeMutation}
-          handleYes={handleUpdateYes}
-          handleNo={handleUpdateNo}
-          open={!!promiseArguments}
-          row={{ oldRow: promiseArguments?.oldRow, newRow: promiseArguments?.newRow }}
-        />
+      <CustomTable rows={rows} columns={columns} processRowUpdate={processRowUpdate} />
 
-        <CustomTable rows={rows} columns={columns} processRowUpdate={processRowUpdate} />
-      </Paper>
+      <ConfirmTableChangeDialog
+        computeMutation={computeMutation}
+        handleYes={handleDeleteYes}
+        handleNo={handleDeleteNo}
+        open={openDeleteDialog}
+      />
+      <ConfirmTableChangeDialog
+        computeMutation={computeMutation}
+        handleYes={handleUpdateYes}
+        handleNo={handleUpdateNo}
+        open={!!promiseArguments}
+        row={{ oldRow: promiseArguments?.oldRow, newRow: promiseArguments?.newRow }}
+      />
     </PageContainer>
   );
 };
