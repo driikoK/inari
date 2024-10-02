@@ -14,6 +14,7 @@ import useMembersStore from '@/stores/useMembersStore';
 import useCoinsStore from '@/stores/useCoinsStore';
 import useTracksStore from '@/stores/useTracksStore';
 import { CoinsType, ANIME_TYPE } from '@/types';
+import { CoinsCalculator } from './CoinsCalculator';
 
 interface CreateTrackFormProps {
   titleName: string;
@@ -190,7 +191,6 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
           <FormField name={`${startNameForMemberField}.sound`} label="Звукач" isDisabled />
           <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
           <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
-
           <FormField name={`${startNameForMemberField}.fixer`} label="Фіксер" isDisabled />
 
           <div>
@@ -240,6 +240,8 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
               ? `Доступно ${coins.dub.double} крихт`
               : `Доступно ${coins.dub.multi} крихт`}
           </SubParagraph>
+
+          <CoinsCalculator coinsForDubs={watchDubs <= 2 ? coins.dub.double : coins.dub.multi} />
           <FormField
             name={`${startNameForMemberField}.dubs`}
             label="Дабери"

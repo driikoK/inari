@@ -176,7 +176,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
           {watchAnimeType === ANIME_TYPE.SHORT_FILM && (
             <>
-              <Title>Тривалість:</Title>
+              <Title>Тривалість (хв):</Title>
 
               <Controller
                 control={control}
