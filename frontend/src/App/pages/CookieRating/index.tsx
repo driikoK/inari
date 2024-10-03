@@ -4,10 +4,10 @@ import { Box } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
+import { RatingFilters } from './RatingFilters';
 import useRolesStore from '@/stores/useRolesStore';
 import useMembersStore from '@/stores/useMembersStore';
 import { CustomTable } from '@/components/CustomTable';
-import { RatingFilters } from './RatingFilters';
 import { convertSeasonEngToUkr } from '@/utils/season.utils';
 
 const CookieRating: FunctionComponent = () => {

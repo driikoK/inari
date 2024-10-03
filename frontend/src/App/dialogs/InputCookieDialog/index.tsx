@@ -1,14 +1,15 @@
 import { FunctionComponent, useEffect, useState } from 'react';
+
 import { IconButton, type DialogProps } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 
 import { DialogContainer, DialogWrapper } from './styles';
 import { ChooseAnimeFormValues } from './types';
+import { CreateTrackForm } from './components/CreateTrackForm';
+import { ChooseAnimeForm } from './components/ChooseAnimeForm';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useCoinsStore from '@/stores/useCoinsStore';
 import { ANIME_TYPE } from '@/types';
-import { CreateTrackForm } from './components/CreateTrackForm';
-import { ChooseAnimeForm } from './components/ChooseAnimeForm';
 
 export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;

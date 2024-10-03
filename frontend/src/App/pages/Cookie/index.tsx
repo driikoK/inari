@@ -1,7 +1,8 @@
 import { FunctionComponent, useState } from 'react';
-import InputCookieDialog from '@/App/dialogs/InputCookieDialog';
-import { Container, ElementContainer, ElementImage, Title } from './styles';
 import { useNavigate } from 'react-router-dom';
+
+import { Container, ElementContainer, ElementImage, Title } from './styles';
+import InputCookieDialog from '@/App/dialogs/InputCookieDialog';
 import PasswordDialog from '@/App/dialogs/PasswordDialog';
 import { CreateAnimeAndMemberDialog } from '@/App/dialogs/CreateAnimeAndMemberDialog';
 

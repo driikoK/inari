@@ -1,4 +1,6 @@
 import { FunctionComponent, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+
 import {
   FormControl,
   InputLabel,
@@ -9,7 +11,6 @@ import {
   TextField,
   type DialogProps,
 } from '@mui/material';
-import toast from 'react-hot-toast';
 
 import { DialogContainer, InputWrapper, Title, TitleWrapper } from './styles';
 import Button from '@/components/Button';

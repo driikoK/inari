@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 
+import { SelectWrapper } from './styles';
 import SelectField from '@/components/SelectField';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useRolesStore from '@/stores/useRolesStore';
 import useMembersStore from '@/stores/useMembersStore';
 import useTracksStore from '@/stores/useTracksStore';
 import { seasonOptions, yearOptions } from '@/consts';
-import { SelectWrapper } from './styles';
 
 export const CookiesFilters = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>();
