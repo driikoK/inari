@@ -2,7 +2,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { CreateMemberData } from './data/create-member.data';
-import { NicknameFilterData } from './data/filter-members.data';
+import { MemberFilterData } from './data/filter-members.data';
 
 @ApiTags('Members')
 @Controller('members')
@@ -10,7 +10,7 @@ export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 
   @Get()
-  async getMembers(@Query() filter: NicknameFilterData) {
+  async getMembers(@Query() filter: MemberFilterData) {
     return this.membersService.findAll(filter);
   }
 

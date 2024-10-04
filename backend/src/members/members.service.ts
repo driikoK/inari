@@ -1,17 +1,17 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { INickname } from './interfaces/nickname.interface';
+import { IMember } from './interfaces/nickname.interface';
 import { MemberData } from './data/member.data';
 import { MEMBER_ROLE } from './enums/types.enum';
-import { NicknameFilterData } from './data/filter-members.data';
+import { MemberFilterData } from './data/filter-members.data';
 
 @Injectable()
 export class MembersService {
   constructor(
-    @Inject('NICKNAME_MODEL') private readonly nicknameModel: Model<INickname>,
+    @Inject('MEMBER_MODEL') private readonly memberModel: Model<IMember>,
   ) {}
 
-  async findAll(filter: NicknameFilterData): Promise<INickname[]> {
+  async findAll(filter: MemberFilterData): Promise<IMember[]> {
     const query: any = {};
 
     if (filter.id) {
@@ -28,19 +28,19 @@ export class MembersService {
       };
     }
 
-    return this.nicknameModel.find(query);
+    return this.memberModel.find(query);
   }
 
-  createMember(member: MemberData): Promise<INickname> {
-    return this.nicknameModel.create(member);
+  createMember(member: MemberData): Promise<IMember> {
+    return this.memberModel.create(member);
   }
 
   async updateMember(member: MemberData) {
-    await this.nicknameModel.updateOne({ nickname: member.nickname }, member);
+    await this.memberModel.updateOne({ nickname: member.nickname }, member);
   }
 
   async findMember(nickname: string) {
-    const member = await this.nicknameModel
+    const member = await this.memberModel
       .findOne({
         nickname,
       })
@@ -54,7 +54,7 @@ export class MembersService {
   }
 
   async findMemberById(id: string) {
-    const member = await this.nicknameModel
+    const member = await this.memberModel
       .findOne({
         _id: id,
       })

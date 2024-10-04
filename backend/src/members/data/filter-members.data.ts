@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { MEMBER_ROLE } from '../enums/types.enum';
 
-export class NicknameFilterData {
+export class MemberFilterData {
   @ApiPropertyOptional({ nullable: true })
   id: string;
 
