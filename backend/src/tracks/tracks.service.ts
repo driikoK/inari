@@ -38,14 +38,14 @@ export class TrackService {
       member.seasons[existedSeasonIndex].coins -= track.coins;
 
       if (member) {
-        const updatedUser = {
+        const updatedMember = {
           nickname: member.nickname,
           coins: Number(member.coins) - Number(track.coins),
           types: member.types,
           seasons: member.seasons,
         };
 
-        await this.membersService.updateMember(updatedUser);
+        await this.membersService.updateMember(updatedMember);
       }
 
       await this.trackModel.deleteOne({
@@ -153,7 +153,7 @@ export class TrackService {
         });
       }
 
-      const updatedUser = {
+      const updatedMember = {
         nickname: member.nickname,
         coins:
           Number(existedMember.coins) + Number(memberWithMultipliers.coins),
@@ -163,7 +163,7 @@ export class TrackService {
         seasons: existedMember.seasons,
       };
 
-      await this.membersService.updateMember(updatedUser);
+      await this.membersService.updateMember(updatedMember);
     }
 
     return 'Success';
