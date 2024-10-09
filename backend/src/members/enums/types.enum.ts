@@ -9,3 +9,10 @@ export enum MEMBER_ROLE {
   RELEASER = 'releasers',
   TYPESETTER = 'typesetter',
 }
+
+export enum SEASON {
+  WINTER = 'winter',
+  SPRING = 'spring',
+  SUMMER = 'summer',
+  FALL = 'fall',
+}

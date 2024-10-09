@@ -1,16 +1,32 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { MEMBER_ROLE } from '../enums/types.enum';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { MEMBER_ROLE, SEASON } from '../enums/types.enum';
 
 export class MemberFilterData {
   @ApiPropertyOptional({ nullable: true })
-  id: string;
+  @IsOptional()
+  @IsString()
+  id?: string;
+
+  @ApiPropertyOptional({ nullable: true, enum: MEMBER_ROLE, enumName: 'Role' })
+  @IsOptional()
+  @IsEnum(MEMBER_ROLE, {
+    message: 'Invalid role',
+  })
+  role?: MEMBER_ROLE;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    enum: SEASON,
+    enumName: 'Season',
+  })
+  @IsOptional()
+  @IsEnum(SEASON, {
+    message: 'Invalid season',
+  })
+  season?: SEASON;
 
   @ApiPropertyOptional({ nullable: true })
-  role: MEMBER_ROLE;
-
-  @ApiPropertyOptional({ nullable: true })
-  season: string;
-
-  @ApiPropertyOptional({ nullable: true })
-  year: number;
+  @IsOptional()
+  year?: number;
 }

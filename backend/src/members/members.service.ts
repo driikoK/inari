@@ -32,6 +32,8 @@ export class MembersService {
   }
 
   createMember(member: MemberData): Promise<IMember> {
+    if (member.coins === undefined) member.coins = 0;
+
     return this.memberModel.create(member);
   }
 
