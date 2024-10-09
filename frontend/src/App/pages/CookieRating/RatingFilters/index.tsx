@@ -13,7 +13,7 @@ export const RatingFilters = () => {
   const [selectedUser, setSelectedUser] = useState<string>();
 
   const { roles } = useRolesStore();
-  const { getMembers, membersDictionary } = useMembersStore();
+  const { getMembers, membersDictionary, appliedFilters } = useMembersStore();
 
   const seasonsOfTheYear = seasonOptions.reduce((acc, season) => {
     yearOptions.forEach((year) => {
@@ -33,6 +33,12 @@ export const RatingFilters = () => {
   }, [selectedRole, selectedUser, selectedSeason, selectedYear]);
 
   const handleSeasonChange = (season: string = '') => {
+    if (!season) {
+      setSelectedSeason(undefined);
+      setSelectedYear(undefined);
+      return;
+    }
+
     const [seasonName, seasonYear] = season.split(' ');
 
     setSelectedSeason(seasonName || '');
