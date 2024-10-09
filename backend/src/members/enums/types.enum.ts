@@ -16,3 +16,9 @@ export enum SEASON {
   SUMMER = 'summer',
   FALL = 'fall',
 }
+
+export enum ANIME_TYPE {
+  SERIES = 'series',
+  FILM = 'film',
+  SHORT_FILM = 'shortFilm',
+}

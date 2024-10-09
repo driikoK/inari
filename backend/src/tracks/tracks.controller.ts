@@ -27,6 +27,8 @@ export class TracksController {
   @Post()
   @ApiBody({ type: CreateTrackData })
   async addNewTrack(@Body() track: CreateTrackData) {
+    console.log(track);
+
     return this.trackService.createTrack(track);
   }
 

@@ -1,12 +1,11 @@
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationError } from 'class-validator';
 
 import { AppModule } from './app.module';
 import configuration from './config';
@@ -36,17 +35,7 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document);
 
   app.enableCors(corsOptions);
-  app.useGlobalPipes(
-    new ValidationPipe({
-      exceptionFactory: (validationErrors: ValidationError[] = []) => {
-        const errors = validationErrors.reduce((acc, error) => {
-          acc[error.property] = Object.values(error.constraints)[0];
-          return acc;
-        }, {});
-        return new BadRequestException(errors);
-      },
-    }),
-  );
+  app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(8000);
 }

@@ -114,6 +114,7 @@ export class TrackService {
     const subIndex = track.membersInfo.findIndex(
       (member) => member.typeRole === MEMBER_ROLE.SUB,
     );
+
     track.membersInfo[subIndex].coins +=
       this.settingsService.getCoins()[track.titleType][role];
   }
