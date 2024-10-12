@@ -5,18 +5,22 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { PollsService } from './polls.service';
 import { IAnime } from './interfaces/anime.interface';
 import { ApiTags } from '@nestjs/swagger';
 import { AnimeData } from './data/anime.data';
+import { AuthGuard } from '@auth/auth.guard';
 
 @ApiTags('Polls')
 @Controller('polls')
 export class PollsController {
   constructor(private readonly pollsService: PollsService) {}
 
-  @Get('/ongoings') async getOngoings(): Promise<IAnime[]> {
+  @Get('/ongoings')
+  @UseGuards(AuthGuard)
+  async getOngoings(): Promise<IAnime[]> {
     try {
       const anime = await this.pollsService.findAnimeByIsOngoing(true);
       return anime;
@@ -26,7 +30,9 @@ export class PollsController {
     }
   }
 
-  @Get('/olds') async getOlds(): Promise<IAnime[]> {
+  @Get('/olds')
+  @UseGuards(AuthGuard)
+  async getOlds(): Promise<IAnime[]> {
     try {
       const anime = await this.pollsService.findAnimeByIsOngoing(false);
       return anime;
@@ -36,7 +42,9 @@ export class PollsController {
     }
   }
 
-  @Get('/result') async findResult(): Promise<any> {
+  @Get('/result')
+  @UseGuards(AuthGuard)
+  async findResult(): Promise<any> {
     try {
       const anime = await this.pollsService.getVoteResult();
       return anime;
@@ -47,6 +55,7 @@ export class PollsController {
   }
 
   @Post('/vote')
+  @UseGuards(AuthGuard)
   async vote(
     @Body() body: { userName: string; animeIds: number[] },
   ): Promise<boolean> {
@@ -60,6 +69,7 @@ export class PollsController {
   }
 
   @Post('/clear-poll')
+  @UseGuards(AuthGuard)
   async claerPoll(): Promise<boolean> {
     try {
       await this.pollsService.clearAllAnimesAndVotes();
@@ -71,6 +81,7 @@ export class PollsController {
   }
 
   @Post('/set-anime')
+  @UseGuards(AuthGuard)
   async setAnime(@Body('animeList') animeList: AnimeData[]): Promise<boolean> {
     try {
       for (const anime of animeList) {
