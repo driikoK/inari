@@ -21,34 +21,34 @@ import { AuthGuard } from '@auth/auth.guard';
 export class TracksController {
   constructor(private readonly trackService: TrackService) {}
 
-  @UseGuards(AuthGuard)
   @Get()
+  @UseGuards(AuthGuard)
   async tracks(@Query() filter: FilterTrackData) {
     return this.trackService.getTracks(filter);
   }
 
-  @UseGuards(AuthGuard)
   @Post()
+  @UseGuards(AuthGuard)
   @ApiBody({ type: CreateTrackData })
   async addNewTrack(@Body() track: CreateTrackData) {
     return this.trackService.createTrack(track);
   }
 
-  @UseGuards(AuthGuard)
   @Put(':id')
+  @UseGuards(AuthGuard)
   @ApiBody({ type: UpdateTrackData })
   updateTrack(@Param('id') id: string, @Body() track: UpdateTrackData) {
     return this.trackService.updateTrack(id, track);
   }
 
-  @UseGuards(AuthGuard)
   @Delete(':id')
+  @UseGuards(AuthGuard)
   async deleteTrack(@Param('id') id: string) {
     return this.trackService.deleteTrack(id);
   }
 
-  @UseGuards(AuthGuard)
   @Get('/seasons')
+  @UseGuards(AuthGuard)
   async tracksSeasons() {
     return this.trackService.getTrackSeasons();
   }
