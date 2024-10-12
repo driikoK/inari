@@ -11,6 +11,8 @@ import { PollsModule } from './polls/polls.module';
 import { TeamAnimesModule } from './team-animes/team-animes.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { TracksModule } from './tracks/tracks.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { TracksModule } from './tracks/tracks.module';
     PollsModule,
     TeamAnimesModule,
     TracksModule,
+    AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule implements NestModule {
