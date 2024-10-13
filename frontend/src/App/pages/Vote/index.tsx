@@ -12,6 +12,7 @@ import {
 import { TAnime } from '../../../types';
 import InfoDialog from '../../dialogs/InfoDialog';
 import InputDialog from '../../dialogs/InputDialog';
+import axios from '@/api';
 
 const Vote: FunctionComponent = () => {
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
@@ -37,13 +38,11 @@ const Vote: FunctionComponent = () => {
       setLoadingData(true);
       setOpenIputDialog(true);
       try {
-        const ongoingsResponse = await fetch(`${process.env.API_URL}/polls/ongoings`);
-        const ongoings = await ongoingsResponse.json();
-        setOngoinsData(ongoings);
+        const response = await axios.get(`/polls/ongoings`);
+        setOngoinsData(response.data);
 
-        const oldsResponse = await fetch(`${process.env.API_URL}/polls/olds`);
-        const olds = await oldsResponse.json();
-        setOldsData(olds);
+        const oldsResponse = await axios.get(`/polls/olds`);
+        setOldsData(oldsResponse.data);
       } catch (error) {
         console.error('Error fetching data:', error);
         setOpenInfoDialog(true);
