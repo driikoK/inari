@@ -10,6 +10,6 @@ export class SignUpData {
   @ApiProperty()
   @IsString()
   @MinLength(3)
-  // @IsStrongPassword()
+  @IsStrongPassword()
   password: string;
 }
