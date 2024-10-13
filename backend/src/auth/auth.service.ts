@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
@@ -18,7 +18,7 @@ export class AuthService {
     const user = await this.usersService.findOne(username);
 
     if (user) {
-      throw new UnauthorizedException('Такий нікнейм вже існує');
+      throw new HttpException('Такий нікнейм вже існує', HttpStatus.CONFLICT);
     }
 
     this.usersService.create(username, password);
@@ -32,7 +32,7 @@ export class AuthService {
     const user = await this.usersService.findOne(username);
 
     if (!user) {
-      throw new UnauthorizedException('Такого юзера не існує');
+      throw new HttpException('Такого юзера не існує', HttpStatus.BAD_REQUEST);
     }
 
     return bcrypt.compare(password, user.password).then(async (result) => {
@@ -41,7 +41,7 @@ export class AuthService {
           accessToken: await this.jwtService.signAsync({ username, password }),
         };
       } else {
-        throw new UnauthorizedException('Невірний пароль');
+        throw new HttpException('Невірний пароль', HttpStatus.BAD_REQUEST);
       }
     });
   }
