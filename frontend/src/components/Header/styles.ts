@@ -1,5 +1,5 @@
-import styled from "styled-components";
-import Button from "../Button";
+import styled from 'styled-components';
+import Button from '../Button';
 
 export const HeaderContainer = styled.div`
   display: flex;
@@ -7,8 +7,8 @@ export const HeaderContainer = styled.div`
   background-color: ${({ theme }) => theme.colors.title};
   ${({ theme }) =>
     theme.mq({
-      padding: ["16px", "16px", "16px 80px", "16px 80px"],
-  })};
+      padding: ['16px', '16px', '16px 80px', '16px 80px'],
+    })};
   align-items: center;
   justify-content: space-between;
 `;
@@ -44,13 +44,8 @@ export const Logo = styled.div`
 `;
 
 export const NavButton = styled(Button)`
-  &&{ 
+  && {
     color: white;
     font-size: 16px;
-
-    &::before{
-      content: "▾";
-      margin-right: 5px;
-    }
   }
 `;

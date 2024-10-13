@@ -9,6 +9,7 @@ const Cookie = lazy(() => import('./pages/Cookie'));
 const Home = lazy(() => import('./pages/Home'));
 const CookieRating = lazy(() => import('./pages/CookieRating'));
 const CookieList = lazy(() => import('./pages/CookieList'));
+const Login = lazy(() => import('./pages/Login'));
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
       {
         path: 'home',
         element: <Home />,
+      },
+      {
+        path: 'login',
+        element: <Login />,
       },
       {
         path: 'vote',
@@ -38,6 +43,10 @@ const router = createBrowserRouter([
       {
         path: 'cookie/list',
         element: <CookieList />,
+      },
+      {
+        path: '*',
+        element: <Home />,
       },
     ],
   },
