@@ -92,9 +92,6 @@ export class TrackService {
 
     let additionalCoins = 0;
 
-    if (multipliers.isFast) {
-      additionalCoins += member.coins * MULTIPLIER.FAST;
-    }
     if (multipliers.isOngoing) {
       additionalCoins += member.coins * MULTIPLIER.ONGOING;
     }

@@ -30,7 +30,6 @@ export interface TrackType {
   typeRole: string;
   year: number;
   titleType: string;
-  isFast: boolean;
   isOngoing: boolean;
   isPriority: boolean;
   isInTime: boolean;

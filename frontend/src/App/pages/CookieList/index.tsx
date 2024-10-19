@@ -27,12 +27,11 @@ function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
 }
 
 type RowType = {
-  isFast: string;
   isOngoing: string;
   isPriority: string;
   isInTime: string;
   isGuest: string;
-} & Omit<TrackType, 'isFast' | 'isOngoing' | 'isPriority' | 'isInTime' | 'isGuest'>;
+} & Omit<TrackType, 'isOngoing' | 'isPriority' | 'isInTime' | 'isGuest'>;
 
 const CookieList: FunctionComponent = () => {
   const { tracks, getTracks, deleteTracks, updateTrack } = useTracksStore();
@@ -100,15 +99,6 @@ const CookieList: FunctionComponent = () => {
       sortable: false,
       resizable: false,
       width: 150,
-    },
-    {
-      field: 'isFast',
-      headerName: 'Швидко',
-      sortable: false,
-      resizable: false,
-      cellClassName: (params: GridCellParams<any>) => {
-        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
-      },
     },
     {
       field: 'isOngoing',
@@ -182,7 +172,6 @@ const CookieList: FunctionComponent = () => {
       note: track.note || '-',
       season: `${convertSeasonEngToUkr(track.season)} ${track.year}`,
       titleType: convertAnimeTypeEngToUkr(track.titleType as ANIME_TYPE),
-      isFast: track.isFast ? 'Так' : 'Ні',
       isInTime: track.isInTime ? 'Так' : 'Ні',
       isOngoing: track.isOngoing ? 'Так' : 'Ні',
       isPriority: track.isPriority ? 'Так' : 'Ні',

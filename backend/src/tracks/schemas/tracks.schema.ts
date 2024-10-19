@@ -15,7 +15,6 @@ export const TracksSchema = new mongoose.Schema(
       enum: MEMBER_ROLE,
     },
     coins: Number,
-    isFast: Boolean,
     isOngoing: Boolean,
     isPriority: Boolean,
     isInTime: Boolean,

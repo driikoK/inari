@@ -1,5 +1,4 @@
 interface Multipliers {
-  isFast: boolean;
   isOngoing: boolean;
   isPriority: boolean;
   isInTime: boolean;

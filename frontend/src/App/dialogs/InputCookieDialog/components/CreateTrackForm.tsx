@@ -56,7 +56,6 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   }, []);
 
   const isOnlyOneEpisode = animeType === ANIME_TYPE.SHORT_FILM || animeType === ANIME_TYPE.FILM;
-  const minEpisodeForSeries = animeType === ANIME_TYPE.SERIES && Number(episode) < 3;
 
   const defaultValues: CreateTrackFormValues = useMemo(() => {
     return {
@@ -156,9 +155,9 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
       await addTracks(payload);
 
       onClose();
-      toast.success('Успішно');
+      toast.success('Успішно додано');
     } catch (e) {
-      toast.error('Помилка');
+      toast.error('Виникла помилка');
     }
   };
 
@@ -264,11 +263,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
                 name="isLastEpisode"
                 control={control}
                 render={({ field: { value, ...field } }) => (
-                  <Checkbox
-                    {...field}
-                    checked={!!value}
-                    disabled={isOnlyOneEpisode || minEpisodeForSeries}
-                  />
+                  <Checkbox {...field} checked={!!value} disabled={isOnlyOneEpisode} />
                 )}
               />
             }
@@ -293,14 +288,9 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
           <Box>
             <CheckboxWrapper>
-              <Checkbox {...register('isFast')} />
-              <SubParagraph>Зроблено швидко</SubParagraph>
-
               <Checkbox {...register('isOngoing')} />
               <SubParagraph>Онґоїнґ</SubParagraph>
-            </CheckboxWrapper>
 
-            <CheckboxWrapper>
               <Checkbox {...register('isPriority')} />
               <SubParagraph>Пріоритет</SubParagraph>
 

@@ -48,11 +48,6 @@ export class CreateTrackData {
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
-  isFast?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
   isOngoing?: boolean;
 
   @ApiPropertyOptional()
