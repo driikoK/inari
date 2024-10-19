@@ -50,12 +50,12 @@ const Login: FC = () => {
     try {
       if (isSignUp) {
         await signUp(nickname, password);
+        setIsSignUp(false);
         toast.success('Реєстрація пройшла успішно!');
       } else {
         await login(nickname, password);
+        navigate('/cookie');
       }
-
-      navigate('/cookie');
     } catch (e) {}
   };
 

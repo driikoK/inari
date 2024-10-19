@@ -10,7 +10,7 @@ import Close from '@mui/icons-material/Close';
 import { StyledInput, StyledInputLabel, StyledSelect } from './styles';
 
 interface SelectFieldProps<T> {
-  label: string;
+  label?: string;
   value: T | undefined;
   onChange: (value: T | undefined) => void;
   options: { value: T; label: string }[];
@@ -18,7 +18,7 @@ interface SelectFieldProps<T> {
 }
 
 function SelectField<T extends string>({
-  label,
+  label = '',
   value,
   onChange,
   options,

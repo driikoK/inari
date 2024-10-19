@@ -9,11 +9,16 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { HeaderContainer, Logo, LogoWrapper, NavButton, NavWrapper, Paragraph } from './styles';
 import theme from '@theme';
 import useAuthStore from '@/stores/useAuthStore';
+import { usePermissions } from '@/App/hooks/usePermissions';
+import { SUBJECTS } from '@/context/casl';
 
 const Header: FunctionComponent = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [open, setOpen] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { hasAccess } = usePermissions();
+
+  const isAdmin = hasAccess(SUBJECTS.PERMISSION_EDIT);
 
   const { isLoggedIn, logout } = useAuthStore();
 
@@ -54,7 +59,11 @@ const Header: FunctionComponent = () => {
           {isLoggedIn ? (
             <>
               <NavButton onClick={() => handleLink('/cookie')}>Крихти</NavButton>
-              <NavButton onClick={() => handleLink('/vote')}>Голосування</NavButton>
+              {/* <NavButton onClick={() => handleLink('/vote')}>Голосування</NavButton> */}
+              {isAdmin && (
+                <NavButton onClick={() => handleLink('/settings')}>Налаштування</NavButton>
+              )}
+
               <NavButton onClick={handleLogout}>
                 Вийти <LogoutIcon sx={{ ml: 1 }} />
               </NavButton>
@@ -74,7 +83,11 @@ const Header: FunctionComponent = () => {
               </IconButton>
               <Menu anchorEl={anchorEl} open={open} onClose={handleCloseMenu}>
                 <MenuItem onClick={() => handleLink('/cookie')}>Крихти</MenuItem>
-                <MenuItem onClick={() => handleLink('/vote')}>Голосування</MenuItem>
+                {/* <MenuItem onClick={() => handleLink('/vote')}>Голосування</MenuItem> */}
+                {isAdmin && (
+                  <MenuItem onClick={() => handleLink('/settings')}>Налаштування</MenuItem>
+                )}
+
                 <MenuItem onClick={handleLogout}>
                   Вийти <LogoutIcon sx={{ ml: 1 }} />
                 </MenuItem>

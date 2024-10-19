@@ -15,6 +15,8 @@ import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable } from '@/components/CustomTable';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
 import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season.utils';
+import { usePermissions } from '@/App/hooks/usePermissions';
+import { SUBJECTS } from '@/context/casl';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {
@@ -37,6 +39,7 @@ const CookieList: FunctionComponent = () => {
   const { getAnime } = useAnimeStore();
   const { roles, getRoles } = useRolesStore();
   const { getMembers } = useMembersStore();
+  const { hasAccess } = usePermissions();
 
   const theme = useTheme();
 
@@ -67,7 +70,7 @@ const CookieList: FunctionComponent = () => {
       headerName: 'Крихти',
       type: 'number',
       sortable: false,
-      editable: true,
+      editable: hasAccess(SUBJECTS.COOKIES_LIST_UPDATE) ? true : false,
       align: 'left',
       headerAlign: 'left',
     },
@@ -150,21 +153,25 @@ const CookieList: FunctionComponent = () => {
       width: 200,
       resizable: false,
     },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Дії',
-      getActions: ({ id, row }) => {
-        return [
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={() => handleDeleteClick(row)}
-            color="inherit"
-          />,
-        ];
-      },
-    },
+    ...(hasAccess(SUBJECTS.COOKIES_LIST_DELETE)
+      ? [
+          {
+            field: 'actions',
+            type: 'actions',
+            headerName: 'Дії',
+            getActions: ({ id, row }: { id: string; row: RowType }) => {
+              return [
+                <GridActionsCellItem
+                  icon={<DeleteIcon />}
+                  label="Delete"
+                  onClick={() => handleDeleteClick(row)}
+                  color="inherit"
+                />,
+              ];
+            },
+          },
+        ]
+      : ([] as any)),
   ];
 
   const rows: RowType[] = tracks.map((track) => {

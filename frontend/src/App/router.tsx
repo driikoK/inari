@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { RouteObject, useRoutes } from 'react-router-dom';
 
 import Layout from './Layout';
 
@@ -10,8 +10,9 @@ const Home = lazy(() => import('./pages/Home'));
 const CookieRating = lazy(() => import('./pages/CookieRating'));
 const CookieList = lazy(() => import('./pages/CookieList'));
 const Login = lazy(() => import('./pages/Login'));
+const Settings = lazy(() => import('./pages/Settings'));
 
-const router = createBrowserRouter([
+const routes: RouteObject[] = [
   {
     path: '/',
     element: <Layout />,
@@ -45,11 +46,17 @@ const router = createBrowserRouter([
         element: <CookieList />,
       },
       {
+        path: 'settings',
+        element: <Settings />,
+      },
+      {
         path: '*',
         element: <Home />,
       },
     ],
   },
-]);
+];
 
-export default router;
+export default function Router() {
+  return useRoutes(routes);
+}
