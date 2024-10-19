@@ -90,7 +90,7 @@ const CookieRating: FunctionComponent = () => {
           justifyContent: 'center',
         }}
       >
-        <CustomTable columns={columns} rows={rows} hideFooterPagination pageSizeOptions={[100]} />
+        <CustomTable columns={columns} rows={rows} />
       </Box>
     </PageContainer>
   );
