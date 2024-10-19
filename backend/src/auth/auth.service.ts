@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { UsersService } from '../users/users.service';
+import { ROLE } from 'src/users/enums';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,12 @@ export class AuthService {
       throw new HttpException('Такий нікнейм вже існує', HttpStatus.CONFLICT);
     }
 
-    this.usersService.create(username, password);
+    // ** Root will be the first user with admin role to give roles other users
+    if (username === 'root') {
+      this.usersService.create(username, password, ROLE.ADMIN);
+    } else {
+      this.usersService.create(username, password, ROLE.MEMBER);
+    }
 
     return {
       accessToken: await this.jwtService.signAsync({ username, password }),
