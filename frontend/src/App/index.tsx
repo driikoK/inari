@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 
@@ -9,10 +9,12 @@ import muiTheme from '../mui-theme';
 import theme from '../theme.ts';
 import useAuthStore from '@/stores/useAuthStore';
 import AbilityContext, { SUBJECTS } from '@/context/casl';
+import FallbackComponent from '@/components/Fallback/index.tsx';
 
-function App() {
-  const { isLoggedIn, getCurrentUser } = useAuthStore();
+function RequireAuth({ children }: PropsWithChildren) {
   const location = useLocation();
+  const { isLoggedIn, getCurrentUser, user } = useAuthStore();
+
   const pathname = location.pathname;
   const isPathForUnloggedUser = pathname === '/login' || pathname === '/home';
 
@@ -20,6 +22,16 @@ function App() {
     window.location.replace('/login');
   }
 
+  useEffect(() => {
+    if (!isPathForUnloggedUser) getCurrentUser();
+  }, [pathname]);
+
+  if (!user && !isPathForUnloggedUser) return <FallbackComponent />;
+
+  return children;
+}
+
+function App() {
   const [permissions, setPermissions] = useState<SUBJECTS[]>([]);
   const [permissionLoaded, setPermissionLoaded] = useState<boolean>(false);
 
@@ -33,15 +45,13 @@ function App() {
     [permissionLoaded, permissions]
   );
 
-  useEffect(() => {
-    if (!isPathForUnloggedUser) getCurrentUser();
-  }, [pathname]);
-
   return (
     <AbilityContext.Provider value={permissionsContextValue}>
       <MuiThemeProvider theme={muiTheme}>
         <ThemeProvider theme={theme}>
-          <Router />
+          <RequireAuth>
+            <Router />
+          </RequireAuth>
         </ThemeProvider>
       </MuiThemeProvider>
     </AbilityContext.Provider>

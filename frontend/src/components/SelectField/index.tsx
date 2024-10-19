@@ -51,6 +51,13 @@ function SelectField<T extends string>({
             </InputAdornment>
           )
         }
+        MenuProps={{
+          PaperProps: {
+            style: {
+              maxHeight: '50%',
+            },
+          },
+        }}
       >
         {options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
