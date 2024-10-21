@@ -48,7 +48,7 @@ const useCoinsStore = create<IState>((set) => ({
 
   getCoins: async () => {
     try {
-      const response = await axios.get(`/settings/coins`);
+      const response = await axios.get(`/dictionaries/coins`);
       set({ coinsTypes: response.data });
     } catch (error: unknown) {
       throw error;

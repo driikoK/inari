@@ -20,7 +20,8 @@
     "paths": {
       "@db/*": ["src/database/*"],
       "@members/*": ["src/members/*"],
-      "@auth/*": ["src/auth/*"]
+      "@auth/*": ["src/auth/*"],
+      "@dictionaries/*": ["src/dictionaries/*"]
     }
   }
 }

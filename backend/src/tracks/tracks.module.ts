@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '@db/database.module';
 import { MembersService } from '@members/members.service';
-import { SettingsService } from '@members/settings.service';
 import { membersProviders } from '@members/members.provider';
+import { DictionariesService } from '@dictionaries/dictionaries.service';
 import { TracksController } from './tracks.controller';
 import { TrackService } from './tracks.service';
 import { tracksProviders } from './tracks.provider';
@@ -14,7 +14,7 @@ import { tracksProviders } from './tracks.provider';
   providers: [
     TrackService,
     MembersService,
-    SettingsService,
+    DictionariesService,
     ...tracksProviders,
     ...membersProviders,
   ],

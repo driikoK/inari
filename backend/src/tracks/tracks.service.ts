@@ -2,8 +2,8 @@ import { Model } from 'mongoose';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { MembersService } from '@members/members.service';
-import { SettingsService } from '@members/settings.service';
 import { MEMBER_ROLE } from '@members/enums/types.enum';
+import { DictionariesService } from '@dictionaries/dictionaries.service';
 import { UpdateTrackData } from './data/update-track.data';
 import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
@@ -15,7 +15,7 @@ export class TrackService {
   constructor(
     @Inject('TRACK_MODEL') private readonly trackModel: Model<ITrack>,
     private readonly membersService: MembersService,
-    private readonly settingsService: SettingsService,
+    private readonly dictionariesService: DictionariesService,
   ) {}
 
   async getTracks(filter: FilterTrackData) {
@@ -113,7 +113,7 @@ export class TrackService {
     );
 
     track.membersInfo[subIndex].coins +=
-      this.settingsService.getCoins()[track.titleType][role];
+      this.dictionariesService.getCoins()[track.titleType][role];
   }
 
   async createTrack(track: CreateTrackData) {

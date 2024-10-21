@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { IMember } from './interfaces/nickname.interface';
+import { IMember } from './interfaces/members.interface';
 import { MemberData } from './data/member.data';
 import { MEMBER_ROLE } from './enums/types.enum';
 import { MemberFilterData } from './data/filter-members.data';

@@ -3,15 +3,17 @@ import { AuthGuard, CurrentUser } from '@auth/auth.guard';
 import { ValidatedUser } from './interfaces/user.interface';
 import { UsersService } from './users.service';
 import { UpdateUserData } from './data/update-user.data';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
   @Get('me')
   @UseGuards(AuthGuard)
-  me(@CurrentUser() currentUser: ValidatedUser) {
-    return this.userService.getCurrentUser(currentUser.username);
+  me(@CurrentUser() validatedUser: ValidatedUser) {
+    return this.userService.getCurrentUser(validatedUser.username);
   }
 
   @Get()

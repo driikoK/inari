@@ -18,7 +18,11 @@ export class UsersService {
     return this.userModel.find({}, { username: 1, role: 1, _id: 1 }).exec();
   }
 
-  async create(username: string, password: string, role: ROLE) {
+  async create(
+    username: string,
+    password: string,
+    role: ROLE,
+  ): Promise<string> {
     bcrypt.hash(password, 10, (err, hash) => {
       this.userModel.create({ username, password: hash, role });
     });
@@ -26,13 +30,16 @@ export class UsersService {
     return 'Created';
   }
 
-  async getCurrentUser(username: string) {
+  async getCurrentUser(username: string): Promise<Omit<IUser, 'password'>> {
     const user = await this.userModel.findOne({ username }).exec();
 
     return { username: user.username, role: user.role };
   }
 
-  async updateCurrentUser(username: string, updateUserData: UpdateUserData) {
+  async updateCurrentUser(
+    username: string,
+    updateUserData: UpdateUserData,
+  ): Promise<IUser> {
     if (username === 'root')
       throw new HttpException('Не можна редагувати юзера', HttpStatus.CONFLICT);
 

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ICoins, IDub } from './interfaces/settings.interface';
+import { ICoins, IDub } from './interfaces/dictionaries.interface';
 
 @Injectable()
-export class SettingsService {
+export class DictionariesService {
   private readonly defaultValueOfCoins: ICoins = {
     coins: 190,
     sub: 30,
@@ -19,14 +19,21 @@ export class SettingsService {
     typesetter: 10,
   };
 
-  private getUpdatedCoinsForObject(coeff: number, obj: IDub): IDub {
-    const updatedObj: IDub = {} as IDub;
-
-    Object.entries(obj).forEach(([key, value]) => {
-      updatedObj[key] = value * coeff;
-    });
-
-    return updatedObj;
+  getCoins() {
+    return {
+      series: {
+        type: 'series',
+        ...this.defaultValueOfCoins,
+      },
+      film: {
+        type: 'film',
+        ...this.getCoinsByAnimeType('film'),
+      },
+      shortFilm: {
+        type: 'shortFilm',
+        ...this.getCoinsByAnimeType('shortFilm'),
+      },
+    };
   }
 
   private getCoinsByAnimeType(type: 'film' | 'shortFilm') {
@@ -54,29 +61,13 @@ export class SettingsService {
     }
   }
 
-  getCoins() {
-    return {
-      series: {
-        type: 'series',
-        ...this.defaultValueOfCoins,
-      },
-      film: {
-        type: 'film',
-        ...this.getCoinsByAnimeType('film'),
-      },
-      shortFilm: {
-        type: 'shortFilm',
-        ...this.getCoinsByAnimeType('shortFilm'),
-      },
-    };
-  }
+  private getUpdatedCoinsForObject(coeff: number, obj: IDub): IDub {
+    const updatedObj: IDub = {} as IDub;
 
-  getCofsForRoles() {
-    return {
-      sub: 22, // відсоток від загальної кількості крихт
-      dub: 46,
-      sound: 12,
-      additional: 20,
-    };
+    Object.entries(obj).forEach(([key, value]) => {
+      updatedObj[key] = value * coeff;
+    });
+
+    return updatedObj;
   }
 }
