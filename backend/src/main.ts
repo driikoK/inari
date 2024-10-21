@@ -30,6 +30,7 @@ async function bootstrap() {
     .addServer('http://staging URL/', 'Staging')
     .addServer('http://production URL/', 'Production')
     .addTag('API Tag')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api-docs', app, document);

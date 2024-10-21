@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { TrackService } from './tracks.service';
 import { CreateTrackData } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
@@ -18,6 +18,7 @@ import { AuthGuard } from '@auth/auth.guard';
 
 @ApiTags('Tracks')
 @Controller('tracks')
+@ApiBearerAuth()
 export class TracksController {
   constructor(private readonly trackService: TrackService) {}
 

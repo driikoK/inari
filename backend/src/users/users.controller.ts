@@ -3,10 +3,11 @@ import { AuthGuard, CurrentUser } from '@auth/auth.guard';
 import { ValidatedUser } from './interfaces/user.interface';
 import { UsersService } from './users.service';
 import { UpdateUserData } from './data/update-user.data';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Users')
 @Controller('users')
+@ApiBearerAuth()
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 

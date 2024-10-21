@@ -1,4 +1,4 @@
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -15,6 +15,7 @@ import { AuthGuard } from '@auth/auth.guard';
 
 @ApiTags('Members')
 @Controller('members')
+@ApiBearerAuth()
 export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 

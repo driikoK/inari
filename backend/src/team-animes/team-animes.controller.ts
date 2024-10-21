@@ -7,13 +7,14 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TeamAnimesService } from './team-animes.service';
 import { CreateAnimeData } from './data/create-team-anime.data';
 import { AuthGuard } from '@auth/auth.guard';
 
 @ApiTags('Team animes')
 @Controller('team-animes')
+@ApiBearerAuth()
 export class TeamAnimesController {
   constructor(private readonly teamAnimeService: TeamAnimesService) {}
 

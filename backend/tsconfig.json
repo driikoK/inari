@@ -21,7 +21,8 @@
       "@db/*": ["src/database/*"],
       "@members/*": ["src/members/*"],
       "@auth/*": ["src/auth/*"],
-      "@dictionaries/*": ["src/dictionaries/*"]
+      "@dictionaries/*": ["src/dictionaries/*"],
+      "@users/*": ["src/users/*"]
     }
   }
 }
