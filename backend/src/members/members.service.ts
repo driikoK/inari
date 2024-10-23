@@ -4,6 +4,7 @@ import { IMember } from './interfaces/members.interface';
 import { MemberData } from './data/member.data';
 import { MEMBER_ROLE } from './enums/types.enum';
 import { MemberFilterData } from './data/filter-members.data';
+import { UpdateMemberData } from './data/update-member.data';
 
 @Injectable()
 export class MembersService {
@@ -37,7 +38,7 @@ export class MembersService {
     return this.memberModel.create(member);
   }
 
-  async updateMember(member: MemberData) {
+  async updateMember(member: UpdateMemberData) {
     await this.memberModel.updateOne({ nickname: member.nickname }, member);
   }
 

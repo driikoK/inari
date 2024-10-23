@@ -12,6 +12,7 @@ import { MembersService } from './members.service';
 import { CreateMemberData } from './data/create-member.data';
 import { MemberFilterData } from './data/filter-members.data';
 import { AuthGuard } from '@auth/auth.guard';
+import { UpdateMemberData } from './data/update-member.data';
 
 @ApiTags('Members')
 @Controller('members')
@@ -33,7 +34,7 @@ export class MembersController {
 
   @Put()
   @UseGuards(AuthGuard)
-  async updateMember(@Body() member: CreateMemberData) {
+  async updateMember(@Body() member: UpdateMemberData) {
     return this.membersService.updateMember(member);
   }
 
