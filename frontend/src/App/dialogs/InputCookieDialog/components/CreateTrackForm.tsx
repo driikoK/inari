@@ -1,12 +1,13 @@
 import { FC, useEffect, useMemo, useState } from 'react';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 import { Box, Button, Checkbox, FormControlLabel, TextField } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import toast from 'react-hot-toast';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
 
 import { FormField } from './FormField';
+import { CoinsCalculator } from './CoinsCalculator';
 import { createTrackFormSchema, initialFormValues } from '../const/form';
 import { CreateTrackFormValues, CreateTrackType, FieldFormValue, MemberInfo } from '../types';
 import { CheckboxWrapper, Paragraph, SubParagraph, Title, TitleWrapper } from '../styles';
@@ -14,7 +15,7 @@ import useMembersStore from '@/stores/useMembersStore';
 import useCoinsStore from '@/stores/useCoinsStore';
 import useTracksStore from '@/stores/useTracksStore';
 import { CoinsType, ANIME_TYPE } from '@/types';
-import { CoinsCalculator } from './CoinsCalculator';
+import useAuthStore from '@/stores/useAuthStore';
 
 interface CreateTrackFormProps {
   titleName: string;
@@ -44,6 +45,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   const { getMembers } = useMembersStore();
   const { coinsTypes } = useCoinsStore();
   const { addTracks } = useTracksStore();
+  const { user } = useAuthStore();
 
   const [coins, setCoins] = useState<CoinsType>(
     coinsTypes[
@@ -67,15 +69,6 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
           return acc;
         }
-
-        // ** Optional roles. For them also don't need to change default coins value. Coins = 0 by default
-        // if (key === 'editor' || key === 'typesetter') {
-        //   acc[key] = {
-        //     ...value,
-        //   };
-
-        //   return acc;
-        // }
 
         // ** Main roles with coins value from endpoint
         (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue) = {
@@ -149,6 +142,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
       season,
       year: Number(year),
       note: form.note || '',
+      username: user!.username,
     };
 
     try {

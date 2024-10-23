@@ -9,7 +9,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { HeaderContainer, Logo, LogoWrapper, NavButton, NavWrapper, Paragraph } from './styles';
 import theme from '@theme';
 import useAuthStore from '@/stores/useAuthStore';
-import { usePermissions } from '@/App/hooks/usePermissions';
+import { usePermissions } from '@/hooks/usePermissions';
 import { SUBJECTS } from '@/context/casl';
 
 const Header: FunctionComponent = () => {

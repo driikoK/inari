@@ -34,6 +34,7 @@ export interface TrackType {
   isPriority: boolean;
   isInTime: boolean;
   isGuest: boolean;
+  username: string;
 }
 
 export interface CofType {

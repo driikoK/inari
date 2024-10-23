@@ -19,6 +19,7 @@ export const TracksSchema = new mongoose.Schema(
     isPriority: Boolean,
     isInTime: Boolean,
     isGuest: Boolean,
+    username: String,
   },
   { timestamps: true },
 );

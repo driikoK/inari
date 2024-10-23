@@ -47,10 +47,4 @@ export class TracksController {
   async deleteTrack(@Param('id') id: string) {
     return this.trackService.deleteTrack(id);
   }
-
-  @Get('/seasons')
-  @UseGuards(AuthGuard)
-  async tracksSeasons() {
-    return this.trackService.getTrackSeasons();
-  }
 }

@@ -15,6 +15,7 @@ interface IState {
   membersDictionary: MemberType[];
   getMembers: (filters?: Partial<FilterData>) => Promise<void>;
   addMember: (newMember: Omit<MemberType, '_id'>) => Promise<void>;
+  updateMember: (updatedMember: Omit<MemberType, '_id'>) => Promise<void>;
   appliedFilters: Partial<FilterData>;
 }
 
@@ -44,6 +45,15 @@ const useMembersStore = create<IState>((set) => ({
   addMember: async (newMember) => {
     try {
       const response = await axios.post(`/members`, newMember);
+      set((state) => ({ members: [...state.members, response.data] }));
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateMember: async (updatedMember) => {
+    try {
+      const response = await axios.put(`/members`, updatedMember);
       set((state) => ({ members: [...state.members, response.data] }));
     } catch (error) {
       throw error;

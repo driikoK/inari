@@ -7,7 +7,7 @@ import { Container, ElementContainer, ElementImage, Title } from './styles';
 import InputCookieDialog from '@/App/dialogs/InputCookieDialog';
 import { CreateAnimeAndMemberDialog } from '@/App/dialogs/CreateAnimeAndMemberDialog';
 import { SUBJECTS } from '@/context/casl';
-import { usePermissions } from '@/App/hooks/usePermissions';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const Cookie: FunctionComponent = () => {
   const [openCookieDialog, setOpenCookieDialog] = useState(false);

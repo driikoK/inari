@@ -1,7 +1,8 @@
-import { FunctionComponent, useEffect } from 'react';
+import { FunctionComponent, useCallback, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 import { Box } from '@mui/material';
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridRowModel } from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { RatingFilters } from './RatingFilters';
@@ -9,10 +10,22 @@ import useRolesStore from '@/stores/useRolesStore';
 import useMembersStore from '@/stores/useMembersStore';
 import { CustomTable } from '@/components/CustomTable';
 import { convertSeasonEngToUkr } from '@/utils/season.utils';
+import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
+import { MemberType } from '@/types';
+
+function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
+  if (newRow?.coins !== oldRow?.coins) {
+    return `крихт зміниться з '${oldRow?.coins}' на '${newRow?.coins}'`;
+  }
+
+  return null;
+}
 
 const CookieRating: FunctionComponent = () => {
   const { getRoles } = useRolesStore();
-  const { members, getMembers, appliedFilters } = useMembersStore();
+  const { members, getMembers, appliedFilters, updateMember } = useMembersStore();
+
+  const [promiseArguments, setPromiseArguments] = useState<any>(null);
 
   // ** Don't want to mutate the original array
   const sortedMembers = [...members].sort((a, b) => b.coins - a.coins);
@@ -76,6 +89,44 @@ const CookieRating: FunctionComponent = () => {
     };
   });
 
+  // TODO finish update row
+  const processRowUpdate = useCallback(
+    (newRow: GridRowModel<MemberType>, oldRow: GridRowModel<MemberType>) =>
+      new Promise<GridRowModel<MemberType>>((resolve, reject) => {
+        const mutation = computeMutation(newRow, oldRow);
+
+        if (mutation) {
+          // ** From docs: save the arguments to resolve or reject the promise later.
+          setPromiseArguments({ resolve, reject, newRow, oldRow });
+        } else {
+          resolve(oldRow);
+        }
+      }),
+    []
+  );
+
+  const handleUpdateNo = () => {
+    const { oldRow, resolve } = promiseArguments;
+    resolve(oldRow);
+    setPromiseArguments(null);
+  };
+
+  const handleUpdateYes = async () => {
+    const { newRow, oldRow, reject, resolve } = promiseArguments;
+
+    try {
+      const res = await updateMember(newRow);
+
+      // resolve({ res, id: res._id });
+      setPromiseArguments(null);
+      toast.success('Кількість крихт успішно змінено');
+    } catch (error) {
+      toast.error('Сталася помилка');
+      reject(oldRow);
+      setPromiseArguments(null);
+    }
+  };
+
   return (
     <PageContainer>
       <TitleWrapper>
@@ -90,7 +141,16 @@ const CookieRating: FunctionComponent = () => {
           justifyContent: 'center',
         }}
       >
+        {/* <CustomTable columns={columns} rows={rows} processRowUpdate={processRowUpdate} /> */}
         <CustomTable columns={columns} rows={rows} />
+
+        <ConfirmTableChangeDialog
+          computeMutation={computeMutation}
+          handleYes={handleUpdateYes}
+          handleNo={handleUpdateNo}
+          open={!!promiseArguments}
+          row={{ oldRow: promiseArguments?.oldRow, newRow: promiseArguments?.newRow }}
+        />
       </Box>
     </PageContainer>
   );

@@ -148,7 +148,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
             </FlexColumn>
           </div>
 
-          <Title>Аніме належить до:</Title>
+          <Title>Тип аніме:</Title>
 
           <FormControl>
             <Controller

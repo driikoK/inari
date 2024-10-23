@@ -1,9 +1,10 @@
-import { Model } from 'mongoose';
-import { Inject, Injectable } from '@nestjs/common';
+import { isValidObjectId, Model } from 'mongoose';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 
 import { MembersService } from '@members/members.service';
 import { MEMBER_ROLE } from '@members/enums/types.enum';
 import { DictionariesService } from '@dictionaries/dictionaries.service';
+import { UsersService } from '@users/users.service';
 import { UpdateTrackData } from './data/update-track.data';
 import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
@@ -16,58 +17,56 @@ export class TrackService {
     @Inject('TRACK_MODEL') private readonly trackModel: Model<ITrack>,
     private readonly membersService: MembersService,
     private readonly dictionariesService: DictionariesService,
+    private readonly usersService: UsersService,
   ) {}
 
-  async getTracks(filter: FilterTrackData) {
+  async getTracks(filter: FilterTrackData): Promise<ITrack[]> {
     return this.trackModel.find(filter).sort({ createdAt: -1 });
   }
 
   async deleteTrack(id: string) {
+    if (!isValidObjectId(id)) {
+      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
+    }
+
     const track = await this.trackModel.findOne({
       _id: id,
     });
 
-    if (track) {
-      const member = await this.membersService.findMember(track.nickname);
+    if (!track)
+      throw new HttpException('Трек не існує', HttpStatus.BAD_REQUEST);
 
-      const existedSeasonIndex = member.seasons.findIndex(
-        (season) =>
-          season.season === track.season && season.year === track.year,
-      );
+    const member = await this.membersService.findMember(track.nickname);
 
-      member.seasons[existedSeasonIndex].coins -= track.coins;
+    const existedSeasonIndex = member.seasons.findIndex(
+      (season) => season.season === track.season && season.year === track.year,
+    );
 
-      if (member) {
-        const updatedMember = {
-          nickname: member.nickname,
-          coins: Number(member.coins) - Number(track.coins),
-          types: member.types,
-          seasons: member.seasons,
-        };
+    member.seasons[existedSeasonIndex].coins -= track.coins;
 
-        await this.membersService.updateMember(updatedMember);
-      }
+    if (member) {
+      const updatedMember = {
+        nickname: member.nickname,
+        coins: Number(member.coins) - Number(track.coins),
+        types: member.types,
+        seasons: member.seasons,
+      };
 
-      await this.trackModel.deleteOne({
-        _id: id,
-      });
+      await this.membersService.updateMember(updatedMember);
     }
 
-    return;
+    await this.trackModel.deleteOne({
+      _id: id,
+    });
   }
 
-  async getTrackSeasons() {
-    return this.trackModel.aggregate([
-      {
-        $group: {
-          _id: '$season',
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-  }
+  async updateTrack(id: string, track: UpdateTrackData): Promise<ITrack> {
+    const trackToUpdate = await this.trackModel.findOne({
+      _id: id,
+    });
 
-  async updateTrack(id: string, track: UpdateTrackData) {
+    const coinsChange = trackToUpdate.coins - track.coins;
+
     await this.trackModel.updateOne(
       {
         _id: id,
@@ -79,6 +78,27 @@ export class TrackService {
 
     const updatedTrack = await this.trackModel.findOne({
       _id: id,
+    });
+
+    const member = await this.membersService.findMember(updatedTrack.nickname);
+
+    this.membersService.updateMember({
+      nickname: member.nickname,
+      coins: member.coins - coinsChange,
+      seasons: member.seasons.map((season) => {
+        if (
+          season.season === updatedTrack.season &&
+          season.year === updatedTrack.year
+        ) {
+          return {
+            season: season.season,
+            year: season.year,
+            coins: season.coins - coinsChange,
+          };
+        }
+
+        return season;
+      }),
     });
 
     return updatedTrack;
@@ -116,7 +136,12 @@ export class TrackService {
       this.dictionariesService.getCoins()[track.titleType][role];
   }
 
-  async createTrack(track: CreateTrackData) {
+  async createTrack(track: CreateTrackData): Promise<string> {
+    const currentUser = await this.usersService.findOne(track.username);
+
+    if (!currentUser)
+      throw new HttpException('Такого юзера не існує', HttpStatus.BAD_REQUEST);
+
     if (track.isGiveEditorCoins)
       this.addAdditionalCoinsToTranslator(track, 'editor');
     if (track.isGiveTypesetterCoins)

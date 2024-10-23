@@ -77,8 +77,8 @@ export class CreateTrackData {
 
   @ApiProperty()
   @IsInt()
-  @IsPositive({ message: 'Current episode must be at least 1' })
-  @Max(999, { message: 'Current episode must be less than 999' })
+  @IsPositive({ message: 'Мусить бути більше 0' })
+  @Max(999, { message: 'Мусить бути менше 999' })
   currentEpisode: number;
 
   @ApiProperty()
@@ -102,4 +102,8 @@ export class CreateTrackData {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @ApiProperty()
+  @IsString()
+  username: string;
 }

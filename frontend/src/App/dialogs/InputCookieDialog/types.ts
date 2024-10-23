@@ -21,6 +21,7 @@ export interface CreateTrackType extends Multipliers {
   note: string;
   isGiveEditorCoins?: boolean;
   isGiveTypesetterCoins?: boolean;
+  username: string;
 }
 
 export interface FieldFormValue {

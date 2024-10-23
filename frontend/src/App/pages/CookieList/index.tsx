@@ -1,7 +1,6 @@
 import { FunctionComponent, useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { useTheme } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import { GridActionsCellItem, GridCellParams, GridColDef, GridRowModel } from '@mui/x-data-grid';
 
@@ -15,8 +14,8 @@ import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable } from '@/components/CustomTable';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
 import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season.utils';
-import { usePermissions } from '@/App/hooks/usePermissions';
 import { SUBJECTS } from '@/context/casl';
+import { usePermissions } from '@/hooks/usePermissions';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {
@@ -39,8 +38,6 @@ const CookieList: FunctionComponent = () => {
   const { roles, getRoles } = useRolesStore();
   const { getMembers } = useMembersStore();
   const { hasAccess } = usePermissions();
-
-  const theme = useTheme();
 
   useEffect(() => {
     getTracks();
@@ -143,6 +140,12 @@ const CookieList: FunctionComponent = () => {
       width: 200,
       resizable: false,
     },
+    {
+      field: 'username',
+      headerName: 'Додав',
+      width: 120,
+      resizable: false,
+    },
     ...(hasAccess(SUBJECTS.COOKIES_LIST_DELETE)
       ? [
           {
@@ -176,6 +179,7 @@ const CookieList: FunctionComponent = () => {
       isOngoing: track.isOngoing ? 'Так' : 'Ні',
       isPriority: track.isPriority ? 'Так' : 'Ні',
       isGuest: track.isGuest ? 'Так' : 'Ні',
+      username: track.username || '-',
     };
   });
 
