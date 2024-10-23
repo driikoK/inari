@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { RouteObject, useRoutes } from 'react-router-dom';
 
-import Layout from './Layout';
+import Layout from '@/components/Layout';
 
 const Vote = lazy(() => import('./pages/Vote'));
 const Result = lazy(() => import('./pages/Result'));
