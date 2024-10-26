@@ -5,10 +5,11 @@ import { MembersService } from '@members/members.service';
 import { MEMBER_ROLE } from '@members/enums/types.enum';
 import { DictionariesService } from '@dictionaries/dictionaries.service';
 import { UsersService } from '@users/users.service';
+import { pick } from '@shared/utils';
 import { UpdateTrackData } from './data/update-track.data';
 import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
-import { ITrack } from './interfaces/track.interface';
+import { ITrack, Multipliers } from './interfaces/track.interface';
 import { MULTIPLIER } from './enums/types.enum';
 
 @Injectable()
@@ -60,25 +61,51 @@ export class TrackService {
     });
   }
 
+  private calculateAdditionalCoins = (
+    multipliers: Partial<Multipliers>,
+    coins: number,
+  ): number => {
+    let additionalCoins = 0;
+    if (multipliers.isOngoing) {
+      additionalCoins += coins * MULTIPLIER.ONGOING;
+    }
+    if (multipliers.isPriority) {
+      additionalCoins += coins * MULTIPLIER.PRIORITY;
+    }
+    if (multipliers.isInTime) {
+      additionalCoins += coins * MULTIPLIER.IN_TIME;
+    }
+    return additionalCoins;
+  };
+
+  private getCoinsForTrack(track: ITrack, newTrack: UpdateTrackData) {
+    if (track.isGuest && newTrack.coins) newTrack.coins = newTrack.coins / 2;
+
+    newTrack.coins += this.calculateAdditionalCoins(track, newTrack.coins);
+
+    return newTrack;
+  }
+
   async updateTrack(id: string, track: UpdateTrackData): Promise<ITrack> {
-    const trackToUpdate = await this.trackModel.findOne({
+    const trackToUpdate: ITrack = await this.trackModel.findOne({
       _id: id,
     });
 
-    const coinsChange = trackToUpdate.coins - track.coins;
+    const updatedValues = this.getCoinsForTrack(trackToUpdate, track);
 
-    await this.trackModel.updateOne(
+    const coinsChange = trackToUpdate.coins - updatedValues.coins;
+
+    const updatedTrack = await this.trackModel.findOneAndUpdate(
       {
         _id: id,
       },
       {
-        $set: track,
+        $set: updatedValues,
+      },
+      {
+        new: true,
       },
     );
-
-    const updatedTrack = await this.trackModel.findOne({
-      _id: id,
-    });
 
     const member = await this.membersService.findMember(updatedTrack.nickname);
 
@@ -110,19 +137,11 @@ export class TrackService {
   ) {
     if (member.isGuest && member.coins) member.coins = member.coins / 2;
 
-    let additionalCoins = 0;
-
-    if (multipliers.isOngoing) {
-      additionalCoins += member.coins * MULTIPLIER.ONGOING;
-    }
-    if (multipliers.isPriority) {
-      additionalCoins += member.coins * MULTIPLIER.PRIORITY;
-    }
-    if (multipliers.isInTime) {
-      additionalCoins += member.coins * MULTIPLIER.IN_TIME;
-    }
-
-    member.coins += additionalCoins;
+    const allMultipliers = {
+      ...pick(multipliers, ['isOngoing', 'isPriority', 'isInTime']),
+      isGuest: member.isGuest,
+    };
+    member.coins += this.calculateAdditionalCoins(allMultipliers, member.coins);
 
     return member;
   }

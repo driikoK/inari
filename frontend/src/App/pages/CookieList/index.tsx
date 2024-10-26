@@ -19,7 +19,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {
-    return `крихт зміниться з '${oldRow?.coins}' на '${newRow?.coins}'`;
+    return `крихт зміниться з '${oldRow?.coins}' на '${newRow?.coins}' + множники`;
   }
 
   return null;
@@ -196,7 +196,7 @@ const CookieList: FunctionComponent = () => {
   const handleDeleteYes = async () => {
     try {
       await deleteTracks(selectedItem?._id as string);
-      toast.success('Збережено');
+      toast.success('Успішно видалено');
     } catch (error) {
       toast.error('Сталася помилка');
     } finally {
@@ -234,7 +234,7 @@ const CookieList: FunctionComponent = () => {
 
       resolve({ res, id: res._id });
       setPromiseArguments(null);
-      toast.success('Збережено');
+      toast.success('Успішно змінено');
     } catch (error) {
       toast.error('Сталася помилка');
       reject(oldRow);

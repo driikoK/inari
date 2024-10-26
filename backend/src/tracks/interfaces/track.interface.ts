@@ -1,12 +1,20 @@
-import { MEMBER_ROLE } from '@members/enums/types.enum';
+import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '@members/enums/types.enum';
 
-export interface ITrack extends Document {
+export interface Multipliers {
+  isOngoing: boolean;
+  isPriority: boolean;
+  isInTime: boolean;
+  isGuest: boolean;
+}
+
+export interface ITrack extends Multipliers {
   nickname: string;
   nameTitle: string;
-  typeRole: MEMBER_ROLE[];
-  coins: number;
-  season: string;
+  titleType: ANIME_TYPE;
+  season: SEASON;
   year: number;
+  note: string;
   currentEpisode: number;
-  titleType: string;
+  typeRole: MEMBER_ROLE;
+  coins: number;
 }

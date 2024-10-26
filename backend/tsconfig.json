@@ -22,7 +22,8 @@
       "@members/*": ["src/members/*"],
       "@auth/*": ["src/auth/*"],
       "@dictionaries/*": ["src/dictionaries/*"],
-      "@users/*": ["src/users/*"]
+      "@users/*": ["src/users/*"],
+      "@shared/*": ["src/shared/*"]
     }
   }
 }
