@@ -37,14 +37,6 @@ export interface TrackType {
   username: string;
 }
 
-export interface CofType {
-  sub: number;
-  dub: number;
-  sound: number;
-  additional: number;
-  fastMultiplier: number;
-}
-
 export interface CoinsType {
   type: string;
   coins: number;
@@ -60,11 +52,6 @@ export interface CoinsType {
   releaser: number;
   director: number;
   another: number;
-}
-
-export enum DUB_COIN_VALUE {
-  KB = 'кб',
-  COOKIE = 'крихти',
 }
 
 export enum ANIME_TYPE {

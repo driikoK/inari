@@ -12,6 +12,8 @@ import { CustomTable } from '@/components/CustomTable';
 import { convertSeasonEngToUkr } from '@/utils/season.utils';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
 import { MemberType } from '@/types';
+import { usePermissions } from '@/hooks/usePermissions';
+import { SUBJECTS } from '@/context/casl';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {
@@ -24,6 +26,7 @@ function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
 const CookieRating: FunctionComponent = () => {
   const { getRoles } = useRolesStore();
   const { members, getMembers, appliedFilters, updateMember } = useMembersStore();
+  const { hasAccess } = usePermissions();
 
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
 
@@ -52,6 +55,7 @@ const CookieRating: FunctionComponent = () => {
       field: 'coins',
       headerName: 'Крихти',
       flex: 0.3,
+      editable: hasAccess(SUBJECTS.COOKIES_RATINGS_EDIT) && !isYearAndSeasonApplied ? true : false,
     },
   ];
 
@@ -89,7 +93,6 @@ const CookieRating: FunctionComponent = () => {
     };
   });
 
-  // TODO finish update row
   const processRowUpdate = useCallback(
     (newRow: GridRowModel<MemberType>, oldRow: GridRowModel<MemberType>) =>
       new Promise<GridRowModel<MemberType>>((resolve, reject) => {
@@ -115,13 +118,12 @@ const CookieRating: FunctionComponent = () => {
     const { newRow, oldRow, reject, resolve } = promiseArguments;
 
     try {
-      const res = await updateMember(newRow);
+      const res = await updateMember({ ...newRow, coins: parseFloat(newRow.coins) });
 
-      // resolve({ res, id: res._id });
+      resolve({ res, id: res._id });
       setPromiseArguments(null);
       toast.success('Кількість крихт успішно змінено');
     } catch (error) {
-      toast.error('Сталася помилка');
       reject(oldRow);
       setPromiseArguments(null);
     }
@@ -141,8 +143,7 @@ const CookieRating: FunctionComponent = () => {
           justifyContent: 'center',
         }}
       >
-        {/* <CustomTable columns={columns} rows={rows} processRowUpdate={processRowUpdate} /> */}
-        <CustomTable columns={columns} rows={rows} />
+        <CustomTable columns={columns} rows={rows} processRowUpdate={processRowUpdate} />
 
         <ConfirmTableChangeDialog
           computeMutation={computeMutation}

@@ -21,7 +21,6 @@ export class UpdateMemberData {
 
   @ApiProperty()
   @IsInt()
-  @IsNotEmpty()
   @IsPositive()
   coins: number;
 

@@ -8,6 +8,7 @@ export enum SUBJECTS {
   COOKIES_LIST_UPDATE = 'cookies-list-update',
   RATING_VIEW = 'rating-view',
   PERMISSION_EDIT = 'permissions-edit',
+  COOKIES_RATINGS_EDIT = 'cookies-ratings-edit',
 }
 
 export enum ROLE {

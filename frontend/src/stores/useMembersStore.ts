@@ -15,7 +15,7 @@ interface IState {
   membersDictionary: MemberType[];
   getMembers: (filters?: Partial<FilterData>) => Promise<void>;
   addMember: (newMember: Omit<MemberType, '_id'>) => Promise<void>;
-  updateMember: (updatedMember: Omit<MemberType, '_id'>) => Promise<void>;
+  updateMember: (updatedMember: MemberType) => Promise<MemberType>;
   appliedFilters: Partial<FilterData>;
 }
 
@@ -54,7 +54,18 @@ const useMembersStore = create<IState>((set) => ({
   updateMember: async (updatedMember) => {
     try {
       const response = await axios.put(`/members`, updatedMember);
-      set((state) => ({ members: [...state.members, response.data] }));
+
+      set((state) => ({
+        members: state.members.map((item) => {
+          if (item._id === updatedMember._id) {
+            return response.data;
+          }
+
+          return item;
+        }),
+      }));
+
+      return response.data;
     } catch (error) {
       throw error;
     }
