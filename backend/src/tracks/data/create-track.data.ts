@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsPositive,
   IsString,
@@ -26,7 +27,10 @@ export class MemberInfo {
   typeRole: MEMBER_ROLE;
 
   @ApiProperty()
-  @IsInt({ message: 'Coins must be an integer' })
+  @IsNumber(
+    { allowInfinity: false, allowNaN: false },
+    { message: 'Coins must be a number' },
+  )
   @IsPositive({
     message: 'Coins must be at least 1',
   })
