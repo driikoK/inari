@@ -7,29 +7,53 @@ interface UpdateTrackData {
   coins: number;
 }
 
+interface TracksWithPagination {
+  data: TrackType[];
+  total: number;
+  page: number;
+  perPage: number;
+}
+
 interface IState {
-  tracks: TrackType[];
+  tracks: TracksWithPagination;
   getTracks: (filters?: {
     nickname?: string;
     season?: string;
     nameTitle?: string;
     typeRole?: string;
     year?: string;
+    page?: number;
+    perPage?: number;
   }) => Promise<void>;
   addTracks: (newTracks: CreateTrackType) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;
   updateTrack: (id: string, track: UpdateTrackData) => Promise<TrackType>;
+  isLoading: boolean;
 }
 
 const useTracksStore = create<IState>((set) => ({
-  tracks: [],
+  tracks: {
+    data: [],
+    total: 0,
+    page: 1,
+    perPage: 10,
+  },
+  isLoading: false,
 
   getTracks: async (filters) => {
+    set({ isLoading: true });
     try {
       const response = await axios.get(`/tracks`, { params: filters });
-      set({ tracks: response.data });
+
+      set({
+        tracks: {
+          ...response.data,
+        },
+      });
     } catch (error) {
       throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 
@@ -43,7 +67,12 @@ const useTracksStore = create<IState>((set) => ({
   deleteTracks: async (id: string) => {
     try {
       await axios.delete(`/tracks/${id}`);
-      set((state) => ({ tracks: state.tracks.filter((item) => item._id !== id) }));
+      set((state) => ({
+        tracks: {
+          ...state.tracks,
+          data: state.tracks.data.filter((item) => item._id !== id),
+        },
+      }));
     } catch (error) {
       throw error;
     }
@@ -55,13 +84,16 @@ const useTracksStore = create<IState>((set) => ({
       });
 
       set((state) => ({
-        tracks: state.tracks.map((item) => {
-          if (item._id === id) {
-            return updatedTrack.data;
-          }
+        tracks: {
+          ...state.tracks,
+          data: state.tracks.data.map((item) => {
+            if (item._id === id) {
+              return updatedTrack.data;
+            }
 
-          return item;
-        }),
+            return item;
+          }),
+        },
       }));
 
       return updatedTrack.data;

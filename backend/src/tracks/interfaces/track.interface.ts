@@ -18,3 +18,10 @@ export interface ITrack extends Multipliers {
   typeRole: MEMBER_ROLE;
   coins: number;
 }
+
+export interface ITracksWithPagination {
+  data: ITrack[];
+  total: number;
+  page: number;
+  perPage: number;
+}

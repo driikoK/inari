@@ -33,22 +33,30 @@ type RowType = {
 } & Omit<TrackType, 'isOngoing' | 'isPriority' | 'isInTime' | 'isGuest'>;
 
 const CookieList: FunctionComponent = () => {
-  const { tracks, getTracks, deleteTracks, updateTrack } = useTracksStore();
+  const { tracks, getTracks, deleteTracks, updateTrack, isLoading } = useTracksStore();
   const { getAnime } = useAnimeStore();
   const { roles, getRoles } = useRolesStore();
   const { getMembers } = useMembersStore();
   const { hasAccess } = usePermissions();
 
+  const [promiseArguments, setPromiseArguments] = useState<any>(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<RowType | null>(null);
+  // ** From docs https://mui.com/x/react-data-grid/pagination/
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
+
   useEffect(() => {
-    getTracks();
     getAnime();
     getRoles();
     getMembers();
   }, []);
 
-  const [promiseArguments, setPromiseArguments] = useState<any>(null);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<RowType | null>(null);
+  useEffect(() => {
+    getTracks({ page: paginationModel.page + 1, perPage: paginationModel.pageSize });
+  }, [paginationModel]);
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
     {
@@ -167,7 +175,9 @@ const CookieList: FunctionComponent = () => {
       : ([] as any)),
   ];
 
-  const rows: RowType[] = tracks.map((track) => {
+  const formatBoolean = (value: boolean) => (value ? 'Так' : 'Ні');
+
+  const rows: RowType[] = tracks.data.map((track) => {
     return {
       ...track,
       id: track._id,
@@ -175,10 +185,10 @@ const CookieList: FunctionComponent = () => {
       note: track.note || '-',
       season: `${convertSeasonEngToUkr(track.season)} ${track.year}`,
       titleType: convertAnimeTypeEngToUkr(track.titleType as ANIME_TYPE),
-      isInTime: track.isInTime ? 'Так' : 'Ні',
-      isOngoing: track.isOngoing ? 'Так' : 'Ні',
-      isPriority: track.isPriority ? 'Так' : 'Ні',
-      isGuest: track.isGuest ? 'Так' : 'Ні',
+      isInTime: formatBoolean(track.isInTime),
+      isOngoing: formatBoolean(track.isOngoing),
+      isPriority: formatBoolean(track.isPriority),
+      isGuest: formatBoolean(track.isGuest),
       username: track.username || '-',
     };
   });
@@ -250,7 +260,16 @@ const CookieList: FunctionComponent = () => {
 
       <CookiesFilters />
 
-      <CustomTable rows={rows} columns={columns} processRowUpdate={processRowUpdate} />
+      <CustomTable
+        rows={rows}
+        columns={columns}
+        processRowUpdate={processRowUpdate}
+        rowCount={tracks.total}
+        loading={isLoading}
+        paginationMode="server"
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+      />
 
       <ConfirmTableChangeDialog
         computeMutation={computeMutation}

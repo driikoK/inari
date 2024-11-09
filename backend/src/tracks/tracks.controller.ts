@@ -24,7 +24,7 @@ export class TracksController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async tracks(@Query() filter: FilterTrackData) {
+  async getAllTracks(@Query() filter: FilterTrackData) {
     return this.trackService.getTracks(filter);
   }
 

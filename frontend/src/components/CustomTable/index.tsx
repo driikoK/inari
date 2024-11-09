@@ -16,7 +16,7 @@ export const CustomTable = <T extends GridValidRowModel>({
   return (
     <Paper
       sx={{
-        height: '69vh',
+        height: '71vh',
         width: '100%',
         '& .cell-red': {
           color: theme.palette.error.main,

@@ -9,7 +9,11 @@ import { pick } from '@shared/utils';
 import { UpdateTrackData } from './data/update-track.data';
 import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
-import { ITrack, Multipliers } from './interfaces/track.interface';
+import {
+  ITrack,
+  ITracksWithPagination,
+  Multipliers,
+} from './interfaces/track.interface';
 import { MULTIPLIER } from './enums/types.enum';
 
 @Injectable()
@@ -21,8 +25,23 @@ export class TrackService {
     private readonly usersService: UsersService,
   ) {}
 
-  async getTracks(filter: FilterTrackData): Promise<ITrack[]> {
-    return this.trackModel.find(filter).sort({ createdAt: -1 });
+  async getTracks(filter: FilterTrackData): Promise<ITracksWithPagination> {
+    const { page = 1, perPage = 10, ...queryFilter } = filter;
+
+    const tracks = await this.trackModel
+      .find(queryFilter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage);
+
+    const total = await this.trackModel.countDocuments(queryFilter);
+
+    return {
+      data: tracks,
+      page: Number(page),
+      perPage: Number(perPage),
+      total: Number(total),
+    };
   }
 
   async deleteTrack(id: string) {
