@@ -15,6 +15,7 @@ interface SelectFieldProps<T> {
   onChange: (value: T | undefined) => void;
   options: { value: T; label: string }[];
   width?: string | number;
+  disabled?: boolean;
 }
 
 function SelectField<T extends string>({
@@ -23,6 +24,7 @@ function SelectField<T extends string>({
   onChange,
   options,
   width = '100%',
+  disabled,
 }: SelectFieldProps<T>) {
   const handleChange = (event: SelectChangeEvent<unknown> | undefined) => {
     if (event === undefined) return onChange(undefined);
@@ -38,6 +40,7 @@ function SelectField<T extends string>({
         input={<StyledInput label={label} />}
         value={value || ''}
         onChange={handleChange}
+        disabled={disabled}
         endAdornment={
           value && (
             <InputAdornment sx={{ marginRight: '20px', cursor: 'pointer' }} position="end">

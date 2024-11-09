@@ -47,6 +47,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     formState: { errors },
   } = methods;
 
+  const watchTitleName = watch('titleName');
   const watchAnimeType = watch('animeType');
 
   useEffect(() => {
@@ -123,7 +124,9 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                   <TextField
                     value={field.value}
                     disabled={
-                      watchAnimeType === ANIME_TYPE.FILM || watchAnimeType === ANIME_TYPE.SHORT_FILM
+                      watchAnimeType === ANIME_TYPE.FILM ||
+                      watchAnimeType === ANIME_TYPE.SHORT_FILM ||
+                      !watchTitleName
                     }
                     type="text"
                     onChange={(e) => {
@@ -163,6 +166,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                   }))}
                   value={field.value}
                   onChange={field.onChange}
+                  disabled={!watchTitleName}
                 />
               )}
             />
@@ -190,6 +194,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                       handleTextInputChange(e.target.value, field);
                     }}
                     sx={{ width: '15%' }}
+                    disabled={!watchTitleName}
                   />
                 )}
               />
@@ -218,6 +223,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     }))}
                     value={field.value}
                     onChange={field.onChange}
+                    disabled={!watchTitleName}
                   />
                 )}
               />
@@ -242,6 +248,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     }))}
                     value={field.value}
                     onChange={field.onChange}
+                    disabled={!watchTitleName}
                   />
                 )}
               />
