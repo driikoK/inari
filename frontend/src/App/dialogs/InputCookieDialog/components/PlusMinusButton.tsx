@@ -20,7 +20,7 @@ interface PlusMinusButtonProps {
 export const PlusMinusButton: FC<PlusMinusButtonProps> = ({ maxValue, append, remove, fields }) => {
   return (
     <ButtonGroup disableElevation variant="contained" aria-label="Basic button group">
-      <Button onClick={() => append({ ...defaultValue })} disabled={fields.length >= maxValue}>
+      <Button onClick={() => append(defaultValue)} disabled={fields.length >= maxValue}>
         +
       </Button>
       <Button onClick={() => remove(-1)} disabled={fields.length <= 1}>

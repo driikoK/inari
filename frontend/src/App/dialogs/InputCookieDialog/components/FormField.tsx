@@ -116,12 +116,9 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
     value: string,
     currentField: ControllerRenderProps<FieldValues, `${string}.coins`>
   ) => {
-    const numberValue = Number(value.replace(/[^0-9]/g, ''));
+    const validValue = value.replace(/[^0-9.]/g, '').replace(/(,|\.)+(?=.*[,.])/g, '');
 
-    // ** While don't have validation of field value
-    if (numberValue > 999) return;
-
-    currentField.onChange(numberValue);
+    currentField.onChange(validValue);
   };
 
   useEffect(() => {
@@ -170,6 +167,7 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
               placeholder="0"
               type="text"
               value={field.value}
+              inputProps={{ maxLength: 6 }}
               onChange={(e) => {
                 handleCoinsChange(e.target.value, field);
               }}

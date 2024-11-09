@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -16,6 +16,7 @@ import useCoinsStore from '@/stores/useCoinsStore';
 import useTracksStore from '@/stores/useTracksStore';
 import { CoinsType, ANIME_TYPE } from '@/types';
 import useAuthStore from '@/stores/useAuthStore';
+import useCoinsCalculation from '@/hooks/useCoinsCalculation';
 
 interface CreateTrackFormProps {
   titleName: string;
@@ -47,17 +48,15 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   const { addTracks } = useTracksStore();
   const { user } = useAuthStore();
 
-  const [coins, setCoins] = useState<CoinsType>(
-    coinsTypes[
-      duration > maxDurationForShortFilm ? 'series' : (animeType as keyof typeof coinsTypes)
-    ]
-  );
-
   useEffect(() => {
     getMembers();
   }, []);
 
   const isOnlyOneEpisode = animeType === ANIME_TYPE.SHORT_FILM || animeType === ANIME_TYPE.FILM;
+  const coins: CoinsType =
+    coinsTypes[
+      duration > maxDurationForShortFilm ? 'series' : (animeType as keyof typeof coinsTypes)
+    ];
 
   const defaultValues: CreateTrackFormValues = useMemo(() => {
     return {
@@ -91,9 +90,10 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
   const { handleSubmit, register, watch, resetField, control } = methods;
 
-  /* Triggers full form re-render when any field in 'membersInfo.dubs' changes.
-     Maybe should remove this watch and then remove dynamic value of coins */
-  const watchDubs = watch('membersInfo.dubs').length;
+  const { coinsForDubs, coinsForReleasers } = useCoinsCalculation({ watch, defaultCoins: coins });
+
+  const watchDubs = watch('membersInfo.dubs');
+  const isDoubleDubs = watchDubs.length <= 2;
 
   const watchEditor = watch('membersInfo.editor.nickname');
   const watchTypesetter = watch('membersInfo.typesetter.nickname');
@@ -150,9 +150,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
       onClose();
       toast.success('Успішно додано');
-    } catch (e) {
-      toast.error('Виникла помилка');
-    }
+    } catch (e) {}
   };
 
   return (
@@ -228,13 +226,9 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             />
           </div>
 
-          <SubParagraph>
-            {watchDubs <= 2
-              ? `Доступно ${coins.dub.double} крихт`
-              : `Доступно ${coins.dub.multi} крихт`}
-          </SubParagraph>
+          <SubParagraph>{`Доступно ${coinsForDubs} крихт`}</SubParagraph>
 
-          <CoinsCalculator coinsForDubs={watchDubs <= 2 ? coins.dub.double : coins.dub.multi} />
+          <CoinsCalculator coinsForDubs={isDoubleDubs ? coins.dub.double : coins.dub.multi} />
           <FormField
             name={`${startNameForMemberField}.dubs`}
             label="Дабери"
@@ -242,7 +236,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             maxLength={10}
           />
 
-          <SubParagraph>{`Доступно ${coins.releaser} крихт`}</SubParagraph>
+          <SubParagraph>{`Доступно ${coinsForReleasers} крихт`}</SubParagraph>
           <FormField
             name={`${startNameForMemberField}.releasers`}
             label="Релізери"
