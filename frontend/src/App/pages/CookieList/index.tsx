@@ -33,7 +33,8 @@ type RowType = {
 } & Omit<TrackType, 'isOngoing' | 'isPriority' | 'isInTime' | 'isGuest'>;
 
 const CookieList: FunctionComponent = () => {
-  const { tracks, getTracks, deleteTracks, updateTrack, isLoading } = useTracksStore();
+  const { tracks, getTracks, deleteTracks, updateTrack, isLoading, appliedFilters } =
+    useTracksStore();
   const { getAnime } = useAnimeStore();
   const { roles, getRoles } = useRolesStore();
   const { getMembers } = useMembersStore();
@@ -55,7 +56,11 @@ const CookieList: FunctionComponent = () => {
   }, []);
 
   useEffect(() => {
-    getTracks({ page: paginationModel.page + 1, perPage: paginationModel.pageSize });
+    getTracks({
+      ...appliedFilters,
+      page: paginationModel.page + 1,
+      perPage: paginationModel.pageSize,
+    });
   }, [paginationModel]);
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
@@ -208,7 +213,6 @@ const CookieList: FunctionComponent = () => {
       await deleteTracks(selectedItem?._id as string);
       toast.success('Успішно видалено');
     } catch (error) {
-      toast.error('Сталася помилка');
     } finally {
       setOpenDeleteDialog(false);
       setSelectedItem(null);
@@ -246,7 +250,6 @@ const CookieList: FunctionComponent = () => {
       setPromiseArguments(null);
       toast.success('Успішно змінено');
     } catch (error) {
-      toast.error('Сталася помилка');
       reject(oldRow);
       setPromiseArguments(null);
     }

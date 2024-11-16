@@ -18,10 +18,11 @@ export const CookiesFilters = () => {
   const { animeNames } = useAnimeStore();
   const { roles } = useRolesStore();
   const { members } = useMembersStore();
-  const { getTracks } = useTracksStore();
+  const { getTracks, appliedFilters } = useTracksStore();
 
   useEffect(() => {
     getTracks({
+      ...appliedFilters,
       season: selectedSeason,
       nameTitle: selectedAnime,
       nickname: selectedUser,

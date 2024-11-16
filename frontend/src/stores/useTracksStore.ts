@@ -14,6 +14,16 @@ interface TracksWithPagination {
   perPage: number;
 }
 
+interface FilterData {
+  nickname?: string;
+  season?: string;
+  nameTitle?: string;
+  typeRole?: string;
+  year?: string;
+  page?: number;
+  perPage?: number;
+}
+
 interface IState {
   tracks: TracksWithPagination;
   getTracks: (filters?: {
@@ -29,6 +39,7 @@ interface IState {
   deleteTracks: (id: string) => Promise<void>;
   updateTrack: (id: string, track: UpdateTrackData) => Promise<TrackType>;
   isLoading: boolean;
+  appliedFilters: Partial<FilterData>;
 }
 
 const useTracksStore = create<IState>((set) => ({
@@ -39,9 +50,11 @@ const useTracksStore = create<IState>((set) => ({
     perPage: 10,
   },
   isLoading: false,
+  appliedFilters: {},
 
   getTracks: async (filters) => {
-    set({ isLoading: true });
+    set({ isLoading: true, appliedFilters: filters });
+
     try {
       const response = await axios.get(`/tracks`, { params: filters });
 
