@@ -26,7 +26,7 @@ interface FormProps {
 export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }) => {
   const { getMembers } = useMembersStore();
   const { animeNames } = useAnimeStore();
-  const { resetLastTracks } = useTracksStore();
+  const { resetLastTracks, getLastTracks, lastTracks } = useTracksStore();
 
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -45,7 +45,9 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     handleSubmit,
     watch,
     resetField,
+    reset,
     control,
+    setValue,
     formState: { errors },
   } = methods;
 
@@ -54,8 +56,27 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
   const watchEpisode = watch('episode');
 
   useEffect(() => {
-    resetLastTracks();
-  }, [watchEpisode]);
+    if (!watchTitleName) {
+      resetLastTracks();
+      reset(chooseAnimeInitialFormValues);
+      return;
+    }
+
+    const numberEpisode = Number(watchEpisode);
+    if (numberEpisode > 1) {
+      getLastTracks({ titleName: watchTitleName, episode: numberEpisode });
+    }
+  }, [watchTitleName, watchEpisode]);
+
+  useEffect(() => {
+    if (!lastTracks.length || !watchTitleName) return;
+
+    const existedTrack = lastTracks[0];
+
+    setValue('animeType', existedTrack.titleType);
+    setValue('season', existedTrack.season);
+    setValue('year', existedTrack.year.toString());
+  }, [lastTracks.length, watchTitleName]);
 
   useEffect(() => {
     if (watchAnimeType === ANIME_TYPE.FILM || watchAnimeType === ANIME_TYPE.SHORT_FILM) {
@@ -86,7 +107,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmitForm)}>
         <DialogWrapper>
-          <Title>Назва тайтлу і номер епізоду</Title>
+          <Title>Назва тайтлу та номер епізоду</Title>
 
           <div>
             <FlexWrapper>
@@ -99,7 +120,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     getOptionLabel={(option) => option.name}
                     value={animeNames.find((anime) => anime.name === field.value) || null}
                     onChange={(_, newValue) => {
-                      field.onChange(newValue?.name);
+                      field.onChange(newValue?.name || '');
                     }}
                     renderInput={(params) => (
                       <TextField
@@ -171,7 +192,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     value: type.value,
                     label: type.label,
                   }))}
-                  value={field.value}
+                  value={field.value || ''}
                   onChange={field.onChange}
                   disabled={!watchTitleName}
                 />
@@ -228,7 +249,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                       value: season.value,
                       label: season.label,
                     }))}
-                    value={field.value}
+                    value={field.value || ''}
                     onChange={field.onChange}
                     disabled={!watchTitleName}
                   />
@@ -253,7 +274,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                       value: year.value,
                       label: year.label,
                     }))}
-                    value={field.value}
+                    value={field.value || ''}
                     onChange={field.onChange}
                     disabled={!watchTitleName}
                   />

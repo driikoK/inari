@@ -45,17 +45,12 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   duration = 1,
 }) => {
   const { getMembers } = useMembersStore();
-  const { getLastTracks, lastTracks, addTracks, isLoading, resetLastTracks } = useTracksStore();
+  const { lastTracks, addTracks, resetLastTracks } = useTracksStore();
   const { coinsTypes } = useCoinsStore();
   const { user } = useAuthStore();
 
   useEffect(() => {
     getMembers();
-
-    const numberEpisode = Number(episode);
-    if (numberEpisode > 1) {
-      getLastTracks({ titleName, episode: numberEpisode });
-    }
   }, []);
 
   const isOnlyOneEpisode = animeType === ANIME_TYPE.SHORT_FILM || animeType === ANIME_TYPE.FILM;
@@ -176,7 +171,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     } catch (e) {}
   };
 
-  if (episode !== '1' && isLoading) return <FallbackComponent />;
+  if (episode !== '1' && !lastTracks.length) return <FallbackComponent />;
 
   return (
     <FormProvider {...methods}>

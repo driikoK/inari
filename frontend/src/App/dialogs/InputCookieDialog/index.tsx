@@ -26,10 +26,15 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
     getCoins();
   }, []);
 
-  const handleClose = () => {
+  const handleCreateTrackClose = () => {
     onClose();
     setIsNextStep(false);
     setChosenAnime(null);
+  };
+
+  const handleClose = (event: any, reason: string) => {
+    if (reason && reason === 'backdropClick') return;
+    onClose();
   };
 
   const saveFormValues = (values: ChooseAnimeFormValues) => {
@@ -38,7 +43,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
   };
 
   return (
-    <DialogContainer open={open} scroll={'body'} onClose={onClose} fullWidth>
+    <DialogContainer open={open} scroll={'body'} onClose={handleClose} fullWidth>
       <IconButton
         aria-label="close"
         onClick={onClose}
@@ -59,7 +64,7 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
         {isNextStep && chosenAnime && (
           <CreateTrackForm
             onBack={() => setIsNextStep(false)}
-            onClose={handleClose}
+            onClose={handleCreateTrackClose}
             {...chosenAnime}
             animeType={chosenAnime.animeType as ANIME_TYPE}
             episode={chosenAnime.episode.toString()}
