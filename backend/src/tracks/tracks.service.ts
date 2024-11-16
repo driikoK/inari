@@ -15,6 +15,7 @@ import {
   Multipliers,
 } from './interfaces/track.interface';
 import { MULTIPLIER } from './enums/types.enum';
+import { LastTracksData } from './data/last-tracks';
 
 @Injectable()
 export class TrackService {
@@ -228,5 +229,16 @@ export class TrackService {
     }
 
     return 'Success';
+  }
+
+  async getLastTracks(data: LastTracksData): Promise<ITrack[]> {
+    const { titleName, episode } = data;
+    const queryFilter = { nameTitle: titleName, currentEpisode: episode - 1 };
+
+    const tracks = await this.trackModel
+      .find(queryFilter)
+      .sort({ createdAt: -1 });
+
+    return tracks;
   }
 }

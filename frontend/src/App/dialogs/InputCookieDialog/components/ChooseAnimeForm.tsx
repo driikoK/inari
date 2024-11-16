@@ -9,11 +9,12 @@ import { ChooseAnimeFormValues } from '../types';
 import { DialogWrapper, ErrorText, FlexColumn, Title } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import AddAnimeDialog from '../../AddAnimeDialog';
-import useMembersStore from '@/stores/useMembersStore';
 import { FlexWrapper } from '@/components/ListCard/styles';
 import Button from '@components/Button';
 import SelectField from '@/components/SelectField';
+import useMembersStore from '@/stores/useMembersStore';
 import useAnimeStore from '@/stores/useAnimeStore';
+import useTracksStore from '@/stores/useTracksStore';
 import { seasonOptions, yearOptions } from '@/consts';
 import { ANIME_TYPE } from '@/types';
 
@@ -25,6 +26,7 @@ interface FormProps {
 export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }) => {
   const { getMembers } = useMembersStore();
   const { animeNames } = useAnimeStore();
+  const { resetLastTracks } = useTracksStore();
 
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -49,6 +51,11 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
   const watchTitleName = watch('titleName');
   const watchAnimeType = watch('animeType');
+  const watchEpisode = watch('episode');
+
+  useEffect(() => {
+    resetLastTracks();
+  }, [watchEpisode]);
 
   useEffect(() => {
     if (watchAnimeType === ANIME_TYPE.FILM || watchAnimeType === ANIME_TYPE.SHORT_FILM) {

@@ -15,6 +15,7 @@ import { CreateTrackData } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
 import { UpdateTrackData } from './data/update-track.data';
 import { AuthGuard } from '@auth/auth.guard';
+import { LastTracksData } from './data/last-tracks';
 
 @ApiTags('Tracks')
 @Controller('tracks')
@@ -46,5 +47,11 @@ export class TracksController {
   @UseGuards(AuthGuard)
   async deleteTrack(@Param('id') id: string) {
     return this.trackService.deleteTrack(id);
+  }
+
+  @Get('last')
+  @UseGuards(AuthGuard)
+  async getLastTracksForTitle(@Query() data: LastTracksData) {
+    return this.trackService.getLastTracks(data);
   }
 }

@@ -17,6 +17,7 @@ import useTracksStore from '@/stores/useTracksStore';
 import { CoinsType, ANIME_TYPE } from '@/types';
 import useAuthStore from '@/stores/useAuthStore';
 import useCoinsCalculation from '@/hooks/useCoinsCalculation';
+import FallbackComponent from '@/components/Fallback';
 
 interface CreateTrackFormProps {
   titleName: string;
@@ -44,12 +45,17 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   duration = 1,
 }) => {
   const { getMembers } = useMembersStore();
+  const { getLastTracks, lastTracks, addTracks, isLoading, resetLastTracks } = useTracksStore();
   const { coinsTypes } = useCoinsStore();
-  const { addTracks } = useTracksStore();
   const { user } = useAuthStore();
 
   useEffect(() => {
     getMembers();
+
+    const numberEpisode = Number(episode);
+    if (numberEpisode > 1) {
+      getLastTracks({ titleName, episode: numberEpisode });
+    }
   }, []);
 
   const isOnlyOneEpisode = animeType === ANIME_TYPE.SHORT_FILM || animeType === ANIME_TYPE.FILM;
@@ -58,37 +64,53 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
       duration > maxDurationForShortFilm ? 'series' : (animeType as keyof typeof coinsTypes)
     ];
 
-  const defaultValues: CreateTrackFormValues = useMemo(() => {
-    return {
-      ...initialFormValues,
-      membersInfo: Object.entries(initialFormValues.membersInfo).reduce((acc, [key, value]) => {
-        // ** Values like 'dubs' or 'releasers' where don't need to change default coins value. Coins = 0 by default
-        if (Array.isArray(value)) {
-          (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue[]) = [...value];
-
-          return acc;
-        }
-
-        // ** Main roles with coins value from endpoint
+  const transformMembersInfo = (
+    membersInfo: CreateTrackFormValues['membersInfo'],
+    coins: CoinsType,
+    lastTracks?: { typeRole: string; nickname: string }[]
+  ): CreateTrackFormValues['membersInfo'] => {
+    return Object.entries(membersInfo).reduce((acc, [key, value]) => {
+      if (Array.isArray(value)) {
+        (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue[]) = [...value];
+      } else {
         (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue) = {
           ...value,
           coins: coins[key as keyof typeof coins].toString(),
-        } as FieldFormValue;
+          nickname:
+            lastTracks?.find((track) => track.typeRole === key)?.nickname || value?.nickname || '',
+        };
+      }
+      return acc;
+    }, {} as CreateTrackFormValues['membersInfo']);
+  };
 
-        return acc;
-      }, {} as CreateTrackFormValues['membersInfo']),
+  const defaultValues: CreateTrackFormValues = useMemo(() => {
+    return {
+      ...initialFormValues,
+      membersInfo: transformMembersInfo(initialFormValues.membersInfo, coins),
       isLastEpisode: isOnlyOneEpisode,
     };
-  }, [coins]);
+  }, []);
 
   const methods = useForm<CreateTrackFormValues>({
-    defaultValues: defaultValues,
+    defaultValues,
     resolver: yupResolver(createTrackFormSchema(coins)),
     criteriaMode: 'all',
     mode: 'onChange',
   });
+  const { handleSubmit, register, watch, resetField, reset, control } = methods;
 
-  const { handleSubmit, register, watch, resetField, control } = methods;
+  // ** To set nicknames from previous episode if exist
+  useEffect(() => {
+    if (!lastTracks.length) return;
+
+    const updatedValues = {
+      ...defaultValues,
+      membersInfo: transformMembersInfo(defaultValues.membersInfo, coins, lastTracks),
+    };
+
+    reset(updatedValues);
+  }, [lastTracks.length]);
 
   const { coinsForDubs, coinsForReleasers } = useCoinsCalculation({ watch, defaultCoins: coins });
 
@@ -148,10 +170,13 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     try {
       await addTracks(payload);
 
+      resetLastTracks();
       onClose();
       toast.success('Успішно додано');
     } catch (e) {}
   };
+
+  if (episode !== '1' && isLoading) return <FallbackComponent />;
 
   return (
     <FormProvider {...methods}>

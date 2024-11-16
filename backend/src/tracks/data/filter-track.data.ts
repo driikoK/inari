@@ -7,7 +7,7 @@ export class FilterTrackData {
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
   @IsString()
-  nickname: string;
+  nickname?: string;
 
   @ApiPropertyOptional({
     nullable: true,
@@ -16,7 +16,7 @@ export class FilterTrackData {
   })
   @IsOptional()
   @IsEnum(SEASON)
-  season: SEASON;
+  season?: SEASON;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()

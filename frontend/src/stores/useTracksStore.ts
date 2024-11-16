@@ -15,31 +15,31 @@ interface TracksWithPagination {
 }
 
 interface FilterData {
-  nickname?: string;
-  season?: string;
-  nameTitle?: string;
-  typeRole?: string;
-  year?: string;
-  page?: number;
-  perPage?: number;
+  nickname: string;
+  season: string;
+  nameTitle: string;
+  typeRole: string;
+  year: string;
+  page: number;
+  perPage: number;
+}
+
+interface FilterForLastTracks {
+  titleName: string;
+  episode: number;
 }
 
 interface IState {
   tracks: TracksWithPagination;
-  getTracks: (filters?: {
-    nickname?: string;
-    season?: string;
-    nameTitle?: string;
-    typeRole?: string;
-    year?: string;
-    page?: number;
-    perPage?: number;
-  }) => Promise<void>;
+  getTracks: (filters?: Partial<FilterData>) => Promise<void>;
   addTracks: (newTracks: CreateTrackType) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;
   updateTrack: (id: string, track: UpdateTrackData) => Promise<TrackType>;
+  getLastTracks: (filter: FilterForLastTracks) => Promise<void>;
   isLoading: boolean;
   appliedFilters: Partial<FilterData>;
+  lastTracks: TrackType[];
+  resetLastTracks: () => void;
 }
 
 const useTracksStore = create<IState>((set) => ({
@@ -51,8 +51,9 @@ const useTracksStore = create<IState>((set) => ({
   },
   isLoading: false,
   appliedFilters: {},
+  lastTracks: [],
 
-  getTracks: async (filters) => {
+  getTracks: async (filters?: Partial<FilterData>) => {
     set({ isLoading: true, appliedFilters: filters });
 
     try {
@@ -114,6 +115,24 @@ const useTracksStore = create<IState>((set) => ({
       throw error;
     }
   },
+
+  getLastTracks: async (filters: FilterForLastTracks) => {
+    set({ isLoading: true });
+
+    try {
+      const response = await axios.get(`/tracks/last`, { params: filters });
+
+      set({
+        lastTracks: [...response.data],
+      });
+    } catch (error) {
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  resetLastTracks: () => set({ lastTracks: [] }),
 }));
 
 export default useTracksStore;
