@@ -24,28 +24,16 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
     try {
       await addAnime(titleName);
 
-      toast.success('Аніме додано успішно!');
-
-      setTimeout(() => {
-        onClose();
-      }, 1000);
-    } catch (e) {
-      toast.error('Помилка!');
-    }
+      toast.success('Аніме успішно додано!');
+    } catch (e) {}
   };
 
   const handleSubmitUser = async () => {
     try {
       await addMember({ nickname, types: [], coins: 0, seasons: [] });
 
-      toast.success('Новий учасник створений успішно!');
-
-      setTimeout(() => {
-        onClose();
-      }, 1000);
-    } catch (e) {
-      toast.error('Помилка!');
-    }
+      toast.success('Новий учасник успішно створений!');
+    } catch (e) {}
   };
 
   return (
@@ -68,6 +56,7 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
           placeholder="Введіть нікнейм"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
+          sx={{ width: '100%' }}
         />
         <Button variant="contained" disabled={!nickname} onClick={handleSubmitUser}>
           Додати
@@ -81,6 +70,7 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
           placeholder="Введіть назву"
           value={titleName}
           onChange={(e) => setTitleName(e.target.value)}
+          sx={{ width: '100%' }}
         />
         <Button variant="contained" disabled={!titleName} onClick={handleSubmitTitle}>
           Додати
