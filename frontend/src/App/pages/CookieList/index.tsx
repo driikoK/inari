@@ -67,7 +67,7 @@ const CookieList: FunctionComponent = () => {
     {
       field: 'nickname',
       headerName: 'Нікнейм',
-      width: 300,
+      width: 200,
     },
     {
       field: 'nameTitle',
@@ -108,7 +108,7 @@ const CookieList: FunctionComponent = () => {
       headerName: 'Тип',
       sortable: false,
       resizable: false,
-      width: 150,
+      width: 170,
     },
     {
       field: 'isOngoing',
@@ -147,16 +147,16 @@ const CookieList: FunctionComponent = () => {
       },
     },
     {
+      field: 'username',
+      headerName: 'Додав',
+      width: 120,
+      resizable: false,
+    },
+    {
       field: 'note',
       headerName: 'Нотатка',
       sortable: false,
       width: 200,
-      resizable: false,
-    },
-    {
-      field: 'username',
-      headerName: 'Додав',
-      width: 120,
       resizable: false,
     },
     ...(hasAccess(SUBJECTS.COOKIES_LIST_DELETE)

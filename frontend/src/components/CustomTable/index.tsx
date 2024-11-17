@@ -38,12 +38,17 @@ export const CustomTable = <T extends GridValidRowModel>({
             },
           },
         }}
-        pageSizeOptions={[10]}
+        pageSizeOptions={[10, 25, 50]}
         disableRowSelectionOnClick
         disableColumnMenu
         disableColumnFilter
         onProcessRowUpdateError={(error) => {
           console.log(error);
+        }}
+        localeText={{
+          MuiTablePagination: {
+            labelRowsPerPage: 'Рядків на сторінці',
+          },
         }}
         {...props}
       />
