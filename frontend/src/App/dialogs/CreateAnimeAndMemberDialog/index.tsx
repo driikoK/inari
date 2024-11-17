@@ -4,10 +4,11 @@ import toast from 'react-hot-toast';
 import { Button, DialogProps, IconButton, TextField } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 
-import { DialogWrapper, Title } from './styles';
+import { DialogWrapper } from './styles';
 import { DialogContainer } from '../InfoDialog/styles';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useMembersStore from '@/stores/useMembersStore';
+import H6 from '@/components/Typography/H6';
 
 export interface IDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -49,7 +50,8 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
       >
         <Close />
       </IconButton>
-      <Title>Додати учасника</Title>
+
+      <H6>Додати учасника</H6>
 
       <DialogWrapper>
         <TextField
@@ -63,7 +65,7 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
         </Button>
       </DialogWrapper>
 
-      <Title>Додати аніме</Title>
+      <H6>Додати аніме</H6>
 
       <DialogWrapper>
         <TextField

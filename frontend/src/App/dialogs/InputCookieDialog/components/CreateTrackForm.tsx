@@ -3,14 +3,14 @@ import { useForm, FormProvider, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { Box, Button, Checkbox, FormControlLabel, TextField } from '@mui/material';
+import { Box, Checkbox, FormControlLabel, TextField } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { FormField } from './FormField';
 import { CoinsCalculator } from './CoinsCalculator';
 import { createTrackFormSchema, initialFormValues } from '../const/form';
 import { CreateTrackFormValues, CreateTrackType, FieldFormValue, MemberInfo } from '../types';
-import { CheckboxWrapper, Paragraph, SubParagraph, Title, TitleWrapper } from '../styles';
+import { CheckboxWrapper } from '../styles';
 import useMembersStore from '@/stores/useMembersStore';
 import useCoinsStore from '@/stores/useCoinsStore';
 import useTracksStore from '@/stores/useTracksStore';
@@ -18,6 +18,10 @@ import { CoinsType, ANIME_TYPE } from '@/types';
 import useAuthStore from '@/stores/useAuthStore';
 import useCoinsCalculation from '@/hooks/useCoinsCalculation';
 import FallbackComponent from '@/components/Fallback';
+import H6 from '@/components/Typography/H6';
+import Subtitle from '@/components/Typography/Subtitle';
+import P from '@/components/Typography/P';
+import Button from '@/components/Button';
 
 interface CreateTrackFormProps {
   titleName: string;
@@ -195,9 +199,8 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
           >
             Назад
           </Button>
-          <TitleWrapper>
-            <Title>{titleName}</Title>
-          </TitleWrapper>
+
+          <H6 sx={{ textAlign: 'center' }}>{titleName}</H6>
 
           <FormField name={`${startNameForMemberField}.sound`} label="Звукач" isDisabled />
           <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
@@ -246,7 +249,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             />
           </div>
 
-          <SubParagraph>{`Доступно ${coinsForDubs} крихт`}</SubParagraph>
+          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForDubs} крихт`}</Subtitle>
 
           <CoinsCalculator coinsForDubs={isDoubleDubs ? coins.dub.double : coins.dub.multi} />
           <FormField
@@ -256,7 +259,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             maxLength={10}
           />
 
-          <SubParagraph>{`Доступно ${coinsForReleasers} крихт`}</SubParagraph>
+          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForReleasers} крихт`}</Subtitle>
           <FormField
             name={`${startNameForMemberField}.releasers`}
             label="Релізери"
@@ -285,29 +288,32 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             />
           )}
 
-          <Paragraph style={{ alignSelf: 'flex-start' }}>Нотатка:</Paragraph>
-          <TextField
-            {...register('note')}
-            placeholder="Не обов'язкове поле"
-            sx={{ width: '100%' }}
-            multiline
-            rows={4}
-          />
+          <div>
+            <P sx={{ alignSelf: 'flex-start' }}>Нотатка:</P>
+            <TextField
+              {...register('note')}
+              placeholder="Не обов'язкове поле"
+              sx={{ width: '100%' }}
+              multiline
+              rows={4}
+            />
+          </div>
 
           <Box>
             <CheckboxWrapper>
-              <Checkbox {...register('isOngoing')} />
-              <SubParagraph>Онґоїнґ</SubParagraph>
-
-              <Checkbox {...register('isPriority')} />
-              <SubParagraph>Пріоритет</SubParagraph>
-
-              <Checkbox {...register('isInTime')} />
-              <SubParagraph>Зроблено вчасно</SubParagraph>
+              <FormControlLabel label="Онґоїнґ" control={<Checkbox {...register(`isOngoing`)} />} />
+              <FormControlLabel
+                label="Пріоритет"
+                control={<Checkbox {...register('isPriority')} />}
+              />
+              <FormControlLabel
+                label="Зроблено вчасно"
+                control={<Checkbox {...register(`isInTime`)} />}
+              />
             </CheckboxWrapper>
           </Box>
 
-          <Button variant="contained" type="submit">
+          <Button type="submit" color="inherit">
             Зберегти
           </Button>
         </Box>

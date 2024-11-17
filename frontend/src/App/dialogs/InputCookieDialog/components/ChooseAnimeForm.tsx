@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Autocomplete, FormControl, MenuItem, TextField } from '@mui/material';
 
 import { ChooseAnimeFormValues } from '../types';
-import { DialogWrapper, ErrorText, FlexColumn, Title } from '../styles';
+import { DialogWrapper, FlexColumn } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import AddAnimeDialog from '../../AddAnimeDialog';
 import { FlexWrapper } from '@/components/ListCard/styles';
@@ -17,6 +17,8 @@ import useAnimeStore from '@/stores/useAnimeStore';
 import useTracksStore from '@/stores/useTracksStore';
 import { seasonOptions, yearOptions } from '@/consts';
 import { ANIME_TYPE } from '@/types';
+import H6 from '@/components/Typography/H6';
+import ErrorText from '@/components/Typography/ErrorText';
 
 interface FormProps {
   saveFormValues: (values: ChooseAnimeFormValues) => void;
@@ -107,8 +109,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmitForm)}>
         <DialogWrapper>
-          <Title>Назва тайтлу та номер епізоду</Title>
-
+          <H6>Назва тайтлу та номер епізоду</H6>
           <div>
             <FlexWrapper>
               <Controller
@@ -179,7 +180,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
             </FlexColumn>
           </div>
 
-          <Title>Тип аніме:</Title>
+          <H6>Тип аніме:</H6>
 
           <FormControl>
             <Controller
@@ -208,7 +209,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
           {watchAnimeType === ANIME_TYPE.SHORT_FILM && (
             <>
-              <Title>Тривалість (хв):</Title>
+              <H6>Тривалість (хв):</H6>
 
               <Controller
                 control={control}
@@ -235,7 +236,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
             </>
           )}
 
-          <Title>У якому сезоні робилося:</Title>
+          <H6>У якому сезоні робилося:</H6>
 
           <FlexWrapper>
             <FormControl sx={{ width: '50%' }}>

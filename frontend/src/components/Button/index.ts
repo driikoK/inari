@@ -15,9 +15,9 @@ const Button = styled(MuiButton).attrs({
   && {
     text-transform: none;
     ${({ theme }) =>
-    theme.mq({
-      fontSize: ["16px", "16px", "20px", "20px"],
-    })};
+      theme.mq({
+        fontSize: ['16px', '16px', '20px', '20px'],
+      })};
     font-weight: 600;
     color: ${({ $color }) => $color || '#161d16'};
     height: 44px;

@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 
 import Skeleton from '@mui/material/Skeleton';
 
-import { Container, ElementContainer, ElementImage, Title } from './styles';
+import { Container, ElementContainer, ElementImage } from './styles';
 import InputCookieDialog from '@/App/dialogs/InputCookieDialog';
 import { CreateAnimeAndMemberDialog } from '@/App/dialogs/CreateAnimeAndMemberDialog';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks/usePermissions';
+import Subtitle from '@/components/Typography/Subtitle';
 
 const Cookie: FunctionComponent = () => {
   const [openCookieDialog, setOpenCookieDialog] = useState(false);
@@ -107,7 +108,7 @@ const Card: FC<Props> = ({ isLoaded, onClick, imgUrl, title }) => {
       ) : (
         <ElementImage $url={imgUrl} />
       )}
-      <Title>{title}</Title>
+      <Subtitle>{title}</Subtitle>
     </ElementContainer>
   );
 };

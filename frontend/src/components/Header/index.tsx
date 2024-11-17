@@ -6,11 +6,12 @@ import MenuIcon from '@mui/icons-material/Menu';
 import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
 
-import { HeaderContainer, Logo, LogoWrapper, NavButton, NavWrapper, Paragraph } from './styles';
+import { HeaderContainer, Logo, LogoWrapper, NavButton, NavWrapper } from './styles';
 import theme from '@theme';
 import useAuthStore from '@/stores/useAuthStore';
 import { usePermissions } from '@/hooks/usePermissions';
 import { SUBJECTS } from '@/context/casl';
+import H5 from '../Typography/H5';
 
 const Header: FunctionComponent = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -52,7 +53,7 @@ const Header: FunctionComponent = () => {
     <HeaderContainer>
       <LogoWrapper onClick={() => handleLink('/home')}>
         <Logo />
-        <Paragraph>Inari</Paragraph>
+        <H5 sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>Inari</H5>
       </LogoWrapper>
       {isDesktop ? (
         <NavWrapper>

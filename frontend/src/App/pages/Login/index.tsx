@@ -19,8 +19,8 @@ import {
 
 import theme from '@theme';
 import useAuthStore from '@/stores/useAuthStore';
-import { Title } from '@/App/dialogs/CreateAnimeAndMemberDialog/styles';
-import { ErrorText } from '@/App/dialogs/InputCookieDialog/styles';
+import H6 from '@/components/Typography/H6';
+import ErrorText from '@/components/Typography/ErrorText';
 
 type FormValues = {
   nickname: string;
@@ -78,7 +78,7 @@ const Login: FC = () => {
               gap: '16px',
             }}
           >
-            <Title>{isSignUp ? 'Зареєструватися' : 'Увійти'}</Title>
+            <H6>{isSignUp ? 'Зареєструватися' : 'Увійти'}</H6>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'start' }}>
               <Controller

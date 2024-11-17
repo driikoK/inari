@@ -1,15 +1,16 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const Container = styled.div`
   display: flex;
   ${({ theme }) =>
     theme.mq({
-      flexDirection: ["column", "column", "row", "row"],
-  })};
+      flexDirection: ['column', 'column', 'row', 'row'],
+    })};
   align-items: center;
   justify-content: center;
   padding: 50px;
   gap: 30px;
+  flex-wrap: wrap;
 `;
 
 export const ElementImage = styled.div<{ $url: string }>`
@@ -18,6 +19,7 @@ export const ElementImage = styled.div<{ $url: string }>`
   height: 200px;
   width: 100%;
   border-radius: 18px;
+  aspect-ratio: 1;
 `;
 
 export const ElementContainer = styled.div`
@@ -30,12 +32,4 @@ export const ElementContainer = styled.div`
   gap: 8px;
   align-items: center;
   cursor: pointer;
-`;
-
-export const Title = styled.span`
-  font-family: ${({ theme }) => theme.font.family.montserrat};
-  color: black;
-  font-weight: 500;
-  font-size: 18px;
-  text-align: center;
 `;

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Box, Collapse, TextField, Typography, useMediaQuery } from '@mui/material';
+import { Box, Collapse, TextField, useMediaQuery } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import theme from '@theme';
+import P from '@/components/Typography/P';
 
 export const CoinsCalculator = ({ coinsForDubs }: { coinsForDubs: number }) => {
   const isTablet = useMediaQuery(theme.screens.tablet);
@@ -51,7 +52,7 @@ export const CoinsCalculator = ({ coinsForDubs }: { coinsForDubs: number }) => {
             cursor: 'pointer',
           }}
         >
-          <Typography>Калькулятор</Typography>
+          <P>Калькулятор</P>
 
           <KeyboardArrowDownIcon
             sx={{

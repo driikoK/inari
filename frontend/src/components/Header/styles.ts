@@ -28,13 +28,6 @@ export const NavWrapper = styled.div`
   align-items: center;
 `;
 
-export const Paragraph = styled.span`
-  font-family: ${({ theme }) => theme.font.family.montserrat};
-  color: white;
-  font-weight: bold;
-  font-size: 20px;
-`;
-
 export const Logo = styled.div`
   display: block;
   background-image: url(/logo.jpg);

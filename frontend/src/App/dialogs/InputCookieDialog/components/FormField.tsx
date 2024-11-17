@@ -19,11 +19,13 @@ import {
 } from '@mui/material';
 
 import { PlusMinusButton } from './PlusMinusButton';
-import { ErrorText, FieldContainer, FlexColumn, Paragraph } from '../styles';
+import { FieldContainer, FlexColumn } from '../styles';
 import theme from '@theme';
 import CreateUserDialog from '@/App/dialogs/CreateMemberDialog';
 import { MemberType } from '@/types';
 import useMembersStore from '@/stores/useMembersStore';
+import P from '@/components/Typography/P';
+import ErrorText from '@/components/Typography/ErrorText';
 
 export interface FormFieldProps {
   name: string;
@@ -45,7 +47,7 @@ export const FormField: FunctionComponent<FormFieldProps> = ({
 
   return (
     <Box>
-      <Paragraph>{label}:</Paragraph>
+      <P>{label}:</P>
 
       {isArray ? (
         <ArrayField
