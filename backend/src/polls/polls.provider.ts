@@ -1,6 +1,5 @@
 import { Mongoose } from 'mongoose';
-import { VoteSchema } from './schemas/vote.schema';
-import { AnimeSchema } from './schemas/anime.schema';
+import { VoteSchema, AnimeSchema } from './schemas';
 
 export const pollsProviders = [
   {
@@ -9,8 +8,9 @@ export const pollsProviders = [
     inject: ['DATABASE_CONNECTION'],
   },
   {
-    provide: 'ANIME_MODEL',
-    useFactory: (mongoose: Mongoose) => mongoose.model('Anime', AnimeSchema),
+    provide: 'ANIME_FOR_VOTING_MODEL',
+    useFactory: (mongoose: Mongoose) =>
+      mongoose.model('Anime_for_voting', AnimeSchema),
     inject: ['DATABASE_CONNECTION'],
   },
 ];

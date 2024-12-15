@@ -1,96 +1,66 @@
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+
 import {
-  Body,
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthGuard, CurrentUser } from '@auth/auth.guard';
+import { ValidatedUser } from '@users/interfaces/user.interface';
+import { CreateAnimeData, VoteData } from './data';
 import { PollsService } from './polls.service';
-import { IAnime } from './interfaces/anime.interface';
-import { ApiTags } from '@nestjs/swagger';
-import { AnimeData } from './data/anime.data';
-import { AuthGuard } from '@auth/auth.guard';
+import { IAnime } from './interfaces';
 
 @ApiTags('Polls')
 @Controller('polls')
+@ApiBearerAuth()
 export class PollsController {
   constructor(private readonly pollsService: PollsService) {}
 
-  @Get('/ongoings')
+  @Get('/animes')
   @UseGuards(AuthGuard)
-  async getOngoings(): Promise<IAnime[]> {
-    try {
-      const anime = await this.pollsService.findAnimeByIsOngoing(true);
-      return anime;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+  @ApiOperation({ summary: 'Get all animes for voting' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  async getAllAnimes(): Promise<{ ongoings: IAnime[]; olds: IAnime[] }> {
+    return this.pollsService.findAll();
   }
 
-  @Get('/olds')
+  // TODO: fix examples in swagger
+  @Post('/add-anime')
   @UseGuards(AuthGuard)
-  async getOlds(): Promise<IAnime[]> {
-    try {
-      const anime = await this.pollsService.findAnimeByIsOngoing(false);
-      return anime;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+  @ApiOperation({ summary: 'Add anime for voting' })
+  async createAnime(@Body() anime: CreateAnimeData): Promise<boolean> {
+    await this.pollsService.createAnime(anime);
+    return true;
   }
 
-  @Get('/result')
-  @UseGuards(AuthGuard)
-  async findResult(): Promise<any> {
-    try {
-      const anime = await this.pollsService.getVoteResult();
-      return anime;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
-  }
-
+  // TODO: fix examples in swagger
   @Post('/vote')
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Vote for an anime' })
+  @ApiBody({ type: VoteData })
   async vote(
-    @Body() body: { userName: string; animeIds: number[] },
+    @CurrentUser() user: ValidatedUser,
+    @Body() voteData: VoteData,
   ): Promise<boolean> {
-    try {
-      await this.pollsService.vote(body.userName, body.animeIds);
-      return true;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+    await this.pollsService.vote(user.username, voteData.animeIds);
+    return true;
   }
 
   @Post('/clear-poll')
   @UseGuards(AuthGuard)
-  async claerPoll(): Promise<boolean> {
-    try {
-      await this.pollsService.clearAllAnimesAndVotes();
-      return true;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+  @ApiOperation({ summary: 'Clear results' })
+  async clearPolls(): Promise<boolean> {
+    await this.pollsService.clearAllAnimesAndVotes();
+    return true;
   }
 
-  @Post('/set-anime')
+  @Get('/result')
   @UseGuards(AuthGuard)
-  async setAnime(@Body('animeList') animeList: AnimeData[]): Promise<boolean> {
-    try {
-      for (const anime of animeList) {
-        await this.pollsService.createAnime(anime);
-      }
-      return true;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+  @ApiOperation({ summary: 'Get voting results' })
+  async findResult(): Promise<any> {
+    return this.pollsService.getVoteResult();
   }
 }

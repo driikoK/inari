@@ -1,30 +1,51 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { IVote } from './interfaces/vote.interface';
-import { IAnime } from './interfaces/anime.interface';
-import { AnimeData } from './data/anime.data';
+
+import { IVote, IAnime } from './interfaces';
+import { AnimeData, CreateAnimeData } from './data';
 
 @Injectable()
 export class PollsService {
   constructor(
-    @Inject('ANIME_MODEL') private animeModel: Model<IAnime>,
+    @Inject('ANIME_FOR_VOTING_MODEL') private animeModel: Model<IAnime>,
     @Inject('VOTE_MODEL') private voteModel: Model<IVote>,
   ) {}
 
-  async createAnime(animeTemplate: AnimeData) {
+  async createAnime(animeTemplate: AnimeData): Promise<IAnime> {
     try {
       const anime = new this.animeModel(animeTemplate);
       return await anime.save();
-    } catch (e) {
-      throw new Error(e);
+    } catch (error) {
+      throw new HttpException(
+        'Не вдалося створити аніме',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-  async findAnimeByIsOngoing(isOngoing: boolean): Promise<IAnime[]> {
+  async createManyAnimes(animeList: CreateAnimeData[]): Promise<void> {
     try {
-      return await this.animeModel.find({ isOngoing }).exec();
-    } catch (e) {
-      throw new Error(e);
+      await this.animeModel.insertMany(animeList);
+    } catch (error) {
+      throw new HttpException(
+        'Не вдалося створити список аніме',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findAll(): Promise<{ ongoings: IAnime[]; olds: IAnime[] }> {
+    try {
+      const [ongoings, olds] = await Promise.all([
+        this.animeModel.find({ isOngoing: true }).exec(),
+        this.animeModel.find({ isOngoing: false }).exec(),
+      ]);
+      return { ongoings, olds };
+    } catch (error) {
+      throw new HttpException(
+        'Не вдалося отримати список аніме',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -35,67 +56,72 @@ export class PollsService {
         .populate('votes')
         .exec();
 
-      animeWithVotes.sort((a, b) => b.getTotalVotes() - a.getTotalVotes());
-
-      return animeWithVotes.map((anime) => ({
-        anime,
-        voteCount: anime.getTotalVotes(),
-      }));
-    } catch (e) {
-      throw new Error(e);
+      return animeWithVotes
+        .sort((a, b) => b.getTotalVotes() - a.getTotalVotes())
+        .map((anime) => ({
+          anime,
+          voteCount: anime.getTotalVotes(),
+        }));
+    } catch (error) {
+      throw new HttpException(
+        'Не вдалося отримати результати голосування',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-  async vote(userName: string, animeIds: number[]): Promise<IVote[]> {
+  async vote(userName: string, animeIds: string[]): Promise<IVote[]> {
+    const votes: IVote[] = [];
+
     try {
-      if (!animeIds.length) {
-        throw new Error('animeIds is empty');
+      const existingVote = await this.voteModel.findOne({ userName }).exec();
+      if (existingVote) {
+        throw new HttpException('Ви вже проголосували', HttpStatus.BAD_REQUEST);
       }
 
-      if (animeIds.length > 5) {
-        throw new Error('The user selected more 5 anime');
-      }
-
-      const validUserName = await this.voteModel
-        .findOne({ userName: userName.toLowerCase() })
+      const animes = await this.animeModel
+        .find({ _id: { $in: animeIds } })
         .exec();
 
-      if (validUserName) {
-        throw new Error('The user has already voted');
+      if (animes.length !== animeIds.length) {
+        throw new HttpException(
+          'Такого аніме немає в списку',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
-      const votes: IVote[] = [];
-
-      for (const animeId of animeIds) {
-        const anime = await this.animeModel.findById(animeId).exec();
-
-        if (!anime) {
-          throw new Error('Anime not found');
-        }
-
-        const vote = new this.voteModel({
-          userName: userName.toLowerCase(),
-          anime,
-        });
+      for (const anime of animes) {
+        const vote = new this.voteModel({ userName, anime });
         const savedVote = await vote.save();
+
         await this.animeModel.findByIdAndUpdate(anime._id, {
-          $push: { votes: savedVote },
+          $push: { votes: savedVote._id },
         });
         votes.push(savedVote);
       }
 
       return votes;
-    } catch (e) {
-      throw new Error(e);
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new HttpException(
+            'Не вдалося проголосувати',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
     }
   }
 
   async clearAllAnimesAndVotes(): Promise<void> {
     try {
-      await this.voteModel.deleteMany({});
-      await this.animeModel.deleteMany({});
-    } catch (e) {
-      throw new Error(e);
+      await Promise.all([
+        this.voteModel.deleteMany({}),
+        this.animeModel.deleteMany({}),
+      ]);
+    } catch (error) {
+      throw new HttpException(
+        'Не можливо очистити списки',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
