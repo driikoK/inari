@@ -7,13 +7,13 @@ import { AnimeData, CreateAnimeData } from './data';
 @Injectable()
 export class PollsService {
   constructor(
-    @Inject('ANIME_FOR_VOTING_MODEL') private animeModel: Model<IAnime>,
+    @Inject('POLL_ANIME_MODEL') private pollAnimeModel: Model<IAnime>,
     @Inject('VOTE_MODEL') private voteModel: Model<IVote>,
   ) {}
 
   async createAnime(animeTemplate: AnimeData): Promise<IAnime> {
     try {
-      const anime = new this.animeModel(animeTemplate);
+      const anime = new this.pollAnimeModel(animeTemplate);
       return await anime.save();
     } catch (error) {
       throw new HttpException(
@@ -25,7 +25,7 @@ export class PollsService {
 
   async createManyAnimes(animeList: CreateAnimeData[]): Promise<void> {
     try {
-      await this.animeModel.insertMany(animeList);
+      await this.pollAnimeModel.insertMany(animeList);
     } catch (error) {
       throw new HttpException(
         'Не вдалося створити список аніме',
@@ -37,8 +37,8 @@ export class PollsService {
   async findAll(): Promise<{ ongoings: IAnime[]; olds: IAnime[] }> {
     try {
       const [ongoings, olds] = await Promise.all([
-        this.animeModel.find({ isOngoing: true }).exec(),
-        this.animeModel.find({ isOngoing: false }).exec(),
+        this.pollAnimeModel.find({ isOngoing: true }).exec(),
+        this.pollAnimeModel.find({ isOngoing: false }).exec(),
       ]);
       return { ongoings, olds };
     } catch (error) {
@@ -51,7 +51,7 @@ export class PollsService {
 
   async getVoteResult(): Promise<{ anime: IAnime; voteCount: number }[]> {
     try {
-      const animeWithVotes = await this.animeModel
+      const animeWithVotes = await this.pollAnimeModel
         .find()
         .populate('votes')
         .exec();
@@ -79,7 +79,7 @@ export class PollsService {
         throw new HttpException('Ви вже проголосували', HttpStatus.BAD_REQUEST);
       }
 
-      const animes = await this.animeModel
+      const animes = await this.pollAnimeModel
         .find({ _id: { $in: animeIds } })
         .exec();
 
@@ -94,7 +94,7 @@ export class PollsService {
         const vote = new this.voteModel({ userName, anime });
         const savedVote = await vote.save();
 
-        await this.animeModel.findByIdAndUpdate(anime._id, {
+        await this.pollAnimeModel.findByIdAndUpdate(anime._id, {
           $push: { votes: savedVote._id },
         });
         votes.push(savedVote);
@@ -115,7 +115,7 @@ export class PollsService {
     try {
       await Promise.all([
         this.voteModel.deleteMany({}),
-        this.animeModel.deleteMany({}),
+        this.pollAnimeModel.deleteMany({}),
       ]);
     } catch (error) {
       throw new HttpException(

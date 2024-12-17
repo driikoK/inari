@@ -8,9 +8,9 @@ export const pollsProviders = [
     inject: ['DATABASE_CONNECTION'],
   },
   {
-    provide: 'ANIME_FOR_VOTING_MODEL',
+    provide: 'POLL_ANIME_MODEL',
     useFactory: (mongoose: Mongoose) =>
-      mongoose.model('Anime_for_voting', AnimeSchema),
+      mongoose.model('poll_anime', AnimeSchema),
     inject: ['DATABASE_CONNECTION'],
   },
 ];
