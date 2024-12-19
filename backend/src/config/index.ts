@@ -11,5 +11,4 @@ export default {
     host: process.env.MONGO_HOST || 'localhost',
   },
   cors: process.env.CORS,
-  coinsPass: process.env.COINS_PASSWORD,
 };
