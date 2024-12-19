@@ -9,7 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard, CurrentUser } from '@auth/auth.guard';
 import { ValidatedUser } from '@users/interfaces/user.interface';
-import { CreateAnimeData, VoteData } from './data';
+import { AnimeData, CreateAnimeData, VoteData } from './data';
 import { PollsService } from './polls.service';
 import { IAnime } from './interfaces';
 
@@ -31,9 +31,8 @@ export class PollsController {
   @Post('/add-anime')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Add anime for voting' })
-  async createAnime(@Body() anime: CreateAnimeData): Promise<boolean> {
-    await this.pollsService.createAnime(anime);
-    return true;
+  async createAnime(@Body() anime: CreateAnimeData): Promise<AnimeData> {
+    return this.pollsService.createAnime(anime);
   }
 
   // TODO: fix examples in swagger

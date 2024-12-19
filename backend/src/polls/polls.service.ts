@@ -11,10 +11,11 @@ export class PollsService {
     @Inject('VOTE_MODEL') private voteModel: Model<IVote>,
   ) {}
 
-  async createAnime(animeTemplate: AnimeData): Promise<IAnime> {
+  async createAnime(animeData: AnimeData): Promise<AnimeData> {
     try {
-      const anime = new this.pollAnimeModel(animeTemplate);
-      return await anime.save();
+      await this.pollAnimeModel.create(animeData);
+
+      return animeData;
     } catch (error) {
       throw new HttpException(
         'Не вдалося створити аніме',
