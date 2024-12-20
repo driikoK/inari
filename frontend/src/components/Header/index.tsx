@@ -49,6 +49,9 @@ const Header: FunctionComponent = () => {
     handleCloseMenu();
   }, [isDesktop]);
 
+  const isShowPoll = process.env.VITE_FEATURE_POLL === 'true';
+  const isShowResults = process.env.VITE_FEATURE_RESULTS === 'true';
+
   return (
     <HeaderContainer>
       <LogoWrapper onClick={() => handleLink('/home')}>
@@ -60,7 +63,11 @@ const Header: FunctionComponent = () => {
           {isLoggedIn ? (
             <>
               <NavButton onClick={() => handleLink('/cookie')}>Крихти</NavButton>
-              {/* <NavButton onClick={() => handleLink('/vote')}>Голосування</NavButton> */}
+
+              {isShowPoll && <NavButton onClick={() => handleLink('/vote')}>Голосування</NavButton>}
+              {isShowResults && (
+                <NavButton onClick={() => handleLink('/result')}>Результати</NavButton>
+              )}
               {isAdmin && (
                 <NavButton onClick={() => handleLink('/settings')}>Налаштування</NavButton>
               )}
@@ -84,7 +91,10 @@ const Header: FunctionComponent = () => {
               </IconButton>
               <Menu anchorEl={anchorEl} open={open} onClose={handleCloseMenu}>
                 <MenuItem onClick={() => handleLink('/cookie')}>Крихти</MenuItem>
-                {/* <MenuItem onClick={() => handleLink('/vote')}>Голосування</MenuItem> */}
+                {isShowPoll && <MenuItem onClick={() => handleLink('/vote')}>Голосування</MenuItem>}
+                {isShowResults && (
+                  <MenuItem onClick={() => handleLink('/result')}>Результати</MenuItem>
+                )}
                 {isAdmin && (
                   <MenuItem onClick={() => handleLink('/settings')}>Налаштування</MenuItem>
                 )}

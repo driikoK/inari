@@ -2,7 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const instance = axios.create({
-  baseURL: `${process.env.API_URL}`,
+  baseURL: `${process.env.VITE_API_URL}`,
 });
 
 instance.interceptors.request.use(

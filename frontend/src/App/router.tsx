@@ -25,14 +25,22 @@ const routes: RouteObject[] = [
         path: 'login',
         element: <Login />,
       },
-      {
-        path: 'vote',
-        element: <Vote />,
-      },
-      {
-        path: 'result',
-        element: <Result />,
-      },
+      ...(process.env.VITE_FEATURE_POLL === 'true'
+        ? [
+            {
+              path: 'vote',
+              element: <Vote />,
+            },
+          ]
+        : []),
+      ...(process.env.VITE_FEATURE_RESULTS === 'true'
+        ? [
+            {
+              path: 'result',
+              element: <Result />,
+            },
+          ]
+        : []),
       {
         path: 'cookie',
         element: <Cookie />,
