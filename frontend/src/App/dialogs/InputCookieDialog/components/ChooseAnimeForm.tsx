@@ -6,10 +6,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Autocomplete, FormControl, MenuItem, TextField } from '@mui/material';
 
 import { ChooseAnimeFormValues } from '../types';
-import { DialogWrapper, FlexColumn } from '../styles';
+import { DialogWrapper, FlexColumn, FlexRow } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import AddAnimeDialog from '../../AddAnimeDialog';
-import { FlexWrapper } from '@/components/ListCard/styles';
 import Button from '@components/Button';
 import SelectField from '@/components/SelectField';
 import useMembersStore from '@/stores/useMembersStore';
@@ -111,7 +110,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
         <DialogWrapper>
           <H6>Назва тайтлу та номер епізоду</H6>
           <div>
-            <FlexWrapper>
+            <FlexRow>
               <Controller
                 control={control}
                 name="titleName"
@@ -164,7 +163,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                   />
                 )}
               />
-            </FlexWrapper>
+            </FlexRow>
 
             <FlexColumn>
               <ErrorMessage
@@ -238,7 +237,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
           <H6>У якому сезоні робилося:</H6>
 
-          <FlexWrapper>
+          <FlexRow>
             <FormControl sx={{ width: '50%' }}>
               <Controller
                 control={control}
@@ -288,7 +287,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                 render={({ message }) => <ErrorText>{message}</ErrorText>}
               />
             </FormControl>
-          </FlexWrapper>
+          </FlexRow>
 
           <Button type="submit" color="inherit">
             Далі

@@ -4,8 +4,7 @@ import toast from 'react-hot-toast';
 import { Button, DialogProps, IconButton, TextField } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 
-import { DialogWrapper } from './styles';
-import { DialogContainer } from '../InfoDialog/styles';
+import { DialogContainer, DialogWrapper } from './styles';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useMembersStore from '@/stores/useMembersStore';
 import H6 from '@/components/Typography/H6';

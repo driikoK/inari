@@ -51,3 +51,9 @@ export const FlexColumn = styled.div`
   justify-content: center;
   gap: 8px;
 `;
+
+export const FlexRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+`;
