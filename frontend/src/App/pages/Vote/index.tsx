@@ -1,179 +1,116 @@
-import { FunctionComponent, useEffect, useState } from 'react';
-import Card from '../../../components/Card';
-import {
-  ButtonWrapper,
-  CardsWrapper,
-  PageContainer,
-  PageWrapper,
-  SubmitButton,
-  Title,
-  TitleWrapper,
-} from './styles';
-import { TAnime } from '../../../types';
-import InfoDialog from '../../dialogs/InfoDialog';
-import InputDialog from '../../dialogs/InputDialog';
+import { FC, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import * as Yup from 'yup';
+import { ErrorMessage } from '@hookform/error-message';
+import { yupResolver } from '@hookform/resolvers/yup';
+import Button from '@mui/material/Button';
+
 import axios from '@/api';
+import ErrorText from '@/components/Typography/ErrorText';
+import usePollStore from '@/stores/usePollStore';
+import PollSection from './PollSection';
+import { PageWrapper, SubmitButton } from './styles';
+import AddPollAnimeDialog from '@/App/dialogs/AddPollAnimeDialog';
+import { usePermissions } from '@/hooks/usePermissions';
+import { SUBJECTS } from '@/context/casl';
 
-const Vote: FunctionComponent = () => {
-  const [selectedCards, setSelectedCards] = useState<string[]>([]);
-  const [ongoingsData, setOngoinsData] = useState<TAnime[]>([]);
-  const [oldsData, setOldsData] = useState<TAnime[]>([]);
-  const [openInfoDialog, setOpenInfoDialog] = useState(false);
-  const [openInputDialog, setOpenIputDialog] = useState(false);
-  const [dialogText, setDialogText] = useState('');
+const createChooseAnimeForm = () =>
+  Yup.object().shape({
+    animeIds: Yup.array()
+      .of(Yup.string().required())
+      .min(1, 'Виберіть хоча б один тайтл')
+      .required('Це поле обов’язкове'),
+  });
+
+const chooseAnimeInitialFormValues = {
+  animeIds: [],
+};
+
+export interface ChosenAnimes {
+  animeIds: string[];
+}
+
+const Vote: FC = () => {
+  const { getAnime, animes, isLoading } = usePollStore();
+  const { hasAccess } = usePermissions();
+
   const [loadingButton, setLoadingButton] = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
-  const [userName, setUserName] = useState('');
+  const [isShowAddPollAnime, setIsShowAddPollAnime] = useState(false);
 
-  const handleInfoDialogClose = () => {
-    setOpenInfoDialog(false);
-  };
-
-  const handleInputDialogClose = () => {
-    setOpenIputDialog(false);
-  };
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ChosenAnimes>({
+    defaultValues: chooseAnimeInitialFormValues,
+    resolver: yupResolver(createChooseAnimeForm()),
+    mode: 'onChange',
+  });
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoadingData(true);
-      setOpenIputDialog(true);
-      try {
-        const response = await axios.get(`/polls/ongoings`);
-        setOngoinsData(response.data);
-
-        const oldsResponse = await axios.get(`/polls/olds`);
-        setOldsData(oldsResponse.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setOpenInfoDialog(true);
-        setDialogText('Сервер пішов спати 😪');
-      } finally {
-        setLoadingData(false);
-      }
-    };
-
-    fetchData();
+    getAnime();
   }, []);
 
-  const handleCheckboxChange = (id: string) => {
-    if (selectedCards.includes(id)) {
-      setSelectedCards(selectedCards.filter((item) => item !== id));
-    } else {
-      setSelectedCards([...selectedCards, id]);
-    }
-  };
-
-  const handleSubmit = async () => {
+  const onSubmit = async (formData: ChosenAnimes) => {
     setLoadingButton(true);
+
     try {
-      if (!selectedCards.length) {
-        setOpenInfoDialog(true);
-        setDialogText('Ти не обрав(-ла) жодного аніме 😶');
-      } else if (selectedCards.length > 5) {
-        setOpenInfoDialog(true);
-        setDialogText('Ти обрав(-ла) більше 5 аніме 😶');
-      } else {
-        const requestBody = {
-          userName,
-          animeIds: selectedCards,
-        };
+      const requestBody = {
+        animeIds: formData.animeIds,
+      };
 
-        const voteResponse = await fetch(`${process.env.API_URL}/polls/vote`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody),
-        });
+      await axios.post(`/polls/vote`, requestBody);
 
-        if (voteResponse.ok) {
-          // Success
-          setOpenInfoDialog(true);
-          setDialogText('Дякую за участь 🥰');
-        } else {
-          // Handle error responses
-          const errorMessage = await voteResponse.text();
-          const errorObject = JSON.parse(errorMessage);
-
-          if (errorObject.message === 'Error: The user has already voted') {
-            setOpenInfoDialog(true);
-            setDialogText('Ти вже голосував(-ла) 🤨');
-          } else {
-            setOpenInfoDialog(true);
-            setDialogText('Якась помилка 😰');
-          }
-        }
-      }
+      toast.success('Дякую за участь 🥰');
     } catch (error) {
-      console.error('Error fetching IP address or voting:', error);
     } finally {
       setLoadingButton(false);
     }
   };
 
   return (
-    <PageContainer>
-      <PageWrapper>
-        <TitleWrapper>
-          <Title>Онґоїнґи</Title>
-        </TitleWrapper>
-        <CardsWrapper>
-          {loadingData ? (
-            <Title>Завантаження...</Title>
-          ) : (
-            ongoingsData.map((card) => (
-              <Card
-                key={card._id}
-                name={card.name}
-                link={card.link}
-                posterUrl={card.posterUrl}
-                checked={selectedCards.includes(card._id)}
-                isPriority={card.isPriority}
-                isDecided={card.isDecided}
-                isSponsored={card.isSponsored}
-                onCheckboxChange={() => handleCheckboxChange(card._id)}
-              />
-            ))
-          )}
-        </CardsWrapper>
-        <TitleWrapper>
-          <Title>Старі тайтли</Title>
-        </TitleWrapper>
-        <CardsWrapper>
-          {loadingData ? (
-            <Title>Завантаження...</Title>
-          ) : (
-            oldsData.map((card) => (
-              <Card
-                key={card._id}
-                name={card.name}
-                link={card.link}
-                posterUrl={card.posterUrl}
-                checked={selectedCards.includes(card._id)}
-                isPriority={card.isPriority}
-                isDecided={card.isDecided}
-                isSponsored={card.isSponsored}
-                onCheckboxChange={() => handleCheckboxChange(card._id)}
-              />
-            ))
-          )}
-        </CardsWrapper>
-        {ongoingsData.length !== 0 || oldsData.length !== 0 ? (
-          <ButtonWrapper>
-            <SubmitButton variant="contained" onClick={handleSubmit}>
-              {loadingButton ? 'Завантаження...' : 'Проголосувати'}
-            </SubmitButton>
-          </ButtonWrapper>
-        ) : null}
-        <InfoDialog open={openInfoDialog} text={dialogText} onClose={handleInfoDialogClose} />
-        <InputDialog
-          open={openInputDialog}
-          userName={userName}
-          onSubmit={setUserName}
-          onClose={handleInputDialogClose}
+    <PageWrapper>
+      {hasAccess(SUBJECTS.ADD_POLL_ANIME) && (
+        <Button variant="contained" onClick={() => setIsShowAddPollAnime(true)} sx={{ mb: 2 }}>
+          Додати для голосування
+        </Button>
+      )}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <ErrorMessage
+          errors={errors}
+          name="animeIds"
+          render={({ message }) => <ErrorText>{message}</ErrorText>}
         />
-      </PageWrapper>
-    </PageContainer>
+
+        <PollSection
+          control={control}
+          animes={animes?.ongoings}
+          sectionTitle="Онґоїнґи"
+          isLoading={isLoading}
+        />
+
+        <PollSection
+          control={control}
+          animes={animes?.olds}
+          sectionTitle="Старі тайтли"
+          isLoading={isLoading}
+        />
+
+        {animes?.ongoings.length !== 0 || animes?.olds.length !== 0 ? (
+          <SubmitButton variant="contained" type="submit">
+            {loadingButton ? 'Завантаження...' : 'Проголосувати'}
+          </SubmitButton>
+        ) : null}
+      </form>
+
+      {isShowAddPollAnime && (
+        <AddPollAnimeDialog
+          open={isShowAddPollAnime}
+          onClose={() => setIsShowAddPollAnime(false)}
+        />
+      )}
+    </PageWrapper>
   );
 };
 

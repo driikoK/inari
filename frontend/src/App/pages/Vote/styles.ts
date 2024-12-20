@@ -1,42 +1,29 @@
-import { Button } from "@mui/material";
-import styled from "styled-components";
-
-export const PageContainer = styled.div`
-  background-color: ${({ theme }) => theme.colors.background};
-  position: relative;
-`;
+import { Button } from '@mui/material';
+import styled from 'styled-components';
 
 export const PageWrapper = styled.div`
   ${({ theme }) =>
     theme.mq({
-      padding: ["16px", "16px", "20px 80px", "20px 80px"],
-  })};
+      padding: ['16px', '16px', '20px 80px', '20px 80px'],
+    })};
 `;
 
 export const CardsWrapper = styled.div`
   display: grid;
   flex-wrap: wrap;
   margin: 20px 0px 20px 0px;
+  grid-gap: 25px;
   ${({ theme }) =>
     theme.mq({
+      justifyItems: ['center', 'center', 'start', 'start'],
+      gap: ['10px', '10px', '25px', '25px'],
       gridTemplateColumns: [
-        "repeat(auto-fill, minmax(150px, 1fr))", 
-        "repeat(auto-fill, minmax(150px, 1fr))", 
-        "repeat(auto-fill, minmax(225px, 1fr))", 
-        "repeat(auto-fill, minmax(225px, 1fr))"],
-  })};
-  justify-items: center;
-  ${({ theme }) =>
-    theme.mq({
-      gap: ["16px 6px", "16px 6px", "16px 12px", "16px 12px"],
-  })};
-`;
-
-export const Title = styled.span`
-  font-family: ${({ theme }) => theme.font.family.montserrat};
-  color: white;
-  font-weight: 500;
-  font-size: 16px;
+        'repeat(1, minmax(200px, 1fr))',
+        'repeat(1, minmax(200px, 1fr))',
+        'repeat(auto-fill, minmax(225px, 1fr))',
+        'repeat(auto-fill, minmax(225px, 1fr))',
+      ],
+    })};
 `;
 
 export const TitleWrapper = styled.div`
@@ -47,21 +34,14 @@ export const TitleWrapper = styled.div`
   justify-content: center;
 `;
 
-export const ButtonWrapper = styled.div`
+export const SubmitButton = styled(Button)`
   position: fixed !important;
   bottom: 20px;
-  ${({ theme }) =>
-    theme.mq({
-      right: ["16px", "16px", "100px", "100px"],
-  })};
-`;
-
-export const SubmitButton = styled(Button)`
-  &&{
+  && {
     ${({ theme }) =>
-    theme.mq({
-      fontSize: ["16px", "16px", "20px", "20px"],
-    })};
-    font-weight: 600;
+      theme.mq({
+        right: ['16px', '16px', '100px', '100px'],
+        fontSize: ['16px', '16px', '20px', '20px'],
+      })};
   }
 `;

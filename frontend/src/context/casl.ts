@@ -9,6 +9,8 @@ export enum SUBJECTS {
   RATING_VIEW = 'rating-view',
   PERMISSION_EDIT = 'permissions-edit',
   COOKIES_RATINGS_EDIT = 'cookies-ratings-edit',
+  ADD_POLL_ANIME = 'add-poll-anime',
+  DELETE_POLL_ANIME = 'delete-poll-anime',
 }
 
 export enum ROLE {
