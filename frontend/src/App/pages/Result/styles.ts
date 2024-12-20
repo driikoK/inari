@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const PageContainer = styled.div`
   background-color: ${({ theme }) => theme.colors.background};
@@ -8,8 +8,8 @@ export const PageContainer = styled.div`
 export const PageWrapper = styled.div`
   ${({ theme }) =>
     theme.mq({
-      padding: ["16px", "16px", "20px 80px", "20px 80px"],
-  })};
+      padding: ['16px', '16px', '20px 80px', '20px 80px'],
+    })};
 `;
 
 export const ListsWrapper = styled.div`
@@ -17,13 +17,6 @@ export const ListsWrapper = styled.div`
   flex-direction: column;
   margin: 20px 0px 20px 0px;
   gap: 20px;
-`;
-
-export const Title = styled.span`
-  font-family: ${({ theme }) => theme.font.family.montserrat};
-  color: white;
-  font-weight: 500;
-  font-size: 16px;
 `;
 
 export const TitleWrapper = styled.div`

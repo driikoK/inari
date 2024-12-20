@@ -1,31 +1,25 @@
-import { FunctionComponent, useEffect, useState } from 'react';
-import { ListsWrapper, PageContainer, PageWrapper, Title, TitleWrapper } from './styles';
-import { TResultAnime } from '../../../types';
-import InfoDialog from '../../dialogs/InfoDialog';
-import List from '../../../components/List';
+import { FC, useEffect, useState } from 'react';
+import CircularProgress from '@mui/material/CircularProgress';
 
-const Result: FunctionComponent = () => {
+import { ListsWrapper, PageContainer, PageWrapper, TitleWrapper } from './styles';
+import List from './List';
+
+import { TResultAnime } from '@/types';
+import axios from '@/api';
+import H6 from '@/components/Typography/H6';
+
+const Result: FC = () => {
   const [data, setData] = useState<TResultAnime[]>([]);
   const [loadingData, setLoadingData] = useState(false);
-  const [openInfoDialog, setOpenInfoDialog] = useState(false);
-  const [dialogText, setDialogText] = useState('');
-
-  const handleInfoDialogClose = () => {
-    setOpenInfoDialog(false);
-  };
 
   useEffect(() => {
     setLoadingData(true);
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.API_URL}/polls/result`);
-        const result = await response.json();
-        setData(result);
-        console.log(result);
+        const response = await axios.get(`/polls/result`);
+
+        setData(response.data);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setOpenInfoDialog(true);
-        setDialogText('Сервер пішов спати 😪');
       } finally {
         setLoadingData(false);
       }
@@ -38,18 +32,17 @@ const Result: FunctionComponent = () => {
     <PageContainer>
       <PageWrapper>
         <TitleWrapper>
-          <Title>Результати</Title>
+          <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>Результати</H6>
         </TitleWrapper>
         <ListsWrapper>
           {loadingData ? (
-            <Title>Завантаження...</Title>
+            <CircularProgress />
           ) : (
             data.map((item) => (
               <List key={item.anime._id} anime={item.anime} voteCount={item.voteCount} />
             ))
           )}
         </ListsWrapper>
-        <InfoDialog open={openInfoDialog} text={dialogText} onClose={handleInfoDialogClose} />
       </PageWrapper>
     </PageContainer>
   );
