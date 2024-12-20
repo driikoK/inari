@@ -5,7 +5,7 @@ import { MemberData } from '@members/data/member.data';
 import { MembersService } from '@members/members.service';
 import { animeSeries } from './datas/anime.data';
 import { PollsService } from 'src/polls/polls.service';
-import { AnimeData } from 'src/polls/data/anime.data';
+import { CreateAnimeData } from 'src/polls/data';
 
 @Injectable()
 export class SeedCommand {
@@ -20,7 +20,7 @@ export class SeedCommand {
   })
   async anime() {
     for (const anime of animeSeries) {
-      const animeTemplate = Object.assign(new AnimeData(), anime);
+      const animeTemplate = Object.assign(new CreateAnimeData(), anime);
       await this.pollsService.createAnime(animeTemplate);
     }
   }
