@@ -1,6 +1,6 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose from 'mongoose';
 
-export interface IAnime extends Document {
+export interface PollAnime {
   name: string;
   link: string;
   posterUrl: string;
@@ -12,3 +12,5 @@ export interface IAnime extends Document {
 
   getTotalVotes(): number;
 }
+
+export interface PollAnimeWithoutVotes extends Omit<PollAnime, 'votes'> {}

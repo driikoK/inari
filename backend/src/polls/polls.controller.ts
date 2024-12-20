@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 
 import {
   ApiBearerAuth,
@@ -9,9 +17,9 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard, CurrentUser } from '@auth/auth.guard';
 import { ValidatedUser } from '@users/interfaces/user.interface';
-import { AnimeData, CreateAnimeData, VoteData } from './data';
+import { CreateAnimeData, VoteData } from './data';
 import { PollsService } from './polls.service';
-import { IAnime } from './interfaces';
+import { PollAnimeWithoutVotes, Result } from './interfaces';
 
 @ApiTags('Polls')
 @Controller('polls')
@@ -23,7 +31,10 @@ export class PollsController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get all animes for voting' })
   @ApiResponse({ status: 200, description: 'Success' })
-  async getAllAnimes(): Promise<{ ongoings: IAnime[]; olds: IAnime[] }> {
+  async getAllAnimes(): Promise<{
+    ongoings: PollAnimeWithoutVotes[];
+    olds: PollAnimeWithoutVotes[];
+  }> {
     return this.pollsService.findAll();
   }
 
@@ -31,7 +42,7 @@ export class PollsController {
   @Post('/add-anime')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Add anime for voting' })
-  async createAnime(@Body() anime: CreateAnimeData): Promise<AnimeData> {
+  async createAnime(@Body() anime: CreateAnimeData): Promise<CreateAnimeData> {
     return this.pollsService.createAnime(anime);
   }
 
@@ -59,7 +70,14 @@ export class PollsController {
   @Get('/result')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get voting results' })
-  async findResult(): Promise<any> {
+  async findResult(): Promise<Result[]> {
     return this.pollsService.getVoteResult();
+  }
+
+  @Delete('/animes/:id')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Delete poll anime' })
+  async deleteTeamAnime(@Param('id') id: string): Promise<boolean> {
+    return this.pollsService.deleteTeamAnime(id);
   }
 }

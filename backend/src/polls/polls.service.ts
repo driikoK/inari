@@ -1,17 +1,17 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 
-import { IVote, IAnime } from './interfaces';
-import { AnimeData, CreateAnimeData } from './data';
+import { Vote, PollAnime, PollAnimeWithoutVotes, Result } from './interfaces';
+import { CreateAnimeData } from './data';
 
 @Injectable()
 export class PollsService {
   constructor(
-    @Inject('POLL_ANIME_MODEL') private pollAnimeModel: Model<IAnime>,
-    @Inject('VOTE_MODEL') private voteModel: Model<IVote>,
+    @Inject('POLL_ANIME_MODEL') private pollAnimeModel: Model<PollAnime>,
+    @Inject('VOTE_MODEL') private voteModel: Model<Vote>,
   ) {}
 
-  async createAnime(animeData: AnimeData): Promise<AnimeData> {
+  async createAnime(animeData: CreateAnimeData): Promise<CreateAnimeData> {
     try {
       await this.pollAnimeModel.create(animeData);
 
@@ -35,11 +35,18 @@ export class PollsService {
     }
   }
 
-  async findAll(): Promise<{ ongoings: IAnime[]; olds: IAnime[] }> {
+  async findAll(): Promise<{
+    ongoings: PollAnimeWithoutVotes[];
+    olds: PollAnimeWithoutVotes[];
+  }> {
     try {
       const [ongoings, olds] = await Promise.all([
-        this.pollAnimeModel.find({ isOngoing: true }).exec(),
-        this.pollAnimeModel.find({ isOngoing: false }).exec(),
+        this.pollAnimeModel
+          .find({ isOngoing: true }, { votes: 0, __v: 0 })
+          .exec(),
+        this.pollAnimeModel
+          .find({ isOngoing: false }, { votes: 0, __v: 0 })
+          .exec(),
       ]);
       return { ongoings, olds };
     } catch (error) {
@@ -50,19 +57,26 @@ export class PollsService {
     }
   }
 
-  async getVoteResult(): Promise<{ anime: IAnime; voteCount: number }[]> {
+  async deleteTeamAnime(id: string): Promise<boolean> {
+    this.pollAnimeModel.deleteOne({ _id: id });
+    return true;
+  }
+
+  async getVoteResult(): Promise<Result[]> {
     try {
-      const animeWithVotes = await this.pollAnimeModel
+      const animes: PollAnime[] = await this.pollAnimeModel
         .find()
         .populate('votes')
         .exec();
 
-      return animeWithVotes
+      const animesWithVotes: Result[] = animes
         .sort((a, b) => b.getTotalVotes() - a.getTotalVotes())
         .map((anime) => ({
           anime,
           voteCount: anime.getTotalVotes(),
         }));
+
+      return animesWithVotes;
     } catch (error) {
       throw new HttpException(
         'Не вдалося отримати результати голосування',
@@ -71,8 +85,8 @@ export class PollsService {
     }
   }
 
-  async vote(userName: string, animeIds: string[]): Promise<IVote[]> {
-    const votes: IVote[] = [];
+  async vote(userName: string, animeIds: string[]): Promise<Vote[]> {
+    const votes: Vote[] = [];
 
     try {
       const existingVote = await this.voteModel.findOne({ userName }).exec();
