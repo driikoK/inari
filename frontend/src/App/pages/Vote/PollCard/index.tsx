@@ -18,7 +18,7 @@ import usePollStore, { PollAnime } from '@/stores/usePollStore';
 import { Icon, P } from '@/components';
 
 import MalImg from '/mal.png';
-import { usePermissions } from '@/hooks/usePermissions';
+import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
 export interface ICardProps {

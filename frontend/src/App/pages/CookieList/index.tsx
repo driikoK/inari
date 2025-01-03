@@ -10,9 +10,9 @@ import { useAnimeStore, useTracksStore, useRolesStore, useMembersStore } from '@
 import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable } from '@/components';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
-import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season.utils';
+import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season';
 import { SUBJECTS } from '@/context/casl';
-import { usePermissions } from '@/hooks/usePermissions';
+import { usePermissions } from '@/hooks';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {

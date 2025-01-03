@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from '@/api';
 import { MemberType } from '@/types';
-import { isObjEmpty, isObjValuesExist } from '@/utils/utility.utils';
+import { isObjEmpty, isObjValuesExist } from '@/utils/objects';
 
 interface FilterData {
   id: string;

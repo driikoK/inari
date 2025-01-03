@@ -13,7 +13,7 @@ import { CreateTrackFormValues, CreateTrackType, FieldFormValue, MemberInfo } fr
 import { CheckboxWrapper } from '../styles';
 import { CoinsType, ANIME_TYPE } from '@/types';
 import { useAuthStore, useMembersStore, useCoinsStore, useTracksStore } from '@/stores';
-import useCoinsCalculation from '@/hooks/useCoinsCalculation';
+import { useCoinsCalculation } from '@/hooks';
 import { Button, H6, P, Subtitle } from '@/components';
 
 interface CreateTrackFormProps {

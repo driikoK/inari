@@ -8,10 +8,10 @@ import { PageContainer, Title, TitleWrapper } from './styles';
 import { RatingFilters } from './RatingFilters';
 import { useMembersStore, useRolesStore } from '@/stores';
 import { CustomTable } from '@/components';
-import { convertSeasonEngToUkr } from '@/utils/season.utils';
+import { convertSeasonEngToUkr } from '@/utils/season';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
 import { MemberType } from '@/types';
-import { usePermissions } from '@/hooks/usePermissions';
+import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {

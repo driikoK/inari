@@ -12,7 +12,7 @@ import { usePollStore } from '@/stores';
 import PollSection from './PollSection';
 import { PageWrapper, SubmitButton } from './styles';
 import AddPollAnimeDialog from '@/App/dialogs/AddPollAnimeDialog';
-import { usePermissions } from '@/hooks/usePermissions';
+import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
 const createChooseAnimeForm = () =>

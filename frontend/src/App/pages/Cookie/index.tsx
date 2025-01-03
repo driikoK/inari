@@ -7,7 +7,7 @@ import { Container, ElementContainer, ElementImage } from './styles';
 import InputCookieDialog from '@/App/dialogs/InputCookieDialog';
 import { CreateAnimeAndMemberDialog } from '@/App/dialogs/CreateAnimeAndMemberDialog';
 import { SUBJECTS } from '@/context/casl';
-import { usePermissions } from '@/hooks/usePermissions';
+import { usePermissions } from '@/hooks';
 import { Subtitle } from '@/components';
 
 const Cookie: FunctionComponent = () => {

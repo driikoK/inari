@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect } from 'react';
 import AbilityContext, { getPermissionsByRole, SUBJECTS } from '@/context/casl';
 import { useAuthStore } from '@/stores';
 
-export const usePermissions = () => {
+const usePermissions = () => {
   const { setPermissions, setPermissionsLoaded, permissions, permissionsLoaded } =
     useContext(AbilityContext);
   const { user } = useAuthStore();
@@ -39,3 +39,5 @@ export const usePermissions = () => {
     hasAccess: checkAccessFn,
   };
 };
+
+export default usePermissions;
