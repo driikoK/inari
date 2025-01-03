@@ -175,8 +175,6 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     } catch (e) {}
   };
 
-  if (episode !== '1' && !lastTracks.length) return <FallbackComponent />;
-
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmitForm)}>
