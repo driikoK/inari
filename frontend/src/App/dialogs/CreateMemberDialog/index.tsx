@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 
 import { DialogContainer, InputWrapper, Title, TitleWrapper } from './styles';
-import Button from '@/components/Button';
+import { Button } from '@/components';
 import useMembersStore from '@/stores/useMembersStore';
 import useRolesStore from '@/stores/useRolesStore';
 

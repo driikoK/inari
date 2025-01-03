@@ -24,8 +24,7 @@ import theme from '@theme';
 import CreateUserDialog from '@/App/dialogs/CreateMemberDialog';
 import { MemberType } from '@/types';
 import useMembersStore from '@/stores/useMembersStore';
-import P from '@/components/Typography/P';
-import ErrorText from '@/components/Typography/ErrorText';
+import { ErrorText, P } from '@/components';
 
 export interface FormFieldProps {
   name: string;

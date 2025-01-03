@@ -2,8 +2,7 @@ import { FC } from 'react';
 import { Link } from 'react-router-dom';
 
 import { InfoWrapper, ListContainer, Priority, VotesWrapper } from './styles';
-import P from '@/components/Typography/P';
-import { Icon } from '@/components/Icon';
+import { Icon, P } from '@/components';
 
 import MalImg from '/mal.png';
 

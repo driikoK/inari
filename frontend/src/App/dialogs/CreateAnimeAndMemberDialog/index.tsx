@@ -7,7 +7,7 @@ import Close from '@mui/icons-material/Close';
 import { DialogContainer, DialogWrapper } from './styles';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useMembersStore from '@/stores/useMembersStore';
-import H6 from '@/components/Typography/H6';
+import { H6 } from '@/components';
 
 export interface IDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;

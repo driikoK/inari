@@ -11,7 +11,7 @@ import theme from '@theme';
 import useAuthStore from '@/stores/useAuthStore';
 import { usePermissions } from '@/hooks/usePermissions';
 import { SUBJECTS } from '@/context/casl';
-import H5 from '../Typography/H5';
+import { H5 } from '@/components';
 
 const Header: FunctionComponent = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { GridColDef, GridRowModel } from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from '../CookieList/styles';
-import { CustomTable } from '@/components/CustomTable';
+import { CustomTable } from '@/components';
 import useAuthStore, { User } from '@/stores/useAuthStore';
 import { ROLE } from '@/context/casl';
 

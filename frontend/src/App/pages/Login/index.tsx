@@ -19,8 +19,7 @@ import {
 
 import theme from '@theme';
 import useAuthStore from '@/stores/useAuthStore';
-import H6 from '@/components/Typography/H6';
-import ErrorText from '@/components/Typography/ErrorText';
+import { H6, ErrorText } from '@/components';
 
 type FormValues = {
   nickname: string;

@@ -17,11 +17,7 @@ import useTracksStore from '@/stores/useTracksStore';
 import { CoinsType, ANIME_TYPE } from '@/types';
 import useAuthStore from '@/stores/useAuthStore';
 import useCoinsCalculation from '@/hooks/useCoinsCalculation';
-import FallbackComponent from '@/components/Fallback';
-import H6 from '@/components/Typography/H6';
-import Subtitle from '@/components/Typography/Subtitle';
-import P from '@/components/Typography/P';
-import Button from '@/components/Button';
+import { Button, H6, P, Subtitle } from '@/components';
 
 interface CreateTrackFormProps {
   titleName: string;

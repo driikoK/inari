@@ -7,7 +7,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Button from '@mui/material/Button';
 
 import axios from '@/api';
-import ErrorText from '@/components/Typography/ErrorText';
+import { ErrorText } from '@/components';
 import usePollStore from '@/stores/usePollStore';
 import PollSection from './PollSection';
 import { PageWrapper, SubmitButton } from './styles';

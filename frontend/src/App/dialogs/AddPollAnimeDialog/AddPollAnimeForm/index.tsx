@@ -7,9 +7,7 @@ import { Checkbox, FormControlLabel, TextField } from '@mui/material';
 
 import { createPollAnimeSchema, initialFormValues } from '../const/form';
 import { DialogWrapper } from '../../InputCookieDialog/styles';
-import H6 from '@/components/Typography/H6';
-import ErrorText from '@/components/Typography/ErrorText';
-import Button from '@components/Button';
+import { ErrorText, H6, Button } from '@/components';
 import usePollStore, { NewPollAnime } from '@/stores/usePollStore';
 
 const textFields = [

@@ -6,7 +6,7 @@ import List from './List';
 
 import { TResultAnime } from '@/types';
 import axios from '@/api';
-import H6 from '@/components/Typography/H6';
+import { H6 } from '@/components';
 
 const Result: FC = () => {
   const [data, setData] = useState<TResultAnime[]>([]);

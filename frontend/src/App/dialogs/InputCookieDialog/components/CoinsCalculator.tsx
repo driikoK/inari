@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Collapse, TextField, useMediaQuery } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import theme from '@theme';
-import P from '@/components/Typography/P';
+import { P } from '@/components';
 
 export const CoinsCalculator = ({ coinsForDubs }: { coinsForDubs: number }) => {
   const isTablet = useMediaQuery(theme.screens.tablet);

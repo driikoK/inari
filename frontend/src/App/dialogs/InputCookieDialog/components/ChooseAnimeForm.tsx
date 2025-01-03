@@ -9,15 +9,12 @@ import { ChooseAnimeFormValues } from '../types';
 import { DialogWrapper, FlexColumn, FlexRow } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import AddAnimeDialog from '../../AddAnimeDialog';
-import Button from '@components/Button';
-import SelectField from '@/components/SelectField';
+import { Button, SelectField, H6, ErrorText } from '@/components';
 import useMembersStore from '@/stores/useMembersStore';
 import useAnimeStore from '@/stores/useAnimeStore';
 import useTracksStore from '@/stores/useTracksStore';
 import { seasonOptions, yearOptions } from '@/consts';
 import { ANIME_TYPE } from '@/types';
-import H6 from '@/components/Typography/H6';
-import ErrorText from '@/components/Typography/ErrorText';
 
 interface FormProps {
   saveFormValues: (values: ChooseAnimeFormValues) => void;

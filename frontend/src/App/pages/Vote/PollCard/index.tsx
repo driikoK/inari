@@ -15,8 +15,7 @@ import {
   SponsoredWrapper,
 } from './styles';
 import usePollStore, { PollAnime } from '@/stores/usePollStore';
-import P from '@/components/Typography/P';
-import { Icon } from '@/components/Icon';
+import { Icon, P } from '@/components';
 
 import MalImg from '/mal.png';
 import { usePermissions } from '@/hooks/usePermissions';

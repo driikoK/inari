@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import './global.css';
 import App from './App';
-import FallbackComponent from './components/Fallback';
+import { FallbackComponent } from './components';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

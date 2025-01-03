@@ -11,7 +11,7 @@ import useAnimeStore from '@/stores/useAnimeStore';
 import useRolesStore from '@/stores/useRolesStore';
 import useMembersStore from '@/stores/useMembersStore';
 import { ANIME_TYPE, TrackType } from '@/types';
-import { CustomTable } from '@/components/CustomTable';
+import { CustomTable } from '@/components';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';
 import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season.utils';
 import { SUBJECTS } from '@/context/casl';

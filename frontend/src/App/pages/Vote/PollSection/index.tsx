@@ -6,7 +6,7 @@ import { CardsWrapper, TitleWrapper } from '../styles';
 import { ChosenAnimes } from '..';
 import PollCard from '../PollCard';
 import { PollAnime } from '@/stores/usePollStore';
-import H6 from '@/components/Typography/H6';
+import { H6 } from '@/components';
 
 export interface ICardProps {
   animes: PollAnime[];

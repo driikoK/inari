@@ -9,7 +9,7 @@ import muiTheme from '../mui-theme';
 import theme from '../theme.ts';
 import useAuthStore from '@/stores/useAuthStore';
 import AbilityContext, { SUBJECTS } from '@/context/casl';
-import FallbackComponent from '@/components/Fallback/index.tsx';
+import { FallbackComponent } from '@/components';
 
 function RequireAuth({ children }: PropsWithChildren) {
   const location = useLocation();
