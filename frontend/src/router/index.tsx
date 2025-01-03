@@ -3,7 +3,7 @@ import { RouteObject, useRoutes } from 'react-router-dom';
 
 import { Layout } from '@/components';
 
-const lazyImport = (path: string) => lazy(() => import(`../App/pages/${path}`));
+const lazyImport = (path: string) => lazy(() => import(`../App/pages/${path}.tsx`));
 
 const Vote = lazyImport('Vote');
 const Result = lazyImport('Result');
