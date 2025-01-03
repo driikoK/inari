@@ -8,7 +8,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 
 import { HeaderContainer, Logo, LogoWrapper, NavButton, NavWrapper } from './styles';
 import theme from '@theme';
-import useAuthStore from '@/stores/useAuthStore';
+import { useAuthStore } from '@/stores';
 import { usePermissions } from '@/hooks/usePermissions';
 import { SUBJECTS } from '@/context/casl';
 import { H5 } from '@/components';

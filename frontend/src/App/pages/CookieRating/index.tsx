@@ -6,8 +6,7 @@ import { GridColDef, GridRowModel } from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { RatingFilters } from './RatingFilters';
-import useRolesStore from '@/stores/useRolesStore';
-import useMembersStore from '@/stores/useMembersStore';
+import { useMembersStore, useRolesStore } from '@/stores';
 import { CustomTable } from '@/components';
 import { convertSeasonEngToUkr } from '@/utils/season.utils';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';

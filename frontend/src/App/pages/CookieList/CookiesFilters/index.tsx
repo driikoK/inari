@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { SelectWrapper } from './styles';
 import { SelectField } from '@/components';
-import useAnimeStore from '@/stores/useAnimeStore';
-import useRolesStore from '@/stores/useRolesStore';
-import useMembersStore from '@/stores/useMembersStore';
-import useTracksStore from '@/stores/useTracksStore';
+import { useAnimeStore, useRolesStore, useMembersStore, useTracksStore } from '@/stores';
 import { seasonOptions, yearOptions } from '@/consts';
 
 export const CookiesFilters = () => {

@@ -14,8 +14,7 @@ import {
 
 import { DialogContainer, InputWrapper, Title, TitleWrapper } from './styles';
 import { Button } from '@/components';
-import useMembersStore from '@/stores/useMembersStore';
-import useRolesStore from '@/stores/useRolesStore';
+import { useMembersStore, useRolesStore } from '@/stores';
 
 export interface IRequiredAuthorizationDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;

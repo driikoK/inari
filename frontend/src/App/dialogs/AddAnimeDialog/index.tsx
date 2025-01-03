@@ -3,7 +3,7 @@ import { TextField, type DialogProps } from '@mui/material';
 import toast from 'react-hot-toast';
 import { DialogContainer, InputWrapper, Title, TitleWrapper } from './styles';
 import { Button } from '@/components';
-import useAnimeStore from '@/stores/useAnimeStore';
+import { useAnimeStore } from '@/stores';
 
 export interface IAddAnimeDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;

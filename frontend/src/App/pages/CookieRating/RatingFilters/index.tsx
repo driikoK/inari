@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { SelectWrapper } from './styles';
 import { SelectField } from '@/components';
-import useRolesStore from '@/stores/useRolesStore';
-import useMembersStore from '@/stores/useMembersStore';
+import { useMembersStore, useRolesStore } from '@/stores';
 import { seasonOptions, yearOptions } from '@/consts';
 
 export const RatingFilters = () => {

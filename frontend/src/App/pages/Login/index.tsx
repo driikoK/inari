@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 
 import theme from '@theme';
-import useAuthStore from '@/stores/useAuthStore';
+import { useAuthStore } from '@/stores';
 import { H6, ErrorText } from '@/components';
 
 type FormValues = {

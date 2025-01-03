@@ -23,7 +23,7 @@ import { FieldContainer, FlexColumn } from '../styles';
 import theme from '@theme';
 import CreateUserDialog from '@/App/dialogs/CreateMemberDialog';
 import { MemberType } from '@/types';
-import useMembersStore from '@/stores/useMembersStore';
+import { useMembersStore } from '@/stores';
 import { ErrorText, P } from '@/components';
 
 export interface FormFieldProps {

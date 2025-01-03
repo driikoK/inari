@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect } from 'react';
 import AbilityContext, { getPermissionsByRole, SUBJECTS } from '@/context/casl';
-import useAuthStore from '@/stores/useAuthStore';
+import { useAuthStore } from '@/stores';
 
 export const usePermissions = () => {
   const { setPermissions, setPermissionsLoaded, permissions, permissionsLoaded } =

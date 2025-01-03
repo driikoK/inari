@@ -6,10 +6,7 @@ import { GridActionsCellItem, GridCellParams, GridColDef, GridRowModel } from '@
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { CookiesFilters } from './CookiesFilters';
-import useTracksStore from '@/stores/useTracksStore';
-import useAnimeStore from '@/stores/useAnimeStore';
-import useRolesStore from '@/stores/useRolesStore';
-import useMembersStore from '@/stores/useMembersStore';
+import { useAnimeStore, useTracksStore, useRolesStore, useMembersStore } from '@/stores';
 import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable } from '@/components';
 import { ConfirmTableChangeDialog } from '@/App/dialogs/ConfirmTableChangeDialog';

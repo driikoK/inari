@@ -11,11 +11,8 @@ import { CoinsCalculator } from './CoinsCalculator';
 import { createTrackFormSchema, initialFormValues } from '../const/form';
 import { CreateTrackFormValues, CreateTrackType, FieldFormValue, MemberInfo } from '../types';
 import { CheckboxWrapper } from '../styles';
-import useMembersStore from '@/stores/useMembersStore';
-import useCoinsStore from '@/stores/useCoinsStore';
-import useTracksStore from '@/stores/useTracksStore';
 import { CoinsType, ANIME_TYPE } from '@/types';
-import useAuthStore from '@/stores/useAuthStore';
+import { useAuthStore, useMembersStore, useCoinsStore, useTracksStore } from '@/stores';
 import useCoinsCalculation from '@/hooks/useCoinsCalculation';
 import { Button, H6, P, Subtitle } from '@/components';
 

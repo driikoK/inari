@@ -10,9 +10,7 @@ import { DialogWrapper, FlexColumn, FlexRow } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import AddAnimeDialog from '../../AddAnimeDialog';
 import { Button, SelectField, H6, ErrorText } from '@/components';
-import useMembersStore from '@/stores/useMembersStore';
-import useAnimeStore from '@/stores/useAnimeStore';
-import useTracksStore from '@/stores/useTracksStore';
+import { useAnimeStore, useMembersStore, useTracksStore } from '@/stores';
 import { seasonOptions, yearOptions } from '@/consts';
 import { ANIME_TYPE } from '@/types';
 

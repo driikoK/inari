@@ -8,7 +8,7 @@ import Button from '@mui/material/Button';
 
 import axios from '@/api';
 import { ErrorText } from '@/components';
-import usePollStore from '@/stores/usePollStore';
+import { usePollStore } from '@/stores';
 import PollSection from './PollSection';
 import { PageWrapper, SubmitButton } from './styles';
 import AddPollAnimeDialog from '@/App/dialogs/AddPollAnimeDialog';

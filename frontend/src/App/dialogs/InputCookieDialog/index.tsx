@@ -7,8 +7,7 @@ import { DialogContainer, DialogWrapper } from './styles';
 import { ChooseAnimeFormValues } from './types';
 import { CreateTrackForm } from './components/CreateTrackForm';
 import { ChooseAnimeForm } from './components/ChooseAnimeForm';
-import useAnimeStore from '@/stores/useAnimeStore';
-import useCoinsStore from '@/stores/useCoinsStore';
+import { useAnimeStore, useCoinsStore } from '@/stores';
 import { ANIME_TYPE } from '@/types';
 
 export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {

@@ -7,7 +7,7 @@ import { ThemeProvider as MuiThemeProvider } from '@mui/material';
 import Router from './router';
 import muiTheme from '../mui-theme';
 import theme from '../theme.ts';
-import useAuthStore from '@/stores/useAuthStore';
+import { useAuthStore } from '@/stores';
 import AbilityContext, { SUBJECTS } from '@/context/casl';
 import { FallbackComponent } from '@/components';
 
