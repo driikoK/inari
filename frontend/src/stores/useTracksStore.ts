@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from '@/api';
 import { TrackType } from '@/types';
-import { CreateTrackType } from '@/App/dialogs/InputCookieDialog/types';
+import { CreateTrackType } from '@/pages/Cookie/components/InputCookieDialog/types';
 
 interface UpdateTrackData {
   coins: number;

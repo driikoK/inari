@@ -23,10 +23,8 @@
     /* Aliases */
     "baseUrl": "src",
     "paths": {
-      "@app": ["./app/index.tsx"],
-      "@app/*": ["./app/*"],
-      "@theme": ["theme.ts"],
       "@/*": ["./*"],
+      "@theme": ["./theme"],
       "@components/*": ["./components/*"]
     }
   },

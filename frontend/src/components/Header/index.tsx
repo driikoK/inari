@@ -7,7 +7,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
 
 import { HeaderContainer, Logo, LogoWrapper, NavButton, NavWrapper } from './styles';
-import theme from '@theme';
+import theme from '@/theme/theme';
 import { useAuthStore } from '@/stores';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';

@@ -2,14 +2,14 @@ import { lazy } from 'react';
 import { RouteObject, useRoutes } from 'react-router-dom';
 import { Layout } from '@/components';
 
-const Vote = lazy(() => import('../App/pages/Vote'));
-const Result = lazy(() => import('../App/pages/Result'));
-const Cookie = lazy(() => import('../App/pages/Cookie'));
-const Home = lazy(() => import('../App/pages/Home'));
-const CookieRating = lazy(() => import('../App/pages/CookieRating'));
-const CookieList = lazy(() => import('../App/pages/CookieList'));
-const Login = lazy(() => import('../App/pages/Login'));
-const Settings = lazy(() => import('../App/pages/Settings'));
+const Vote = lazy(() => import('../pages/Vote'));
+const Result = lazy(() => import('../pages/Result'));
+const Cookie = lazy(() => import('../pages/Cookie'));
+const Home = lazy(() => import('../pages/Home'));
+const CookieRating = lazy(() => import('../pages/CookieRating'));
+const CookieList = lazy(() => import('../pages/CookieList'));
+const Login = lazy(() => import('../pages/Login'));
+const Settings = lazy(() => import('../pages/Settings'));
 
 const conditionalRoutes = (condition: boolean, route: RouteObject) => (condition ? [route] : []);
 
