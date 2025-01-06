@@ -29,20 +29,23 @@ interface FilterForLastTracks {
   episode: number;
 }
 
-interface IState {
+interface State {
   tracks: TracksWithPagination;
+  isLoading: boolean;
+  appliedFilters: Partial<FilterData>;
+  lastTracks: TrackType[];
+}
+
+interface Actions {
   getTracks: (filters?: Partial<FilterData>) => Promise<void>;
   addTracks: (newTracks: CreateTrackType) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;
   updateTrack: (id: string, track: UpdateTrackData) => Promise<TrackType>;
   getLastTracks: (filter: FilterForLastTracks) => Promise<void>;
-  isLoading: boolean;
-  appliedFilters: Partial<FilterData>;
-  lastTracks: TrackType[];
   resetLastTracks: () => void;
 }
 
-const useTracksStore = create<IState>((set) => ({
+const useTracksStore = create<State & Actions>((set) => ({
   tracks: {
     data: [],
     total: 0,

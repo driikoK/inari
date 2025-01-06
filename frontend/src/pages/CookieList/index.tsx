@@ -31,7 +31,7 @@ type RowType = {
 const CookieList: FunctionComponent = () => {
   const { tracks, getTracks, deleteTracks, updateTrack, isLoading, appliedFilters } =
     useTracksStore();
-  const { getAnime } = useAnimeStore();
+  const { getAnimes } = useAnimeStore();
   const { roles, getRoles } = useRolesStore();
   const { getMembers } = useMembersStore();
   const { hasAccess } = usePermissions();
@@ -46,7 +46,7 @@ const CookieList: FunctionComponent = () => {
   });
 
   useEffect(() => {
-    getAnime();
+    getAnimes();
     getRoles();
     getMembers();
   }, []);

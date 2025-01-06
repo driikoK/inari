@@ -19,15 +19,18 @@ interface Animes {
   ongoings: PollAnime[];
 }
 
-interface IState {
+interface State {
   animes: Animes;
   isLoading: boolean;
+}
+
+interface Actions {
   getAnime: () => Promise<void>;
   addAnime: (newAnime: NewPollAnime) => Promise<void>;
   deleteAnime: (id: string) => Promise<void>;
 }
 
-const usePollStore = create<IState>((set) => ({
+const usePollStore = create<State & Actions>((set) => ({
   animes: {
     olds: [],
     ongoings: [],

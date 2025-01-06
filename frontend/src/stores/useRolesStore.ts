@@ -6,12 +6,15 @@ interface Role {
   label: string;
 }
 
-interface IState {
+interface State {
   roles: Role[];
+}
+
+interface Actions {
   getRoles: () => Promise<void>;
 }
 
-const useRolesStore = create<IState>((set) => ({
+const useRolesStore = create<State & Actions>((set) => ({
   roles: [],
 
   getRoles: async () => {

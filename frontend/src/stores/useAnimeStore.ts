@@ -6,16 +6,19 @@ interface IAnime {
   name: string;
 }
 
-interface IState {
+interface State {
   animeNames: IAnime[];
-  getAnime: () => Promise<void>;
+}
+
+interface Actions {
+  getAnimes: () => Promise<void>;
   addAnime: (newAnime: string) => Promise<void>;
 }
 
-const useAnimeStore = create<IState>((set) => ({
+const useAnimeStore = create<State & Actions>((set) => ({
   animeNames: [],
 
-  getAnime: async () => {
+  getAnimes: async () => {
     try {
       const response = await axios.get(`/team-animes`);
       set({ animeNames: response.data });

@@ -19,16 +19,19 @@ const defaultCoinValues = {
   another: 0,
 };
 
-interface IState {
+interface State {
   coinsTypes: {
     film: CoinsType;
     series: CoinsType;
     shortFilm: CoinsType;
   };
+}
+
+interface Actions {
   getCoins: () => Promise<void>;
 }
 
-const useCoinsStore = create<IState>((set) => ({
+const useCoinsStore = create<State & Actions>((set) => ({
   coinsTypes: {
     film: {
       type: 'film',

@@ -8,10 +8,13 @@ export type User = {
   _id: string;
 };
 
-interface IState {
+interface State {
   isLoggedIn: boolean;
   user: User | null;
   allUsers: User[];
+}
+
+interface Actions {
   signUp: (username: string, password: string) => Promise<void>;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
@@ -20,7 +23,7 @@ interface IState {
   updateUser: (username: string, role: ROLE) => Promise<void>;
 }
 
-const useAuthStore = create<IState>((set) => ({
+const useAuthStore = create<State & Actions>((set) => ({
   isLoggedIn: localStorage.getItem('token') ? true : false,
   user: null,
   allUsers: [],

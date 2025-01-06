@@ -10,16 +10,19 @@ interface FilterData {
   year: number;
 }
 
-interface IState {
+interface State {
   members: MemberType[];
   membersDictionary: MemberType[];
-  getMembers: (filters?: Partial<FilterData>) => Promise<void>;
-  addMember: (newMember: Omit<MemberType, '_id'>) => Promise<void>;
-  updateMember: (updatedMember: MemberType) => Promise<MemberType>;
   appliedFilters: Partial<FilterData>;
 }
 
-const useMembersStore = create<IState>((set) => ({
+interface Actions {
+  getMembers: (filters?: Partial<FilterData>) => Promise<void>;
+  addMember: (newMember: Omit<MemberType, '_id'>) => Promise<void>;
+  updateMember: (updatedMember: MemberType) => Promise<MemberType>;
+}
+
+const useMembersStore = create<State & Actions>((set) => ({
   members: [],
   membersDictionary: [],
   appliedFilters: {},
