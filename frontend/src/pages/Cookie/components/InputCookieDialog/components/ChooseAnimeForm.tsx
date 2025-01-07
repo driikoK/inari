@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Autocomplete, FormControl, MenuItem, TextField } from '@mui/material';
 
 import { ChooseAnimeFormValues } from '../types';
-import { DialogWrapper, FlexColumn, FlexRow } from '../styles';
+import { DialogFormWrapper, FlexColumn, FlexRow } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import { Button, SelectField, H6, ErrorText } from '@/components';
 import { useAnimeStore, useMembersStore, useTracksStore } from '@/stores';
@@ -101,9 +101,9 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmitForm)}>
-        <DialogWrapper>
-          <H6>Назва тайтлу та номер епізоду</H6>
+      <form onSubmit={handleSubmit(onSubmitForm)} style={{ width: '100%' }}>
+        <DialogFormWrapper>
+          <H6>Назва тайтлу та номер епізоду:</H6>
           <div>
             <FlexRow>
               <Controller
@@ -289,7 +289,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
           </Button>
 
           <AddAnimeDialog onClose={() => setOpenDialog(false)} open={openDialog} />
-        </DialogWrapper>
+        </DialogFormWrapper>
       </form>
     </FormProvider>
   );

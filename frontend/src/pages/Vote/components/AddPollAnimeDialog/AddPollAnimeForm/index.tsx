@@ -8,7 +8,7 @@ import { Checkbox, FormControlLabel, TextField } from '@mui/material';
 import { createPollAnimeSchema, initialFormValues } from '../const/form';
 import { ErrorText, H6, Button } from '@/components';
 import usePollStore, { NewPollAnime } from '@/stores/usePollStore';
-import { DialogWrapper } from '@/pages/Cookie/components/InputCookieDialog/styles';
+import { DialogFormWrapper } from '@/pages/Cookie/components/InputCookieDialog/styles';
 
 const textFields = [
   {
@@ -68,7 +68,7 @@ export const AddPollAnimeForm = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmitForm)}>
-      <DialogWrapper>
+      <DialogFormWrapper>
         {textFields.map(({ fieldName, title }) => (
           <div key={fieldName}>
             <H6>{title}:</H6>
@@ -108,7 +108,7 @@ export const AddPollAnimeForm = ({ onClose }: { onClose: () => void }) => {
         <Button type="submit" color="inherit">
           Створити
         </Button>
-      </DialogWrapper>
+      </DialogFormWrapper>
     </form>
   );
 };

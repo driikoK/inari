@@ -1,83 +1,74 @@
 import { FC, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { Button, DialogProps, IconButton, TextField } from '@mui/material';
-import Close from '@mui/icons-material/Close';
+import { Box, Button, DialogProps, TextField } from '@mui/material';
 
-import { DialogContainer, DialogWrapper } from './styles';
 import { useAnimeStore, useMembersStore } from '@/stores';
-import { H6 } from '@/components';
+import { H6, CustomDialog } from '@/components';
 
 export interface IDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
 }
 
-const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) => {
-  const [nickname, setNickname] = useState<string>('');
-  const [titleName, setTitleName] = useState<string>('');
+export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) => {
+  const addAnime = useAnimeStore((state) => state.addAnime);
+  const addMember = useMembersStore((state) => state.addMember);
 
-  const { addAnime } = useAnimeStore();
-  const { addMember } = useMembersStore();
-
-  const handleSubmitTitle = async () => {
+  const handleSubmitTitle = async (name: string) => {
     try {
-      await addAnime(titleName);
+      await addAnime(name);
 
       toast.success('Аніме успішно додано!');
     } catch (e) {}
   };
 
-  const handleSubmitUser = async () => {
+  const handleSubmitUser = async (name: string) => {
     try {
-      await addMember({ nickname, types: [], coins: 0, seasons: [] });
+      await addMember({ nickname: name, types: [], coins: 0, seasons: [] });
 
       toast.success('Новий учасник успішно створений!');
     } catch (e) {}
   };
 
   return (
-    <DialogContainer open={open} onClose={onClose} fullWidth>
-      <IconButton
-        aria-label="close"
-        onClick={onClose}
-        sx={() => ({
-          position: 'absolute',
-          right: 8,
-          top: 8,
-        })}
-      >
-        <Close />
-      </IconButton>
+    <CustomDialog onClose={onClose} open={open}>
+      <DialogSection sectionTitle="Додати учасника" handleSubmit={handleSubmitUser} />
 
-      <H6>Додати учасника</H6>
-
-      <DialogWrapper>
-        <TextField
-          placeholder="Введіть нікнейм"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          sx={{ width: '100%' }}
-        />
-        <Button variant="contained" disabled={!nickname} onClick={handleSubmitUser}>
-          Додати
-        </Button>
-      </DialogWrapper>
-
-      <H6>Додати аніме</H6>
-
-      <DialogWrapper>
-        <TextField
-          placeholder="Введіть назву"
-          value={titleName}
-          onChange={(e) => setTitleName(e.target.value)}
-          sx={{ width: '100%' }}
-        />
-        <Button variant="contained" disabled={!titleName} onClick={handleSubmitTitle}>
-          Додати
-        </Button>
-      </DialogWrapper>
-    </DialogContainer>
+      <DialogSection sectionTitle="Додати аніме" handleSubmit={handleSubmitTitle} />
+    </CustomDialog>
   );
 };
 
-export default CreateAnimeAndMemberDialog;
+interface DialogSectionProps {
+  sectionTitle: string;
+  handleSubmit: (name: string) => void;
+}
+
+const DialogSection = ({ sectionTitle, handleSubmit }: DialogSectionProps) => {
+  const [name, setName] = useState('');
+
+  return (
+    <>
+      <H6>{sectionTitle}</H6>
+
+      <Box display="flex" gap={2} width="100%">
+        <TextField
+          placeholder="Введіть назву"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          sx={{ width: '100%' }}
+        />
+        <Button
+          variant="contained"
+          disabled={!name}
+          onClick={() => {
+            handleSubmit(name);
+            setName('');
+          }}
+        >
+          Додати
+        </Button>
+      </Box>
+    </>
+  );
+};

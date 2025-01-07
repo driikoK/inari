@@ -5,9 +5,9 @@ import Header from './Header';
 import { Icon } from './Icon';
 import Layout from './Layout';
 import SelectField from './SelectField';
-import CreateMemberDialog from './CreateMemberDialog';
 import { ConfirmTableChangeDialog } from './ConfirmTableChangeDialog';
 import { H5, H6, ErrorText, P, Subtitle } from './Typography';
+import CustomDialog from './CustomDialog';
 
 export {
   Button,
@@ -22,6 +22,6 @@ export {
   ErrorText,
   P,
   Subtitle,
-  CreateMemberDialog,
   ConfirmTableChangeDialog,
+  CustomDialog,
 };

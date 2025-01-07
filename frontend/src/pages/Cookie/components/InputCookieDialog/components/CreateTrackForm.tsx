@@ -19,7 +19,6 @@ import useCoinsCalculation from '../useCoinsCalculation';
 interface CreateTrackFormProps {
   titleName: string;
   episode: string;
-  onBack: () => void;
   onClose: () => void;
   animeType: ANIME_TYPE;
   season: string;
@@ -34,7 +33,6 @@ const maxDurationForShortFilm = 13;
 export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   titleName,
   episode,
-  onBack,
   onClose,
   animeType,
   season,
@@ -170,7 +168,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmitForm)}>
+      <form onSubmit={handleSubmit(onSubmitForm)} style={{ width: '100%' }}>
         <Box
           sx={{
             display: 'flex',
@@ -178,19 +176,6 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
             gap: '1rem',
           }}
         >
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={onBack}
-            sx={{
-              color: 'black',
-              fontSize: '16px',
-              alignSelf: 'flex-start',
-              textTransform: 'none',
-            }}
-          >
-            Назад
-          </Button>
-
           <H6 sx={{ textAlign: 'center' }}>{titleName}</H6>
 
           <FormField name={`${startNameForMemberField}.sound`} label="Звукач" isDisabled />

@@ -15,7 +15,7 @@ export const DialogContainer = styled(Dialog)`
   }
 `;
 
-export const DialogWrapper = styled.div`
+export const DialogFormWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;

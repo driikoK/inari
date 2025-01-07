@@ -1,14 +1,13 @@
 import { FunctionComponent, useEffect, useState } from 'react';
 
-import { IconButton, type DialogProps } from '@mui/material';
-import Close from '@mui/icons-material/Close';
+import { type DialogProps } from '@mui/material';
 
-import { DialogContainer, DialogWrapper } from './styles';
 import { ChooseAnimeFormValues } from './types';
 import { CreateTrackForm } from './components/CreateTrackForm';
 import { ChooseAnimeForm } from './components/ChooseAnimeForm';
 import { useAnimeStore, useCoinsStore } from '@/stores';
 import { ANIME_TYPE } from '@/types';
+import { CustomDialog } from '@/components';
 
 export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -31,47 +30,32 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
     setChosenAnime(null);
   };
 
-  const handleClose = (event: any, reason: string) => {
-    if (reason && reason === 'backdropClick') return;
-    onClose();
-  };
-
   const saveFormValues = (values: ChooseAnimeFormValues) => {
     setChosenAnime(values);
     setIsNextStep(true);
   };
 
   return (
-    <DialogContainer open={open} scroll={'body'} onClose={handleClose} fullWidth>
-      <IconButton
-        aria-label="close"
-        onClick={onClose}
-        sx={() => ({
-          position: 'absolute',
-          right: 8,
-          top: 8,
-        })}
-      >
-        <Close />
-      </IconButton>
+    <CustomDialog
+      onClose={onClose}
+      open={open}
+      onBack={() => setIsNextStep(false)}
+      isShowBack={isNextStep}
+    >
+      {!isNextStep && (
+        <ChooseAnimeForm saveFormValues={saveFormValues} initialValues={chosenAnime} />
+      )}
 
-      <DialogWrapper>
-        {!isNextStep && (
-          <ChooseAnimeForm saveFormValues={saveFormValues} initialValues={chosenAnime} />
-        )}
-
-        {isNextStep && chosenAnime && (
-          <CreateTrackForm
-            onBack={() => setIsNextStep(false)}
-            onClose={handleCreateTrackClose}
-            {...chosenAnime}
-            animeType={chosenAnime.animeType as ANIME_TYPE}
-            episode={chosenAnime.episode.toString()}
-            duration={chosenAnime.duration}
-          />
-        )}
-      </DialogWrapper>
-    </DialogContainer>
+      {isNextStep && chosenAnime && (
+        <CreateTrackForm
+          onClose={handleCreateTrackClose}
+          {...chosenAnime}
+          animeType={chosenAnime.animeType as ANIME_TYPE}
+          episode={chosenAnime.episode.toString()}
+          duration={chosenAnime.duration}
+        />
+      )}
+    </CustomDialog>
   );
 };
 

@@ -19,11 +19,12 @@ import {
 } from '@mui/material';
 
 import { PlusMinusButton } from './PlusMinusButton';
+import CreateMemberDialog from './CreateMemberDialog';
 import { FieldContainer, FlexColumn } from '../styles';
 import theme from '@/theme/theme';
 import { MemberType } from '@/types';
 import { useMembersStore } from '@/stores';
-import { ErrorText, P, CreateMemberDialog } from '@/components';
+import { ErrorText, P } from '@/components';
 
 export interface FormFieldProps {
   name: string;

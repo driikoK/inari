@@ -1,48 +1,44 @@
-import { FunctionComponent, useState } from 'react';
-import { TextField, type DialogProps } from '@mui/material';
+import { FC, useState } from 'react';
+import { Box, TextField, type DialogProps, Button } from '@mui/material';
 import toast from 'react-hot-toast';
-import { DialogContainer, InputWrapper, Title, TitleWrapper } from './styles';
-import { Button } from '@/components';
+import { CustomDialog, H6 } from '@/components';
 import { useAnimeStore } from '@/stores';
 
 export interface IAddAnimeDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
 }
 
-const AddAnimeDialog: FunctionComponent<IAddAnimeDialogProps> = ({ open, onClose }) => {
+const AddAnimeDialog: FC<IAddAnimeDialogProps> = ({ open, onClose }) => {
   const [anime, setAnime] = useState<string>('');
   const { addAnime } = useAnimeStore();
 
-  const handleAnimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setAnime(value);
-  };
   const handleSubmit = async () => {
     try {
       await addAnime(anime);
 
-      toast.success('Аніме додано успішно!');
+      setAnime('');
 
-      setTimeout(() => {
-        onClose();
-      }, 1000);
-    } catch (e) {
-      toast.error('Помилка!');
-    }
+      toast.success('Аніме додано успішно!');
+    } catch (e) {}
   };
 
   return (
-    <DialogContainer open={open} onClose={onClose}>
-      <TitleWrapper>
-        <Title>Додавання аніме</Title>
-      </TitleWrapper>
-      <InputWrapper>
-        <TextField placeholder="Введіть назву аніме" value={anime} onChange={handleAnimeChange} />
-      </InputWrapper>
-      <Button variant="contained" disabled={anime.length < 3} onClick={handleSubmit}>
-        Зберегти
-      </Button>
-    </DialogContainer>
+    <CustomDialog onClose={onClose} open={open}>
+      <H6>Додавання аніме</H6>
+
+      <Box display="flex" gap={2} width="100%">
+        <TextField
+          placeholder="Введіть назву аніме"
+          value={anime}
+          onChange={(e) => setAnime(e.target.value)}
+          sx={{ width: '100%' }}
+        />
+
+        <Button variant="contained" disabled={anime.length < 3} onClick={handleSubmit}>
+          Зберегти
+        </Button>
+      </Box>
+    </CustomDialog>
   );
 };
 
