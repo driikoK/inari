@@ -65,13 +65,19 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
   }, [watchTitleName, watchEpisode]);
 
   useEffect(() => {
-    if (!lastTracks.length || !watchTitleName) return;
+    if (!watchTitleName) return;
 
-    const existedTrack = lastTracks[0];
+    if (!lastTracks.length) {
+      setValue('animeType', '');
+      setValue('season', '');
+      setValue('year', '');
+    } else {
+      const existedTrack = lastTracks[0];
 
-    setValue('animeType', existedTrack.titleType);
-    setValue('season', existedTrack.season);
-    setValue('year', existedTrack.year.toString());
+      setValue('animeType', existedTrack.titleType);
+      setValue('season', existedTrack.season);
+      setValue('year', existedTrack.year.toString());
+    }
   }, [lastTracks.length, watchTitleName]);
 
   useEffect(() => {
