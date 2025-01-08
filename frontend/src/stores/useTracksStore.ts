@@ -84,12 +84,9 @@ const useTracksStore = create<State & Actions>((set) => ({
   deleteTracks: async (id: string) => {
     try {
       await axios.delete(`/tracks/${id}`);
-      set((state) => ({
-        tracks: {
-          ...state.tracks,
-          data: state.tracks.data.filter((item) => item._id !== id),
-        },
-      }));
+
+      const { appliedFilters, getTracks } = useTracksStore.getState();
+      await getTracks(appliedFilters);
     } catch (error) {
       throw error;
     }
