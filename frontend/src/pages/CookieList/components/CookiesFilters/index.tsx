@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { SelectWrapper } from './styles';
 import { SelectField } from '@/components';
-import { useAnimeStore, useRolesStore, useMembersStore, useTracksStore } from '@/stores';
+import { useAnimesStore, useRolesStore, useMembersStore, useTracksStore } from '@/stores';
 import { seasonOptions, yearOptions } from '@/consts';
 
 export const CookiesFilters = () => {
@@ -12,9 +12,9 @@ export const CookiesFilters = () => {
   const [selectedRole, setSelectedRole] = useState<string>();
   const [selectedUser, setSelectedUser] = useState<string>();
 
-  const { animeNames } = useAnimeStore();
-  const { roles } = useRolesStore();
-  const { members } = useMembersStore();
+  const animeNames = useAnimesStore((state) => state.animeNames);
+  const roles = useRolesStore((state) => state.roles);
+  const members = useMembersStore((state) => state.members);
   const { getTracks, appliedFilters } = useTracksStore();
 
   useEffect(() => {

@@ -15,7 +15,7 @@ interface Actions {
   addAnime: (newAnime: string) => Promise<void>;
 }
 
-const useAnimeStore = create<State & Actions>((set) => ({
+const useAnimesStore = create<State & Actions>((set) => ({
   animeNames: [],
 
   getAnimes: async () => {
@@ -36,4 +36,4 @@ const useAnimeStore = create<State & Actions>((set) => ({
   },
 }));
 
-export default useAnimeStore;
+export default useAnimesStore;

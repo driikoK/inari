@@ -11,8 +11,8 @@ export const RatingFilters = () => {
   const [selectedRole, setSelectedRole] = useState<string>();
   const [selectedUser, setSelectedUser] = useState<string>();
 
-  const { roles } = useRolesStore();
-  const { getMembers, membersDictionary, appliedFilters } = useMembersStore();
+  const roles = useRolesStore((state) => state.roles);
+  const { getMembers, membersDictionary } = useMembersStore();
 
   const seasonsOfTheYear = seasonOptions.reduce((acc, season) => {
     yearOptions.forEach((year) => {

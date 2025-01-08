@@ -9,7 +9,7 @@ import { ChooseAnimeFormValues } from '../types';
 import { DialogFormWrapper, FlexColumn, FlexRow } from '../styles';
 import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import { Button, SelectField, H6, ErrorText } from '@/components';
-import { useAnimeStore, useMembersStore, useTracksStore } from '@/stores';
+import { useAnimesStore, useMembersStore, useTracksStore } from '@/stores';
 import { seasonOptions, yearOptions } from '@/consts';
 import { ANIME_TYPE } from '@/types';
 import { AddAnimeDialog } from '@/pages/Cookie/components';
@@ -20,8 +20,8 @@ interface FormProps {
 }
 
 export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }) => {
-  const { getMembers } = useMembersStore();
-  const { animeNames } = useAnimeStore();
+  const getMembers = useMembersStore((state) => state.getMembers);
+  const animeNames = useAnimesStore((state) => state.animeNames);
   const { resetLastTracks, getLastTracks, lastTracks } = useTracksStore();
 
   const [openDialog, setOpenDialog] = useState(false);

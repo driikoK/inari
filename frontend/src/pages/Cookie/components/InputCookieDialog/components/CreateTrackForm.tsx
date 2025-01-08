@@ -39,10 +39,10 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   year,
   duration = 1,
 }) => {
-  const { getMembers } = useMembersStore();
+  const getMembers = useMembersStore((state) => state.getMembers);
   const { lastTracks, addTracks, resetLastTracks } = useTracksStore();
-  const { coinsTypes } = useCoinsStore();
-  const { user } = useAuthStore();
+  const coinsTypes = useCoinsStore((state) => state.coinsTypes);
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     getMembers();

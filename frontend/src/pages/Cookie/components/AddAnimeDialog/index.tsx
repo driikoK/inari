@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import { Box, TextField, type DialogProps, Button } from '@mui/material';
 import toast from 'react-hot-toast';
 import { CustomDialog, H6 } from '@/components';
-import { useAnimeStore } from '@/stores';
+import { useAnimesStore } from '@/stores';
 
 export interface IAddAnimeDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -10,7 +10,7 @@ export interface IAddAnimeDialogProps extends Pick<DialogProps, 'open'> {
 
 const AddAnimeDialog: FC<IAddAnimeDialogProps> = ({ open, onClose }) => {
   const [anime, setAnime] = useState<string>('');
-  const { addAnime } = useAnimeStore();
+  const addAnime = useAnimesStore((state) => state.addAnime);
 
   const handleSubmit = async () => {
     try {

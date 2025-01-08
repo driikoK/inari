@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 
 import { Box, Button, DialogProps, TextField } from '@mui/material';
 
-import { useAnimeStore, useMembersStore } from '@/stores';
+import { useAnimesStore, useMembersStore } from '@/stores';
 import { H6, CustomDialog } from '@/components';
 
 export interface IDialogProps extends Pick<DialogProps, 'open'> {
@@ -11,7 +11,7 @@ export interface IDialogProps extends Pick<DialogProps, 'open'> {
 }
 
 export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) => {
-  const addAnime = useAnimeStore((state) => state.addAnime);
+  const addAnime = useAnimesStore((state) => state.addAnime);
   const addMember = useMembersStore((state) => state.addMember);
 
   const handleSubmitTitle = async (name: string) => {

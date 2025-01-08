@@ -22,7 +22,7 @@ function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
 }
 
 const CookieRating: FunctionComponent = () => {
-  const { getRoles } = useRolesStore();
+  const getRoles = useRolesStore((state) => state.getRoles);
   const { members, getMembers, appliedFilters, updateMember } = useMembersStore();
   const { hasAccess } = usePermissions();
 

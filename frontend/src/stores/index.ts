@@ -1,4 +1,4 @@
-import useAnimeStore from './useAnimeStore';
+import useAnimesStore from './useAnimesStore';
 import useAuthStore from './useAuthStore';
 import useCoinsStore from './useCoinsStore';
 import useMembersStore from './useMembersStore';
@@ -7,7 +7,7 @@ import useRolesStore from './useRolesStore';
 import useTracksStore from './useTracksStore';
 
 export {
-  useAnimeStore,
+  useAnimesStore,
   useAuthStore,
   useCoinsStore,
   useMembersStore,

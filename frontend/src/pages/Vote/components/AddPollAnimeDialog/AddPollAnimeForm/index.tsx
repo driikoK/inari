@@ -45,7 +45,7 @@ const checkboxFields = [
 ];
 
 export const AddPollAnimeForm = ({ onClose }: { onClose: () => void }) => {
-  const { addAnime } = usePollStore();
+  const addAnime = usePollStore((state) => state.addAnime);
   const {
     control,
     handleSubmit,

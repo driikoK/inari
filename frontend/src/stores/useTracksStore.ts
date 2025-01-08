@@ -45,7 +45,7 @@ interface Actions {
   resetLastTracks: () => void;
 }
 
-const useTracksStore = create<State & Actions>((set) => ({
+const useTracksStore = create<State & Actions>((set, get) => ({
   tracks: {
     data: [],
     total: 0,
@@ -85,7 +85,7 @@ const useTracksStore = create<State & Actions>((set) => ({
     try {
       await axios.delete(`/tracks/${id}`);
 
-      const { appliedFilters, getTracks } = useTracksStore.getState();
+      const { appliedFilters, getTracks } = get();
       await getTracks(appliedFilters);
     } catch (error) {
       throw error;

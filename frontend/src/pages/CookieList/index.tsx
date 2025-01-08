@@ -6,7 +6,7 @@ import { GridActionsCellItem, GridCellParams, GridColDef, GridRowModel } from '@
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { CookiesFilters } from './components/CookiesFilters';
-import { useAnimeStore, useTracksStore, useRolesStore, useMembersStore } from '@/stores';
+import { useAnimesStore, useTracksStore, useRolesStore, useMembersStore } from '@/stores';
 import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable, ConfirmTableChangeDialog } from '@/components';
 import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season';
@@ -31,9 +31,9 @@ type RowType = {
 const CookieList: FunctionComponent = () => {
   const { tracks, getTracks, deleteTracks, updateTrack, isLoading, appliedFilters } =
     useTracksStore();
-  const { getAnimes } = useAnimeStore();
+  const getAnimes = useAnimesStore((state) => state.getAnimes);
   const { roles, getRoles } = useRolesStore();
-  const { getMembers } = useMembersStore();
+  const getMembers = useMembersStore((state) => state.getMembers);
   const { hasAccess } = usePermissions();
 
   const [promiseArguments, setPromiseArguments] = useState<any>(null);

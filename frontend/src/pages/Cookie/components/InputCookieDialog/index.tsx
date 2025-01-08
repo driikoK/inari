@@ -5,7 +5,7 @@ import { type DialogProps } from '@mui/material';
 import { ChooseAnimeFormValues } from './types';
 import { CreateTrackForm } from './components/CreateTrackForm';
 import { ChooseAnimeForm } from './components/ChooseAnimeForm';
-import { useAnimeStore, useCoinsStore } from '@/stores';
+import { useAnimesStore, useCoinsStore } from '@/stores';
 import { ANIME_TYPE } from '@/types';
 import { CustomDialog } from '@/components';
 
@@ -14,8 +14,8 @@ export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
 }
 
 const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, onClose }) => {
-  const { getAnimes } = useAnimeStore();
-  const { getCoins } = useCoinsStore();
+  const getAnimes = useAnimesStore((state) => state.getAnimes);
+  const getCoins = useCoinsStore((state) => state.getCoins);
   const [isNextStep, setIsNextStep] = useState(false);
   const [chosenAnime, setChosenAnime] = useState<ChooseAnimeFormValues | null>(null);
 

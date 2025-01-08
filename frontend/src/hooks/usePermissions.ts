@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores';
 const usePermissions = () => {
   const { setPermissions, setPermissionsLoaded, permissions, permissionsLoaded } =
     useContext(AbilityContext);
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const hasAccess = useCallback(
     (permission: SUBJECTS) => {

@@ -29,7 +29,7 @@ export interface ICardProps {
 
 const PollCard: FunctionComponent<ICardProps> = ({ card, checked, onCheckboxChange }) => {
   const { isDecided, isPriority, isSponsored, link, name, posterUrl } = card;
-  const { deleteAnime } = usePollStore();
+  const deleteAnime = usePollStore((state) => state.deleteAnime);
   const { hasAccess } = usePermissions();
 
   const handleDelete = () => {

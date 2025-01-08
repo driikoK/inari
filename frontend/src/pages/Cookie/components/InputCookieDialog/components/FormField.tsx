@@ -99,7 +99,7 @@ const ArrayField: FC<ArrayFieldProps> = ({ name, onOpenDialog, isDisabled, maxLe
 interface InputFieldsProps extends Omit<ArrayFieldProps, 'maxLength'> {}
 
 const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) => {
-  const { members } = useMembersStore();
+  const members = useMembersStore((state) => state.members);
   const {
     register,
     control,
