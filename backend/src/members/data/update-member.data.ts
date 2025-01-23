@@ -2,9 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsPositive,
   IsString,
+  Min,
 } from 'class-validator';
 
 export class UpdateMemberData {
@@ -20,8 +22,11 @@ export class UpdateMemberData {
   types?: string[];
 
   @ApiProperty()
-  @IsInt()
-  @IsPositive()
+  @IsNumber(
+    { allowInfinity: false, allowNaN: false },
+    { message: 'Coins must be a number' },
+  )
+  @Min(0)
   coins: number;
 
   @ApiProperty()

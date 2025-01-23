@@ -1,9 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsPositive } from 'class-validator';
+import { IsNumber, Min } from 'class-validator';
 
 export class UpdateTrackData {
   @ApiProperty()
-  @IsInt()
-  @IsPositive()
+  @IsNumber(
+    { allowInfinity: false, allowNaN: false },
+    { message: 'Coins must be a number' },
+  )
+  @Min(0)
   coins: number;
 }

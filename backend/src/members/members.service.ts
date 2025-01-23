@@ -39,7 +39,10 @@ export class MembersService {
   }
 
   async updateMember(member: UpdateMemberData) {
-    await this.memberModel.updateOne({ nickname: member.nickname }, member);
+    await this.memberModel.updateOne(
+      { nickname: member.nickname },
+      { ...member, coins: member.coins < 0 ? 0 : member.coins },
+    );
 
     return this.findMember(member.nickname);
   }
