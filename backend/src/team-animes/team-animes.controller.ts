@@ -11,6 +11,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TeamAnimesService } from './team-animes.service';
 import { CreateAnimeData } from './data/create-team-anime.data';
 import { AuthGuard } from '@auth/auth.guard';
+import { ITeamAnime } from './interfaces/team-anime.interface';
 
 @ApiTags('Team animes')
 @Controller('team-animes')
@@ -20,7 +21,7 @@ export class TeamAnimesController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async allTeamAnimes() {
+  async allTeamAnimes(): Promise<ITeamAnime[]> {
     return this.teamAnimeService.getAllTeamAnime();
   }
 

@@ -12,7 +12,7 @@ export class TeamAnimesService {
   ) {}
 
   async getAllTeamAnime(): Promise<ITeamAnime[]> {
-    return this.teamAnimeModel.find().exec();
+    return (await this.teamAnimeModel.find()).reverse();
   }
 
   async createTeamAnime(anime: CreateAnimeData): Promise<ITeamAnime> {
