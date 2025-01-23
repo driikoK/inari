@@ -14,10 +14,13 @@ interface Actions {
   getRoles: () => Promise<void>;
 }
 
-const useRolesStore = create<State & Actions>((set) => ({
+const useRolesStore = create<State & Actions>((set, get) => ({
   roles: [],
 
   getRoles: async () => {
+    const { roles } = get();
+    if (roles.length) return;
+
     try {
       const response = await axios.get(`/members/roles`);
       set({ roles: response.data });

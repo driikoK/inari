@@ -15,10 +15,13 @@ interface Actions {
   addAnime: (newAnime: string) => Promise<void>;
 }
 
-const useAnimesStore = create<State & Actions>((set) => ({
+const useAnimesStore = create<State & Actions>((set, get) => ({
   animeNames: [],
 
   getAnimes: async () => {
+    const { animeNames } = get();
+    if (animeNames.length) return;
+
     try {
       const response = await axios.get(`/team-animes`);
       set({ animeNames: response.data });
@@ -26,6 +29,7 @@ const useAnimesStore = create<State & Actions>((set) => ({
       throw error;
     }
   },
+
   addAnime: async (newAnime: string) => {
     try {
       const response = await axios.post(`/team-animes`, { name: newAnime });
