@@ -6,16 +6,27 @@ import { useAnimesStore, useRolesStore, useMembersStore, useTracksStore } from '
 import { seasonOptions, yearOptions } from '@/consts';
 
 export const CookiesFilters = () => {
-  const [selectedSeason, setSelectedSeason] = useState<string>();
-  const [selectedYear, setSelectedYear] = useState<string>();
-  const [selectedAnime, setSelectedAnime] = useState<string>();
-  const [selectedRole, setSelectedRole] = useState<string>();
-  const [selectedUser, setSelectedUser] = useState<string>();
+  const { getTracks, appliedFilters } = useTracksStore();
+
+  const [selectedSeason, setSelectedSeason] = useState<string | undefined>(
+    appliedFilters.season || undefined
+  );
+  const [selectedYear, setSelectedYear] = useState<string | undefined>(
+    appliedFilters.year || undefined
+  );
+  const [selectedAnime, setSelectedAnime] = useState<string | undefined>(
+    appliedFilters.nameTitle || undefined
+  );
+  const [selectedRole, setSelectedRole] = useState<string | undefined>(
+    appliedFilters.typeRole || undefined
+  );
+  const [selectedUser, setSelectedUser] = useState<string | undefined>(
+    appliedFilters.nickname || undefined
+  );
 
   const animeNames = useAnimesStore((state) => state.animeNames);
   const roles = useRolesStore((state) => state.roles);
   const members = useMembersStore((state) => state.members);
-  const { getTracks, appliedFilters } = useTracksStore();
 
   useEffect(() => {
     getTracks({
