@@ -5,6 +5,7 @@ import { CreateTrackType } from '@/pages/Cookie/components/InputCookieDialog/typ
 
 interface UpdateTrackData {
   coins: number;
+  username: string;
 }
 
 interface TracksWithPagination {
@@ -93,9 +94,7 @@ const useTracksStore = create<State & Actions>((set, get) => ({
   },
   updateTrack: async (id: string, track: UpdateTrackData) => {
     try {
-      const updatedTrack = await axios.put(`/tracks/${id}`, {
-        coins: track.coins,
-      });
+      const updatedTrack = await axios.put(`/tracks/${id}`, track);
 
       set((state) => ({
         tracks: {

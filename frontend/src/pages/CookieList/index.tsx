@@ -264,6 +264,7 @@ const CookieList: FunctionComponent = () => {
     try {
       const res = await updateTrack(newRow._id, {
         coins: newRow.coins,
+        username: currentUser!.username,
       });
 
       resolve({ res, id: res._id });

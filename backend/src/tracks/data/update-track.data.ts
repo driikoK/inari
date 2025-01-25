@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
 export class UpdateTrackData {
   @ApiProperty()
@@ -9,4 +9,9 @@ export class UpdateTrackData {
   )
   @Min(0)
   coins: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  username: string;
 }
