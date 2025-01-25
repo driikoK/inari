@@ -6,10 +6,17 @@ import { GridActionsCellItem, GridCellParams, GridColDef, GridRowModel } from '@
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { CookiesFilters } from './components/CookiesFilters';
-import { useAnimesStore, useTracksStore, useRolesStore, useMembersStore } from '@/stores';
+import {
+  useAnimesStore,
+  useTracksStore,
+  useRolesStore,
+  useMembersStore,
+  useAuthStore,
+} from '@/stores';
 import { ANIME_TYPE, TrackType } from '@/types';
-import { CustomTable, ConfirmTableChangeDialog } from '@/components';
+import { CustomTable, ConfirmTableChangeDialog, TextWrapTableCell } from '@/components';
 import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season';
+import { prettifyDate } from '@/utils/dates';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
 
@@ -35,6 +42,7 @@ const CookieList: FunctionComponent = () => {
   const { roles, getRoles } = useRolesStore();
   const getMembers = useMembersStore((state) => state.getMembers);
   const { hasAccess } = usePermissions();
+  const currentUser = useAuthStore((state) => state.user);
 
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -149,6 +157,18 @@ const CookieList: FunctionComponent = () => {
       resizable: false,
     },
     {
+      field: 'createdAt',
+      headerName: 'Додано',
+      width: 120,
+      renderCell: (params) => <TextWrapTableCell text={params.value} />,
+    },
+    {
+      field: 'updatedAt',
+      headerName: 'Відредаговано',
+      width: 140,
+      renderCell: (params) => <TextWrapTableCell text={params.value} />,
+    },
+    {
       field: 'note',
       headerName: 'Нотатка',
       sortable: false,
@@ -191,6 +211,8 @@ const CookieList: FunctionComponent = () => {
       isPriority: formatBoolean(track.isPriority),
       isGuest: formatBoolean(track.isGuest),
       username: track.username || '-',
+      createdAt: prettifyDate(track.createdAt) || '-',
+      updatedAt: prettifyDate(track.updatedAt) || '-',
     };
   });
 
@@ -240,7 +262,9 @@ const CookieList: FunctionComponent = () => {
     const { newRow, oldRow, reject, resolve } = promiseArguments;
 
     try {
-      const res = await updateTrack(newRow._id, { coins: newRow.coins });
+      const res = await updateTrack(newRow._id, {
+        coins: newRow.coins,
+      });
 
       resolve({ res, id: res._id });
       setPromiseArguments(null);

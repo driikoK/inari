@@ -8,6 +8,7 @@ import SelectField from './SelectField';
 import { ConfirmTableChangeDialog } from './ConfirmTableChangeDialog';
 import { H5, H6, ErrorText, P, Subtitle } from './Typography';
 import CustomDialog from './CustomDialog';
+import { TextWrapTableCell } from './TextWrapTableCell';
 
 export {
   Button,
@@ -24,4 +25,5 @@ export {
   Subtitle,
   ConfirmTableChangeDialog,
   CustomDialog,
+  TextWrapTableCell,
 };

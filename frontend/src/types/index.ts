@@ -35,6 +35,8 @@ export interface TrackType {
   isInTime: boolean;
   isGuest: boolean;
   username: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CoinsType {
