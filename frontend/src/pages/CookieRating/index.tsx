@@ -12,6 +12,7 @@ import { convertSeasonEngToUkr } from '@/utils/season';
 import { MemberType } from '@/types';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
+import { prettifyDate } from '@/utils/dates';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {
@@ -55,6 +56,11 @@ const CookieRating: FunctionComponent = () => {
       flex: 0.3,
       editable: hasAccess(SUBJECTS.COOKIES_RATINGS_EDIT) && !isYearAndSeasonApplied ? true : false,
     },
+    {
+      field: 'updatedAt',
+      headerName: 'Оновлено',
+      flex: 0.2,
+    },
   ];
 
   const columns: GridColDef<(typeof rows)[number]>[] = isYearAndSeasonApplied
@@ -73,6 +79,7 @@ const CookieRating: FunctionComponent = () => {
     const basicInfo = {
       id: member._id,
       place: index + 1,
+      updatedAt: prettifyDate(member.updatedAt) || '-',
     };
 
     if (isYearAndSeasonApplied) {

@@ -69,4 +69,5 @@ export interface MemberType {
   types: string[];
   coins: number;
   seasons: { season: string; year: number; coins: number }[];
+  updatedAt: string;
 }

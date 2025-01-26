@@ -1,5 +1,7 @@
-export const prettifyDate = (date: string) =>
-  new Date(date)
+export const prettifyDate = (date: string) => {
+  if (!date) return '-';
+
+  return new Date(date)
     .toLocaleDateString('en-GB', {
       year: 'numeric',
       month: 'numeric',
@@ -9,3 +11,4 @@ export const prettifyDate = (date: string) =>
       second: 'numeric',
     })
     .replace(',', '\n');
+};
