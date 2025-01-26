@@ -164,7 +164,7 @@ const CookieList: FunctionComponent = () => {
     },
     {
       field: 'updatedAt',
-      headerName: 'Відредаговано',
+      headerName: 'Оновлено',
       width: 140,
       renderCell: (params) => <TextWrapTableCell text={params.value} />,
     },
