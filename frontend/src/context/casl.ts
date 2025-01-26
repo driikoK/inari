@@ -11,6 +11,7 @@ export enum SUBJECTS {
   COOKIES_RATINGS_EDIT = 'cookies-ratings-edit',
   ADD_POLL_ANIME = 'add-poll-anime',
   DELETE_POLL_ANIME = 'delete-poll-anime',
+  DELETE_TEAM_ANIME = 'delete-team-anime',
 }
 
 export enum ROLE {

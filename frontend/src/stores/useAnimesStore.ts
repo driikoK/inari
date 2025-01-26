@@ -13,6 +13,7 @@ interface State {
 interface Actions {
   getAnimes: () => Promise<void>;
   addAnime: (newAnime: string) => Promise<void>;
+  deleteAnime: (id: string) => Promise<void>;
 }
 
 const useAnimesStore = create<State & Actions>((set, get) => ({
@@ -37,6 +38,15 @@ const useAnimesStore = create<State & Actions>((set, get) => ({
     } catch (error) {
       throw error;
     }
+  },
+
+  deleteAnime: async (id: string) => {
+    try {
+      await axios.delete(`/team-animes/${id}`);
+      set((state) => ({
+        animeNames: state.animeNames.filter((item) => item._id !== id),
+      }));
+    } catch (error) {}
   },
 }));
 

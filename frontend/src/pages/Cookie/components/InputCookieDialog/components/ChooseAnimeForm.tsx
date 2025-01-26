@@ -2,8 +2,10 @@ import { FC, useEffect, useState } from 'react';
 import { useForm, FormProvider, Controller, ControllerRenderProps } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 import { yupResolver } from '@hookform/resolvers/yup';
+import toast from 'react-hot-toast';
 
-import { Autocomplete, FormControl, MenuItem, TextField } from '@mui/material';
+import { Autocomplete, Box, FormControl, MenuItem, TextField } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 
 import { ChooseAnimeFormValues } from '../types';
 import { DialogFormWrapper, FlexColumn, FlexRow } from '../styles';
@@ -13,6 +15,8 @@ import { useAnimesStore, useMembersStore, useTracksStore } from '@/stores';
 import { seasonOptions, yearOptions } from '@/consts';
 import { ANIME_TYPE } from '@/types';
 import { AddAnimeDialog } from '@/pages/Cookie/components';
+import { usePermissions } from '@/hooks';
+import { SUBJECTS } from '@/context/casl';
 
 interface FormProps {
   saveFormValues: (values: ChooseAnimeFormValues) => void;
@@ -21,8 +25,9 @@ interface FormProps {
 
 export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }) => {
   const getMembers = useMembersStore((state) => state.getMembers);
-  const animeNames = useAnimesStore((state) => state.animeNames);
+  const { animeNames, deleteAnime } = useAnimesStore();
   const { resetLastTracks, getLastTracks, lastTracks } = useTracksStore();
+  const { hasAccess } = usePermissions();
 
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -105,6 +110,14 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     saveFormValues(form);
   };
 
+  const deleteTeamAnime = async (id: string) => {
+    try {
+      await deleteAnime(id);
+
+      toast.success('Успішно видалено');
+    } catch (error) {}
+  };
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmitForm)} style={{ width: '100%' }}>
@@ -134,7 +147,20 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     sx={{ minWidth: '85%', maxWidth: '95%' }}
                     renderOption={(props, option) => (
                       <MenuItem {...props} key={option._id} value={option._id}>
-                        {option.name}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '100%',
+                          }}
+                        >
+                          {option.name}
+
+                          {hasAccess(SUBJECTS.DELETE_TEAM_ANIME) && (
+                            <DeleteIcon onClick={() => deleteTeamAnime(option._id)} />
+                          )}
+                        </Box>
                       </MenuItem>
                     )}
                     noOptionsText={
