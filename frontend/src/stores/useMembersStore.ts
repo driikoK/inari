@@ -18,7 +18,7 @@ interface State {
 
 interface Actions {
   getMembers: (filters?: Partial<FilterData>) => Promise<void>;
-  addMember: (newMember: Omit<MemberType, '_id'>) => Promise<void>;
+  addMember: (newMember: Omit<MemberType, '_id' | 'updatedAt'>) => Promise<void>;
   updateMember: (updatedMember: MemberType) => Promise<MemberType>;
 }
 
