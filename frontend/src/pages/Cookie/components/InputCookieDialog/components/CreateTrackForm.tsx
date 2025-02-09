@@ -4,7 +4,6 @@ import toast from 'react-hot-toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { Box, Checkbox, FormControlLabel, TextField } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { FormField } from './FormField';
 import { CoinsCalculator } from './CoinsCalculator';
@@ -54,6 +53,19 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
       duration > maxDurationForShortFilm ? 'series' : (animeType as keyof typeof coinsTypes)
     ];
 
+  const findTracksByKey = (key: string, defaultValue: FieldFormValue[]) => {
+    const arrayValuesFromPrevEpisode = lastTracks
+      .filter((track) => track.typeRole === key)
+      .map((track) => {
+        return {
+          nickname: track.nickname,
+          coins: '',
+        };
+      });
+
+    return arrayValuesFromPrevEpisode.length > 0 ? arrayValuesFromPrevEpisode : defaultValue;
+  };
+
   const transformMembersInfo = (
     membersInfo: CreateTrackFormValues['membersInfo'],
     coins: CoinsType,
@@ -61,7 +73,9 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   ): CreateTrackFormValues['membersInfo'] => {
     return Object.entries(membersInfo).reduce((acc, [key, value]) => {
       if (Array.isArray(value)) {
-        (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue[]) = [...value];
+        (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue[]) = [
+          ...findTracksByKey(key, value),
+        ];
       } else {
         (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue) = {
           ...value,
