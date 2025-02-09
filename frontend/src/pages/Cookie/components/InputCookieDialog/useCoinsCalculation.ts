@@ -12,6 +12,7 @@ type Props = {
 const useCoinsCalculation = ({ watch, defaultCoins }: Props) => {
   const watchDubs = watch('membersInfo.dubs');
   const watchReleasers = watch('membersInfo.releasers');
+  const watchFixers = watch('membersInfo.fixers');
 
   const calculateCoinsSpent = (items: FieldFormValue[]) =>
     items.reduce((sum, item) => sum + Number(item.coins || '0'), 0);
@@ -19,11 +20,13 @@ const useCoinsCalculation = ({ watch, defaultCoins }: Props) => {
   const isDoubleDubs = watchDubs.length <= 2;
   const dubsSpent = calculateCoinsSpent(watchDubs);
   const releasersSpent = calculateCoinsSpent(watchReleasers);
+  const fixersSpent = calculateCoinsSpent(watchFixers);
 
   const [coinsForDubs, setCoinsForDubs] = useState(
     isDoubleDubs ? defaultCoins.dub.double : defaultCoins.dub.multi
   );
   const [coinsForReleasers, setCoinsForReleasers] = useState(defaultCoins.releaser);
+  const [coinsForFixers, setCoinsForFixers] = useState(defaultCoins.fixer);
 
   useEffect(() => {
     const dubsCoinsLeft =
@@ -36,11 +39,17 @@ const useCoinsCalculation = ({ watch, defaultCoins }: Props) => {
     setCoinsForReleasers(releasersCoinsLeft > 0 ? releasersCoinsLeft : 0);
   }, [releasersSpent, watchReleasers.length, defaultCoins]);
 
+  useEffect(() => {
+    const fixersCoinsLeft = defaultCoins.fixer - fixersSpent;
+    setCoinsForFixers(fixersCoinsLeft > 0 ? fixersCoinsLeft : 0);
+  }, [fixersSpent, watchFixers.length, defaultCoins]);
+
   const prettifyValue = (value: number) => (value % 1 === 0 ? value : value.toFixed(3));
 
   return {
     coinsForDubs: prettifyValue(coinsForDubs),
     coinsForReleasers: prettifyValue(coinsForReleasers),
+    coinsForFixers: prettifyValue(coinsForFixers),
   };
 };
 

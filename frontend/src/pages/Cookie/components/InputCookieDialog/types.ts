@@ -39,7 +39,7 @@ export interface CreateTrackFormValues extends Multipliers {
     sub: FieldFormValue;
     editor?: NotRequiredFieldFormValue | null;
     dubs: FieldFormValue[];
-    fixer: FieldFormValue;
+    fixers: FieldFormValue[];
     /* Actually this role can be not required with type NotRequiredFieldFormValue,
     but if add the type then form resolver will throw a type error.
     */

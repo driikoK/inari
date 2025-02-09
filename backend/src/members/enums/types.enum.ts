@@ -4,7 +4,7 @@ export enum MEMBER_ROLE {
   SOUND = 'sound',
   DIRECTOR = 'director',
   EDITOR = 'editor',
-  FIXER = 'fixer',
+  FIXER = 'fixers',
   ROLE_BREAKER = 'roleBreaker',
   RELEASER = 'releasers',
   TYPESETTER = 'typesetter',

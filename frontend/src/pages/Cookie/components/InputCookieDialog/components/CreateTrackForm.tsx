@@ -102,7 +102,10 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     reset(updatedValues);
   }, [lastTracks.length]);
 
-  const { coinsForDubs, coinsForReleasers } = useCoinsCalculation({ watch, defaultCoins: coins });
+  const { coinsForDubs, coinsForReleasers, coinsForFixers } = useCoinsCalculation({
+    watch,
+    defaultCoins: coins,
+  });
 
   const watchDubs = watch('membersInfo.dubs');
   const isDoubleDubs = watchDubs.length <= 2;
@@ -181,7 +184,6 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
           <FormField name={`${startNameForMemberField}.sound`} label="Звукач" isDisabled />
           <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
           <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
-          <FormField name={`${startNameForMemberField}.fixer`} label="Фіксер" isDisabled />
 
           <div>
             <FormField
@@ -239,6 +241,14 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
           <FormField
             name={`${startNameForMemberField}.releasers`}
             label="Релізери"
+            isArray
+            maxLength={2}
+          />
+
+          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForFixers} крихт`}</Subtitle>
+          <FormField
+            name={`${startNameForMemberField}.fixers`}
+            label="Фіксери"
             isArray
             maxLength={2}
           />

@@ -3,6 +3,8 @@ import * as Yup from 'yup';
 import { ChooseAnimeFormValues, CreateTrackFormValues, FieldFormValue } from '../types';
 import { CoinsType, ANIME_TYPE } from '@/types';
 
+type ArrayFields = 'dubs' | 'releasers' | 'fixers';
+
 // ** For create track form
 const testIsNotZero = Yup.string()
   .test('is-not-zero', 'Дай хоча б 1 крихту', (value) => value !== '' && value !== '0')
@@ -10,7 +12,7 @@ const testIsNotZero = Yup.string()
 
 const testIsMoreThanNeedCoins = (
   fieldValue: FieldFormValue[] = [],
-  fieldName: 'dubs' | 'releasers',
+  fieldName: ArrayFields,
   context: Yup.TestContext<Yup.AnyObject>,
   titleCoins: CoinsType
 ) => {
@@ -58,6 +60,17 @@ const notRequiredFieldSchema = Yup.object().shape({
   isGuest: Yup.boolean(),
 });
 
+const getArraySchema = (fieldName: ArrayFields, titleCoins: CoinsType, maxLength: number = 2) => {
+  return Yup.array()
+    .of(fieldSchema)
+    .min(1)
+    .max(maxLength)
+    .test(`sum-of-coins-${fieldName}`, '', (value, context) =>
+      testIsMoreThanNeedCoins(value, fieldName, context, titleCoins)
+    )
+    .required();
+};
+
 export const createTrackFormSchema = (titleCoins: CoinsType) => {
   return Yup.object().shape({
     membersInfo: Yup.object().shape({
@@ -65,26 +78,14 @@ export const createTrackFormSchema = (titleCoins: CoinsType) => {
       director: fieldSchema.required(),
       sub: fieldSchema.required(),
       editor: notRequiredFieldSchema.nullable().notRequired(),
-      dubs: Yup.array()
-        .of(fieldSchema)
-        .min(1)
-        .test('sum-of-coins-dubs', '', (dubs, context) =>
-          testIsMoreThanNeedCoins(dubs, 'dubs', context, titleCoins)
-        )
-        .required(),
-      fixer: fieldSchema.required(),
+      dubs: getArraySchema('dubs', titleCoins, 10),
+      fixers: getArraySchema('fixers', titleCoins),
       roleBreaker: fieldSchema.when('isLastEpisode', {
         is: (val: boolean) => val === true,
         then: (schema) => schema.required('Обов’язкове поле'),
         otherwise: () => notRequiredFieldSchema.notRequired(),
       }),
-      releasers: Yup.array()
-        .of(fieldSchema)
-        .max(2)
-        .test('sum-of-coins-releasers', '', (releasers, context) =>
-          testIsMoreThanNeedCoins(releasers, 'releasers', context, titleCoins)
-        )
-        .required(),
+      releasers: getArraySchema('releasers', titleCoins),
       typesetter: notRequiredFieldSchema.nullable().notRequired(),
     }),
     note: Yup.string(),
@@ -107,7 +108,7 @@ export const initialFormValues: CreateTrackFormValues = {
       { nickname: '', coins: '', isGuest: false },
       { nickname: '', coins: '', isGuest: false },
     ],
-    fixer: { nickname: '', coins: '', isGuest: false },
+    fixers: [{ nickname: '', coins: '', isGuest: false }],
     roleBreaker: { nickname: '', coins: '', isGuest: false },
     releasers: [{ nickname: '', coins: '', isGuest: false }],
     typesetter: { nickname: '', coins: '', isGuest: false },
