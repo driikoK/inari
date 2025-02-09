@@ -34,7 +34,12 @@ const useAnimesStore = create<State & Actions>((set, get) => ({
   addAnime: async (newAnime: string) => {
     try {
       const response = await axios.post(`/team-animes`, { name: newAnime });
-      set((state) => ({ animeNames: [...state.animeNames, response.data] }));
+
+      if (get().animeNames.length === 0) {
+        get().getAnimes();
+      }
+
+      set((state) => ({ animeNames: [response.data, ...state.animeNames] }));
     } catch (error) {
       throw error;
     }

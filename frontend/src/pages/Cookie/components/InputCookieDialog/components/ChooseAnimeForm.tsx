@@ -163,11 +163,11 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                         </Box>
                       </MenuItem>
                     )}
-                    noOptionsText={
-                      <MenuItem sx={{ fontWeight: '600' }} onClick={() => setOpenDialog(true)}>
-                        Додати
-                      </MenuItem>
-                    }
+                    // noOptionsText={
+                    //   <MenuItem sx={{ fontWeight: '600' }} onClick={() => setOpenDialog(true)}>
+                    //     Додати
+                    //   </MenuItem>
+                    // }
                   />
                 )}
               />

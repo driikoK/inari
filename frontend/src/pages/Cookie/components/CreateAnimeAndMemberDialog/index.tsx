@@ -11,8 +11,8 @@ export interface IDialogProps extends Pick<DialogProps, 'open'> {
 }
 
 export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) => {
-  const addAnime = useAnimesStore((state) => state.addAnime);
   const addMember = useMembersStore((state) => state.addMember);
+  const addAnime = useAnimesStore((state) => state.addAnime);
 
   const handleSubmitTitle = async (name: string) => {
     try {
@@ -22,7 +22,7 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
     } catch (e) {}
   };
 
-  const handleSubmitUser = async (name: string) => {
+  const handleSubmitMember = async (name: string) => {
     try {
       await addMember({ nickname: name, types: [], coins: 0, seasons: [] });
 
@@ -32,7 +32,7 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
 
   return (
     <CustomDialog onClose={onClose} open={open}>
-      <DialogSection sectionTitle="Додати учасника" handleSubmit={handleSubmitUser} />
+      <DialogSection sectionTitle="Додати учасника" handleSubmit={handleSubmitMember} />
 
       <DialogSection sectionTitle="Додати аніме" handleSubmit={handleSubmitTitle} />
     </CustomDialog>
