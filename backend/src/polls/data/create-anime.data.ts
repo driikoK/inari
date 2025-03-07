@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAnimeData {
   @ApiProperty({ example: 'Кохання на кінчиках пальців' })
@@ -7,12 +7,17 @@ export class CreateAnimeData {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example:
+      'https://myanimelist.net/anime/57533/Youkai_Gakkou_no_Sensei_Hajimemashita/',
+  })
   @IsString()
   @IsNotEmpty()
   link: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'https://cdn.myanimelist.net/images/anime/1800/145662.jpg',
+  })
   @IsString()
   @IsNotEmpty()
   posterUrl: string;
@@ -32,4 +37,9 @@ export class CreateAnimeData {
   @ApiProperty()
   @IsBoolean()
   isSponsored: boolean;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  note?: string;
 }

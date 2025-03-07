@@ -9,6 +9,7 @@ export const AnimeSchema = new mongoose.Schema({
   isDecided: { type: Boolean, required: true },
   isSponsored: { type: Boolean, required: true },
   votes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Vote' }],
+  note: { type: String },
 });
 
 AnimeSchema.methods.getTotalVotes = function () {

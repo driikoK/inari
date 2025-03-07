@@ -9,6 +9,7 @@ export interface PollAnime {
   isDecided: boolean;
   isSponsored: boolean;
   votes: mongoose.Types.Array<mongoose.Schema.Types.ObjectId>;
+  note?: string;
 
   getTotalVotes(): number;
 }
