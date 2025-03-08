@@ -5,44 +5,15 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ErrorMessage } from '@hookform/error-message';
 import { Checkbox, FormControlLabel, TextField } from '@mui/material';
 
-import { createPollAnimeSchema, initialFormValues } from '../const/form';
 import { ErrorText, H6, Button } from '@/components';
 import usePollStore, { NewPollAnime } from '@/stores/usePollStore';
 import { DialogFormWrapper } from '@/pages/Cookie/components/InputCookieDialog/styles';
-
-const textFields = [
-  {
-    fieldName: 'name',
-    title: 'Назва',
-  },
-  {
-    fieldName: 'link',
-    title: 'Посилання',
-  },
-  {
-    fieldName: 'posterUrl',
-    title: 'Посилання на постер',
-  },
-];
-
-const checkboxFields = [
-  {
-    fieldName: 'isOngoing',
-    title: 'Онґоїнґ',
-  },
-  {
-    fieldName: 'isPriority',
-    title: 'Пріоритет',
-  },
-  {
-    fieldName: 'isDecided',
-    title: 'Обрано',
-  },
-  {
-    fieldName: 'isSponsored',
-    title: 'Від спонсорів',
-  },
-];
+import {
+  checkboxFields,
+  textFields,
+  createPollAnimeSchema,
+  initialFormValues,
+} from '@/pages/Vote/const';
 
 export const AddPollAnimeForm = ({ onClose }: { onClose: () => void }) => {
   const addAnime = usePollStore((state) => state.addAnime);
@@ -94,6 +65,18 @@ export const AddPollAnimeForm = ({ onClose }: { onClose: () => void }) => {
             />
           </div>
         ))}
+
+        <div>
+          <H6>Коментар:</H6>
+
+          <TextField
+            {...register('note')}
+            placeholder="Не обов'язкове поле"
+            sx={{ width: '100%' }}
+            multiline
+            rows={4}
+          />
+        </div>
 
         <div>
           {checkboxFields.map(({ fieldName, title }) => (

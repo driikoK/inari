@@ -1,34 +1,18 @@
 import { FC, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import * as Yup from 'yup';
-import { ErrorMessage } from '@hookform/error-message';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Button from '@mui/material/Button';
+import { Box } from '@mui/material';
 
-import axios from '@/api';
-import { ErrorText } from '@/components';
 import { usePollStore } from '@/stores';
-import { PageWrapper, SubmitButton } from './styles';
-import { AddPollAnimeDialog, PollSection } from '@/pages/Vote/components';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
-
-const createChooseAnimeForm = () =>
-  Yup.object().shape({
-    animeIds: Yup.array()
-      .of(Yup.string().required())
-      .min(1, 'Виберіть хоча б один тайтл')
-      .required('Це поле обов’язкове'),
-  });
-
-const chooseAnimeInitialFormValues = {
-  animeIds: [],
-};
-
-export interface ChosenAnimes {
-  animeIds: string[];
-}
+import { AddPollAnimeDialog, PollSection } from '@/pages/Vote/components';
+import { PageWrapper, SubmitButton } from './styles';
+import { ChooseAnimeFormValues } from './types';
+import { chooseAnimeInitialFormValues, createChooseAnimeForm } from './const/form';
+import axios from '@/api';
 
 const Vote: FC = () => {
   const { getAnime, animes, isLoading } = usePollStore();
@@ -37,36 +21,43 @@ const Vote: FC = () => {
   const [loadingButton, setLoadingButton] = useState(false);
   const [isShowAddPollAnime, setIsShowAddPollAnime] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ChosenAnimes>({
+  const methods = useForm<ChooseAnimeFormValues>({
     defaultValues: chooseAnimeInitialFormValues,
     resolver: yupResolver(createChooseAnimeForm()),
     mode: 'onChange',
   });
 
+  const {
+    handleSubmit,
+    formState: { errors },
+  } = methods;
+
   useEffect(() => {
     getAnime();
   }, []);
 
-  const onSubmit = async (formData: ChosenAnimes) => {
+  useEffect(() => {
+    if (errors.chosenAnimes) toast.error('Виберіть хоча б один тайтл');
+  }, [errors.chosenAnimes]);
+
+  const onSubmit = async (formData: ChooseAnimeFormValues) => {
     setLoadingButton(true);
 
     try {
       const requestBody = {
-        animeIds: formData.animeIds,
+        votes: formData.chosenAnimes,
       };
 
       await axios.post(`/polls/vote`, requestBody);
 
-      toast.success('Дякую за участь 🥰');
+      toast.success('Дякуємо за участь 🥰');
     } catch (error) {
     } finally {
       setLoadingButton(false);
     }
   };
+
+  const isAnimesExist = animes?.ongoings.length !== 0 || animes?.olds.length !== 0;
 
   return (
     <PageWrapper>
@@ -75,33 +66,30 @@ const Vote: FC = () => {
           Додати для голосування
         </Button>
       )}
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <ErrorMessage
-          errors={errors}
-          name="animeIds"
-          render={({ message }) => <ErrorText>{message}</ErrorText>}
-        />
 
-        <PollSection
-          control={control}
-          animes={animes?.ongoings}
-          sectionTitle="Онґоїнґи"
-          isLoading={isLoading}
-        />
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {animes?.ongoings.length !== 0 && (
+            <PollSection animes={animes?.ongoings} sectionTitle="Онґоїнґи" isLoading={isLoading} />
+          )}
 
-        <PollSection
-          control={control}
-          animes={animes?.olds}
-          sectionTitle="Старі тайтли"
-          isLoading={isLoading}
-        />
+          {animes?.olds.length !== 0 && (
+            <Box sx={{ mt: 20 }}>
+              <PollSection
+                animes={animes?.olds}
+                sectionTitle="Старі тайтли"
+                isLoading={isLoading}
+              />
+            </Box>
+          )}
 
-        {animes?.ongoings.length !== 0 || animes?.olds.length !== 0 ? (
-          <SubmitButton variant="contained" type="submit">
-            {loadingButton ? 'Завантаження...' : 'Проголосувати'}
-          </SubmitButton>
-        ) : null}
-      </form>
+          {isAnimesExist ? (
+            <SubmitButton variant="contained" type="submit">
+              {loadingButton ? 'Завантаження...' : 'Проголосувати'}
+            </SubmitButton>
+          ) : null}
+        </form>
+      </FormProvider>
 
       {isShowAddPollAnime && (
         <AddPollAnimeDialog

@@ -1,6 +1,23 @@
 import * as Yup from 'yup';
-
+import { ChosenAnime } from '../types';
 import { NewPollAnime } from '@/stores/usePollStore';
+
+export const createChooseAnimeForm = () =>
+  Yup.object({
+    chosenAnimes: Yup.array()
+      .of(
+        Yup.object({
+          animeId: Yup.string().required(),
+          roles: Yup.array().of(Yup.string().required()).required(),
+        })
+      )
+      .min(1, 'Виберіть хоча б один тайтл')
+      .required(),
+  });
+
+export const chooseAnimeInitialFormValues = {
+  chosenAnimes: [] as ChosenAnime[],
+};
 
 export const createPollAnimeSchema = () => {
   return Yup.object().shape({

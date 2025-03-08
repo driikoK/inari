@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from '@/api';
+import { ROLES_ON_VOTE } from '@/types';
 
 export interface PollAnime {
   _id: string;
@@ -10,6 +11,7 @@ export interface PollAnime {
   isPriority: boolean;
   isDecided: boolean;
   isSponsored: boolean;
+  note?: string;
 }
 
 export interface NewPollAnime extends Omit<PollAnime, '_id'> {}
@@ -19,23 +21,39 @@ interface Animes {
   ongoings: PollAnime[];
 }
 
+interface Vote {
+  userName: string;
+  roles: ROLES_ON_VOTE[];
+}
+
+export interface Result {
+  animeId: string;
+  animeName: string;
+  totalVotes: number;
+  link: string;
+  votes: Vote[];
+}
+
 interface State {
   animes: Animes;
   isLoading: boolean;
+  result: Result[];
 }
 
 interface Actions {
   getAnime: () => Promise<void>;
   addAnime: (newAnime: NewPollAnime) => Promise<void>;
   deleteAnime: (id: string) => Promise<void>;
+  getResult: () => Promise<void>;
 }
 
-const usePollStore = create<State & Actions>((set) => ({
+const usePollStore = create<State & Actions>((set, get) => ({
   animes: {
     olds: [],
     ongoings: [],
   },
   isLoading: false,
+  result: [],
 
   getAnime: async () => {
     set({ isLoading: true });
@@ -48,19 +66,10 @@ const usePollStore = create<State & Actions>((set) => ({
     }
   },
   addAnime: async (newAnime: NewPollAnime) => {
-    const getUpdatedData = (prevData: PollAnime[], isOngoing: boolean): NewPollAnime[] =>
-      isOngoing ? [...prevData, newAnime] : [...prevData];
-
     try {
       await axios.post(`/polls/add-anime`, newAnime);
 
-      set((state) => ({
-        animes: {
-          ...state.animes,
-          ongoings: getUpdatedData(state.animes.ongoings, true),
-          olds: getUpdatedData(state.animes.olds, false),
-        } as Animes,
-      }));
+      get().getAnime();
     } catch (error) {
       throw error;
     }
@@ -80,6 +89,18 @@ const usePollStore = create<State & Actions>((set) => ({
         } as Animes,
       }));
     } catch (error) {}
+  },
+  getResult: async () => {
+    set({ isLoading: true });
+
+    try {
+      const response = await axios.get(`/polls/result`);
+
+      set({ result: response.data });
+    } catch (error) {
+    } finally {
+      set({ isLoading: false });
+    }
   },
 }));
 

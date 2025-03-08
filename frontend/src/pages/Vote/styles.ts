@@ -15,13 +15,13 @@ export const CardsWrapper = styled.div`
   grid-gap: 25px;
   ${({ theme }) =>
     theme.mq({
-      justifyItems: ['center', 'center', 'start', 'start'],
+      justifyItems: 'center',
       gap: ['10px', '10px', '25px', '25px'],
       gridTemplateColumns: [
-        'repeat(1, minmax(200px, 1fr))',
-        'repeat(1, minmax(200px, 1fr))',
-        'repeat(auto-fill, minmax(225px, 1fr))',
-        'repeat(auto-fill, minmax(225px, 1fr))',
+        'repeat(auto-fill, minmax(250px, 1fr))',
+        'repeat(auto-fill, minmax(250px, 1fr))',
+        'repeat(auto-fill, minmax(300px, 1fr))',
+        'repeat(auto-fill, minmax(300px, 1fr))',
       ],
     })};
 `;
@@ -40,8 +40,27 @@ export const SubmitButton = styled(Button)`
   && {
     ${({ theme }) =>
       theme.mq({
-        right: ['16px', '16px', '100px', '100px'],
+        right: ['16px', '16px', '50px', '50px'],
         fontSize: ['16px', '16px', '20px', '20px'],
       })};
   }
+`;
+
+export const LinkWrapper = styled.a`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+`;
+
+export const Poster = styled.div<{ $url: string }>`
+  background-image: url(${({ $url }) => $url});
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+
+  ${({ theme }) =>
+    theme.mq({
+      height: ['400px', '400px', '400px', '450px'],
+    })};
 `;
