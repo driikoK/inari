@@ -113,8 +113,9 @@ export class PollsService {
   async vote(userName: string, voteData: VoteData): Promise<boolean> {
     try {
       const existingVote = await this.voteModel.findOne({ userName }).exec();
-      if (existingVote) {
-        await this.voteModel.updateOne({ userName, ...voteData });
+
+      if (existingVote?.userName) {
+        await this.voteModel.updateOne({ userName }, { userName, ...voteData });
       } else {
         await this.voteModel.create({ userName, ...voteData });
       }
