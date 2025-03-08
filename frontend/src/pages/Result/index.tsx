@@ -1,50 +1,35 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { ListsWrapper, PageContainer, PageWrapper, TitleWrapper } from './styles';
-import List from './components/List';
+import { ListsWrapper, PageWrapper, TitleWrapper } from './styles';
+import VoteList from './components/VoteList';
 
-import { TResultAnime } from '@/types';
-import axios from '@/api';
 import { H6 } from '@/components';
+import { usePollStore } from '@/stores';
 
 const Result: FC = () => {
-  const [data, setData] = useState<TResultAnime[]>([]);
-  const [loadingData, setLoadingData] = useState(false);
+  const { result, getResult, isLoading } = usePollStore();
 
   useEffect(() => {
-    setLoadingData(true);
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`/polls/result`);
-
-        setData(response.data);
-      } catch (error) {
-      } finally {
-        setLoadingData(false);
-      }
-    };
-
-    fetchData();
+    getResult();
   }, []);
 
   return (
-    <PageContainer>
-      <PageWrapper>
-        <TitleWrapper>
-          <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>Результати</H6>
-        </TitleWrapper>
-        <ListsWrapper>
-          {loadingData ? (
-            <CircularProgress />
-          ) : (
-            data.map((item) => (
-              <List key={item.anime._id} anime={item.anime} voteCount={item.voteCount} />
-            ))
-          )}
-        </ListsWrapper>
-      </PageWrapper>
-    </PageContainer>
+    <PageWrapper>
+      <TitleWrapper>
+        <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>
+          {result.length ? 'Результати' : 'Результатів поки немає'}
+        </H6>
+      </TitleWrapper>
+
+      <ListsWrapper>
+        {isLoading ? (
+          <CircularProgress />
+        ) : (
+          result.map((item) => <VoteList key={item.animeId} result={item} />)
+        )}
+      </ListsWrapper>
+    </PageWrapper>
   );
 };
 

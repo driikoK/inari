@@ -1,10 +1,5 @@
 import styled from 'styled-components';
 
-export const PageContainer = styled.div`
-  background-color: ${({ theme }) => theme.colors.background};
-  position: relative;
-`;
-
 export const PageWrapper = styled.div`
   ${({ theme }) =>
     theme.mq({
