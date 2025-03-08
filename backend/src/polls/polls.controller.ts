@@ -55,7 +55,7 @@ export class PollsController {
     @CurrentUser() user: ValidatedUser,
     @Body() voteData: VoteData,
   ): Promise<boolean> {
-    await this.pollsService.vote(user.username, voteData.animeIds);
+    await this.pollsService.vote(user.username, voteData);
     return true;
   }
 
@@ -77,7 +77,7 @@ export class PollsController {
   @Delete('/animes/:id')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Delete poll anime' })
-  async deleteTeamAnime(@Param('id') id: string): Promise<boolean> {
-    return this.pollsService.deleteTeamAnime(id);
+  async deleteAnime(@Param('id') id: string): Promise<boolean> {
+    return this.pollsService.deleteAnime(id);
   }
 }

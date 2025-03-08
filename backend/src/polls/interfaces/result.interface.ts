@@ -1,6 +1,13 @@
-import { PollAnime } from './anime.interface';
+import { ROLES_ON_VOTE } from '../enums';
+
+interface Vote {
+  userName: string;
+  roles: ROLES_ON_VOTE[];
+}
 
 export interface Result {
-  anime: PollAnime;
-  voteCount: number;
+  animeId: string;
+  animeName: string;
+  totalVotes: number;
+  votes: Vote[];
 }

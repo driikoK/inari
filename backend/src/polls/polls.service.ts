@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 
 import { Vote, PollAnime, PollAnimeWithoutVotes, Result } from './interfaces';
-import { CreateAnimeData } from './data';
+import { CreateAnimeData, VoteData } from './data';
 
 @Injectable()
 export class PollsService {
@@ -43,9 +43,11 @@ export class PollsService {
       const [ongoings, olds] = await Promise.all([
         this.pollAnimeModel
           .find({ isOngoing: true }, { votes: 0, __v: 0 })
+          .sort({ _id: -1 })
           .exec(),
         this.pollAnimeModel
           .find({ isOngoing: false }, { votes: 0, __v: 0 })
+          .sort({ _id: -1 })
           .exec(),
       ]);
       return { ongoings, olds };
@@ -57,26 +59,49 @@ export class PollsService {
     }
   }
 
-  async deleteTeamAnime(id: string): Promise<boolean> {
-    this.pollAnimeModel.deleteOne({ _id: id });
+  async deleteAnime(id: string): Promise<boolean> {
+    await this.pollAnimeModel.deleteOne({ _id: id });
     return true;
   }
 
   async getVoteResult(): Promise<Result[]> {
     try {
-      const animes: PollAnime[] = await this.pollAnimeModel
-        .find()
-        .populate('votes')
-        .exec();
+      const votes = await this.voteModel.aggregate([
+        { $unwind: '$votes' },
+        {
+          $lookup: {
+            from: 'poll_animes',
+            localField: 'votes.animeId',
+            foreignField: '_id',
+            as: 'animeDetails',
+          },
+        },
+        { $unwind: '$animeDetails' },
+        {
+          $group: {
+            _id: '$votes.animeId',
+            animeName: { $first: '$animeDetails.name' },
+            link: { $first: '$animeDetails.link' },
+            votes: {
+              $push: { userName: '$userName', roles: '$votes.roles' },
+            },
+            totalVotes: { $sum: 1 },
+          },
+        },
+        { $sort: { totalVotes: -1, _id: 1 } },
+        {
+          $project: {
+            _id: 0,
+            animeId: '$_id',
+            animeName: 1,
+            link: 1,
+            votes: 1,
+            totalVotes: 1,
+          },
+        },
+      ]);
 
-      const animesWithVotes: Result[] = animes
-        .sort((a, b) => b.getTotalVotes() - a.getTotalVotes())
-        .map((anime) => ({
-          anime,
-          voteCount: anime.getTotalVotes(),
-        }));
-
-      return animesWithVotes;
+      return votes;
     } catch (error) {
       throw new HttpException(
         'Не вдалося отримати результати голосування',
@@ -85,37 +110,16 @@ export class PollsService {
     }
   }
 
-  async vote(userName: string, animeIds: string[]): Promise<Vote[]> {
-    const votes: Vote[] = [];
-
+  async vote(userName: string, voteData: VoteData): Promise<boolean> {
     try {
       const existingVote = await this.voteModel.findOne({ userName }).exec();
       if (existingVote) {
-        throw new HttpException('Ви вже проголосували', HttpStatus.BAD_REQUEST);
+        await this.voteModel.updateOne({ userName, ...voteData });
+      } else {
+        await this.voteModel.create({ userName, ...voteData });
       }
 
-      const animes = await this.pollAnimeModel
-        .find({ _id: { $in: animeIds } })
-        .exec();
-
-      if (animes.length !== animeIds.length) {
-        throw new HttpException(
-          'Такого аніме немає в списку',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      for (const anime of animes) {
-        const vote = new this.voteModel({ userName, anime });
-        const savedVote = await vote.save();
-
-        await this.pollAnimeModel.findByIdAndUpdate(anime._id, {
-          $push: { votes: savedVote._id },
-        });
-        votes.push(savedVote);
-      }
-
-      return votes;
+      return true;
     } catch (error) {
       throw error instanceof HttpException
         ? error
