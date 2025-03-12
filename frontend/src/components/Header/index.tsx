@@ -50,7 +50,8 @@ const Header: FunctionComponent = () => {
   }, [isDesktop]);
 
   const isShowPoll = process.env.VITE_FEATURE_POLL === 'true';
-  const isShowResults = process.env.VITE_FEATURE_RESULTS === 'true';
+  const isShowResults =
+    hasAccess(SUBJECTS.SHOW_RESULTS) || process.env.VITE_FEATURE_RESULTS === 'true';
 
   return (
     <HeaderContainer>

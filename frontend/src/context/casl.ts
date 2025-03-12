@@ -12,6 +12,7 @@ export enum SUBJECTS {
   ADD_POLL_ANIME = 'add-poll-anime',
   DELETE_POLL_ANIME = 'delete-poll-anime',
   DELETE_TEAM_ANIME = 'delete-team-anime',
+  SHOW_RESULTS = 'show-results',
 }
 
 export enum ROLE {
