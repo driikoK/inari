@@ -17,9 +17,7 @@ const Result: FC = () => {
   return (
     <PageWrapper>
       <TitleWrapper>
-        <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>
-          {result.length ? 'Результати' : 'Результатів поки немає'}
-        </H6>
+        <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>Результати</H6>
       </TitleWrapper>
 
       <ListsWrapper>

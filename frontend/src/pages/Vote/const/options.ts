@@ -51,7 +51,7 @@ export const rolesForTitle = [
     value: 'director',
   },
   {
-    title: 'Звукареж',
+    title: 'Звукореж',
     value: 'sound',
   },
 ];

@@ -18,7 +18,7 @@ const rolesForTitle = {
   [ROLES_ON_VOTE.SUB]: 'Перекладач',
   [ROLES_ON_VOTE.FIXER]: 'Фіксер',
   [ROLES_ON_VOTE.RELEASER]: 'Релізер',
-  [ROLES_ON_VOTE.SOUND]: 'Звукареж',
+  [ROLES_ON_VOTE.SOUND]: 'Звукореж',
   [ROLES_ON_VOTE.DIRECTOR]: 'Куратор',
 };
 
@@ -59,7 +59,7 @@ const VoteList: FC<IPropList> = ({ result }) => {
         {votes.map((vote) => (
           <React.Fragment key={vote.userName}>
             <Grid container>
-              <Grid size={1}>
+              <Grid size={1.5}>
                 <ListItem>
                   <ListItemText primary={`${vote.userName}:`} sx={{ fontWeight: '600' }} />
                 </ListItem>

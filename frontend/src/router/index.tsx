@@ -1,6 +1,6 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { RouteObject, useRoutes } from 'react-router-dom';
-import { Layout } from '@/components';
+import { FallbackComponent, Layout } from '@/components';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
@@ -71,5 +71,6 @@ const useConditionalRoutes = () => {
 
 export default function Router() {
   const routes = useConditionalRoutes();
-  return useRoutes(routes);
+
+  return <Suspense fallback={<FallbackComponent />}>{useRoutes(routes)}</Suspense>;
 }
