@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { IMember } from './interfaces/members.interface';
 import { MemberData } from './data/member.data';
-import { MEMBER_ROLE } from './enums/types.enum';
+import { MEMBER_ROLE } from '@shared';
 import { MemberFilterData } from './data/filter-members.data';
 import { UpdateMemberData } from './data/update-member.data';
 
@@ -29,7 +29,7 @@ export class MembersService {
       };
     }
 
-    return this.memberModel.find(query);
+    return this.memberModel.find(query).sort({ nickname: 1 });
   }
 
   createMember(member: MemberData): Promise<IMember> {

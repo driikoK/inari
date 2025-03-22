@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { MEMBER_ROLE } from '@members/enums/types.enum';
+import { MEMBER_ROLE } from '@shared';
 
 export const TracksSchema = new mongoose.Schema(
   {

@@ -23,7 +23,8 @@
       "@auth/*": ["src/auth/*"],
       "@dictionaries/*": ["src/dictionaries/*"],
       "@users/*": ["src/users/*"],
-      "@shared/*": ["src/shared/*"]
+      "@shared": ["src/shared/index"],
+      "@tracks/*": ["src/tracks/*"]
     }
   }
 }

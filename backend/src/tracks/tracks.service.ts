@@ -2,10 +2,9 @@ import { isValidObjectId, Model } from 'mongoose';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 
 import { MembersService } from '@members/members.service';
-import { MEMBER_ROLE } from '@members/enums/types.enum';
+import { MEMBER_ROLE, pick } from '@shared';
 import { DictionariesService } from '@dictionaries/dictionaries.service';
 import { UsersService } from '@users/users.service';
-import { pick } from '@shared/utils';
 import { UpdateTrackData } from './data/update-track.data';
 import { CreateTrackData, MemberInfo } from './data/create-track.data';
 import { FilterTrackData } from './data/filter-track.data';
@@ -86,6 +85,7 @@ export class TrackService {
     coins: number,
   ): number => {
     let additionalCoins = 0;
+
     if (multipliers.isOngoing) {
       additionalCoins += coins * MULTIPLIER.ONGOING;
     }
@@ -95,6 +95,7 @@ export class TrackService {
     if (multipliers.isInTime) {
       additionalCoins += coins * MULTIPLIER.IN_TIME;
     }
+
     return additionalCoins;
   };
 
@@ -182,9 +183,9 @@ export class TrackService {
       throw new HttpException('Такого юзера не існує', HttpStatus.BAD_REQUEST);
 
     if (track.isGiveEditorCoins)
-      this.addAdditionalCoinsToTranslator(track, 'editor');
+      this.addAdditionalCoinsToTranslator(track, MEMBER_ROLE.EDITOR);
     if (track.isGiveTypesetterCoins)
-      this.addAdditionalCoinsToTranslator(track, 'typesetter');
+      this.addAdditionalCoinsToTranslator(track, MEMBER_ROLE.TYPESETTER);
 
     for (const member of track.membersInfo) {
       const existedMember = await this.membersService.findMember(

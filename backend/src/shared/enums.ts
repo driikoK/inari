@@ -21,4 +21,5 @@ export enum ANIME_TYPE {
   SERIES = 'series',
   FILM = 'film',
   SHORT_FILM = 'shortFilm',
+  TRAILER = 'trailer',
 }

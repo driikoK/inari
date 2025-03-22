@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { MEMBER_ROLE, SEASON } from '../enums/types.enum';
+import { MEMBER_ROLE, SEASON } from '@shared';
 
 export class MemberFilterData {
   @ApiPropertyOptional({ nullable: true })

@@ -1,4 +1,4 @@
-import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '@members/enums/types.enum';
+import { MEMBER_ROLE, SEASON, ANIME_TYPE } from '@shared';
 
 export interface Multipliers {
   isOngoing: boolean;

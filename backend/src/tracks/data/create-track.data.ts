@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '@members/enums/types.enum';
 import {
   ArrayNotEmpty,
   IsBoolean,
@@ -15,6 +14,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+import { MEMBER_ROLE, SEASON, ANIME_TYPE } from '@shared';
 
 export class MemberInfo {
   @ApiProperty()
