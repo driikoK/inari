@@ -44,7 +44,14 @@ const useCoinsCalculation = ({ watch, defaultCoins }: Props) => {
     setCoinsForFixers(fixersCoinsLeft > 0 ? fixersCoinsLeft : 0);
   }, [fixersSpent, watchFixers.length, defaultCoins]);
 
-  const prettifyValue = (value: number) => (value % 1 === 0 ? value : value.toFixed(3));
+  const prettifyValue = (value: number) => {
+    if (value % 1 === 0) return value;
+
+    if (value.toFixed(3).toString().endsWith('00'))
+      return Number(value.toFixed(3).toString().slice(0, -2));
+
+    return value.toFixed(3);
+  };
 
   return {
     coinsForDubs: prettifyValue(coinsForDubs),

@@ -13,4 +13,8 @@ export const titleTypeOptions = [
     label: 'Короткометражка',
     value: ANIME_TYPE.SHORT_FILM,
   },
+  {
+    label: 'Трейлери / оповідки',
+    value: ANIME_TYPE.TRAILER,
+  },
 ];

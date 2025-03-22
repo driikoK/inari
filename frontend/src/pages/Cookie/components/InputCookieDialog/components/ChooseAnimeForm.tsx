@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect } from 'react';
 import { useForm, FormProvider, Controller, ControllerRenderProps } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -14,7 +14,6 @@ import { Button, SelectField, H6, ErrorText } from '@/components';
 import { useAnimesStore, useMembersStore, useTracksStore } from '@/stores';
 import { seasonOptions, yearOptions } from '@/consts';
 import { ANIME_TYPE } from '@/types';
-import { AddAnimeDialog } from '@/pages/Cookie/components';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
@@ -28,8 +27,6 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
   const { animeNames, deleteAnime } = useAnimesStore();
   const { resetLastTracks, getLastTracks, lastTracks } = useTracksStore();
   const { hasAccess } = usePermissions();
-
-  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     getMembers();
@@ -163,11 +160,6 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                         </Box>
                       </MenuItem>
                     )}
-                    // noOptionsText={
-                    //   <MenuItem sx={{ fontWeight: '600' }} onClick={() => setOpenDialog(true)}>
-                    //     Додати
-                    //   </MenuItem>
-                    // }
                   />
                 )}
               />
@@ -181,6 +173,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     disabled={
                       watchAnimeType === ANIME_TYPE.FILM ||
                       watchAnimeType === ANIME_TYPE.SHORT_FILM ||
+                      watchAnimeType === ANIME_TYPE.TRAILER ||
                       !watchTitleName
                     }
                     type="text"
@@ -319,8 +312,6 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
           <Button type="submit" color="inherit">
             Далі
           </Button>
-
-          <AddAnimeDialog onClose={() => setOpenDialog(false)} open={openDialog} />
         </DialogFormWrapper>
       </form>
     </FormProvider>

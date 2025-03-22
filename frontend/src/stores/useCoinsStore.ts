@@ -24,6 +24,7 @@ interface State {
     film: CoinsType;
     series: CoinsType;
     shortFilm: CoinsType;
+    trailer: CoinsType;
   };
 }
 
@@ -42,6 +43,10 @@ const useCoinsStore = create<State & Actions>((set) => ({
       ...defaultCoinValues,
     },
     shortFilm: {
+      type: 'shortFilm',
+      ...defaultCoinValues,
+    },
+    trailer: {
       type: 'shortFilm',
       ...defaultCoinValues,
     },

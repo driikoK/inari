@@ -15,7 +15,7 @@ import {
 } from '@/stores';
 import { ANIME_TYPE, TrackType } from '@/types';
 import { CustomTable, ConfirmTableChangeDialog, TextWrapTableCell } from '@/components';
-import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/season';
+import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/convert';
 import { prettifyDate } from '@/utils/dates';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';

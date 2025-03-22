@@ -23,6 +23,8 @@ export const convertAnimeTypeEngToUkr = (type: ANIME_TYPE): string => {
       return 'Фільм';
     case ANIME_TYPE.SHORT_FILM:
       return 'Короткометражка';
+    case ANIME_TYPE.TRAILER:
+      return 'Трейлери / оповідки';
     default:
       return '';
   }

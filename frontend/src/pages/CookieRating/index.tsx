@@ -8,7 +8,7 @@ import { PageContainer, Title, TitleWrapper } from './styles';
 import { RatingFilters } from './components/RatingFilters';
 import { useMembersStore, useRolesStore } from '@/stores';
 import { CustomTable, ConfirmTableChangeDialog } from '@/components';
-import { convertSeasonEngToUkr } from '@/utils/season';
+import { convertSeasonEngToUkr } from '@/utils/convert';
 import { MemberType } from '@/types';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';

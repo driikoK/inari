@@ -61,6 +61,7 @@ export enum ANIME_TYPE {
   FILM = 'film',
   SERIES = 'series',
   SHORT_FILM = 'shortFilm',
+  TRAILER = 'trailer',
 }
 
 export enum ROLES_ON_VOTE {
