@@ -55,10 +55,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     return coinsTypes[animeType as keyof typeof coinsTypes];
   };
 
-  const isOnlyOneEpisode =
-    animeType === ANIME_TYPE.SHORT_FILM ||
-    animeType === ANIME_TYPE.FILM ||
-    animeType === ANIME_TYPE.TRAILER;
+  const isOnlyOneEpisode = animeType === ANIME_TYPE.SHORT_FILM || animeType === ANIME_TYPE.FILM;
   const coins: CoinsType = getCoinsDependsOnDuration(duration, animeType);
 
   const findTracksByKey = (key: string, defaultValue: FieldFormValue[]) => {

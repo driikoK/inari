@@ -173,7 +173,6 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     disabled={
                       watchAnimeType === ANIME_TYPE.FILM ||
                       watchAnimeType === ANIME_TYPE.SHORT_FILM ||
-                      watchAnimeType === ANIME_TYPE.TRAILER ||
                       !watchTitleName
                     }
                     type="text"
