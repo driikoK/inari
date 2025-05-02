@@ -29,7 +29,6 @@ const CookieRating: FunctionComponent = () => {
 
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
 
-  // ** Don't want to mutate the original array
   const sortedMembers = [...members].sort((a, b) => b.coins - a.coins);
 
   useEffect(() => {
@@ -53,6 +52,11 @@ const CookieRating: FunctionComponent = () => {
     {
       field: 'coins',
       headerName: 'Крихти',
+      valueFormatter: (value: number) => {
+        if (value <= 0) return '0';
+
+        return value % 1 === 0 ? value.toString() : value.toFixed(3).toString();
+      },
       flex: 0.3,
       editable: hasAccess(SUBJECTS.COOKIES_RATINGS_EDIT) && !isYearAndSeasonApplied ? true : false,
     },
