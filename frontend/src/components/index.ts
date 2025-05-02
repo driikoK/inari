@@ -9,6 +9,7 @@ import { ConfirmTableChangeDialog } from './ConfirmTableChangeDialog';
 import { H5, H6, ErrorText, P, Subtitle } from './Typography';
 import CustomDialog from './CustomDialog';
 import { TextWrapTableCell } from './TextWrapTableCell';
+import { CustomBreadcrumbs } from './Breadcrumbs';
 
 export {
   Button,
@@ -26,4 +27,5 @@ export {
   ConfirmTableChangeDialog,
   CustomDialog,
   TextWrapTableCell,
+  CustomBreadcrumbs,
 };

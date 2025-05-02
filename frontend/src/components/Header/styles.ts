@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import Button from '../Button';
 
 export const HeaderContainer = styled.div`
   display: flex;
@@ -11,6 +10,7 @@ export const HeaderContainer = styled.div`
     })};
   align-items: center;
   justify-content: space-between;
+  gap: 80px;
 `;
 
 export const LogoWrapper = styled.div`
@@ -34,11 +34,4 @@ export const Logo = styled.div`
   background-size: contain;
   height: 50px;
   width: 50px;
-`;
-
-export const NavButton = styled(Button)`
-  && {
-    color: white;
-    font-size: 16px;
-  }
 `;
