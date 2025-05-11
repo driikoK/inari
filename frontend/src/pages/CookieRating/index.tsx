@@ -52,10 +52,12 @@ const CookieRating: FunctionComponent = () => {
     {
       field: 'coins',
       headerName: 'Крихти',
-      valueFormatter: (value: number) => {
-        if (value <= 0) return '0';
+      valueFormatter: (value: number | string) => {
+        const num = Number(value);
 
-        return value % 1 === 0 ? value.toString() : value.toFixed(3).toString();
+        if (isNaN(num) || num <= 0) return '0';
+
+        return num % 1 === 0 ? num.toString() : num.toFixed(3).toString();
       },
       flex: 0.3,
       editable: hasAccess(SUBJECTS.COOKIES_RATINGS_EDIT) && !isYearAndSeasonApplied ? true : false,
