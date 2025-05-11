@@ -97,7 +97,8 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     return {
       ...initialFormValues,
       membersInfo: transformMembersInfo(initialFormValues.membersInfo, coins),
-      isLastEpisode: isOnlyOneEpisode,
+      isLastEpisode:
+        isOnlyOneEpisode || !!lastTracks?.find((track) => track.typeRole === 'roleBreaker'),
     };
   }, []);
 
@@ -107,7 +108,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
     criteriaMode: 'all',
     mode: 'onChange',
   });
-  const { handleSubmit, register, watch, resetField, reset, control } = methods;
+  const { handleSubmit, register, watch, reset, control, setValue } = methods;
 
   // ** To set nicknames from previous episode if exist
   useEffect(() => {
@@ -137,17 +138,21 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
   const watchIsLastEpisode = watch('isLastEpisode');
 
   useEffect(() => {
-    if (watchEditor) resetField('isGiveEditorCoins');
+    if (!watchIsLastEpisode) setValue('membersInfo.roleBreaker.nickname', '');
+  }, [watchIsLastEpisode]);
+
+  useEffect(() => {
+    if (watchEditor) setValue('isGiveEditorCoins', false);
   }, [watchEditor]);
   useEffect(() => {
-    if (watchTypesetter) resetField('isGiveTypesetterCoins');
+    if (watchTypesetter) setValue('isGiveTypesetterCoins', false);
   }, [watchTypesetter]);
 
   useEffect(() => {
-    if (watchIsGiveEditorCoins) resetField('membersInfo.editor.nickname');
+    if (watchIsGiveEditorCoins) setValue('membersInfo.editor.nickname', '');
   }, [watchIsGiveEditorCoins]);
   useEffect(() => {
-    if (watchIsGiveTypesetterCoins) resetField('membersInfo.typesetter.nickname');
+    if (watchIsGiveTypesetterCoins) setValue('membersInfo.typesetter.nickname', '');
   }, [watchIsGiveTypesetterCoins]);
 
   const onSubmitForm = async (form: CreateTrackFormValues) => {
@@ -200,7 +205,7 @@ export const CreateTrackForm: FC<CreateTrackFormProps> = ({
         >
           <H6 sx={{ textAlign: 'center' }}>{titleName}</H6>
 
-          <FormField name={`${startNameForMemberField}.sound`} label="Звукач" isDisabled />
+          <FormField name={`${startNameForMemberField}.sound`} label="Звукореж" isDisabled />
           <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
           <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
 
