@@ -11,15 +11,15 @@ export class TeamAnimesService {
     private readonly teamAnimeModel: Model<ITeamAnime>,
   ) {}
 
-  async getAllTeamAnime(): Promise<ITeamAnime[]> {
+  async findAll(): Promise<ITeamAnime[]> {
     return await this.teamAnimeModel.find().sort({ name: 1 });
   }
 
-  async createTeamAnime(anime: CreateAnimeData): Promise<ITeamAnime> {
+  async create(anime: CreateAnimeData): Promise<ITeamAnime> {
     return this.teamAnimeModel.create({ name: anime.name });
   }
 
-  async deleteTeamAnime(id: string): Promise<any> {
+  async deleteById(id: string): Promise<any> {
     const result = await this.teamAnimeModel.deleteOne({ _id: id });
 
     return result.acknowledged;

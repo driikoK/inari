@@ -22,18 +22,18 @@ export class TeamAnimesController {
   @Get()
   @UseGuards(AuthGuard)
   async allTeamAnimes(): Promise<ITeamAnime[]> {
-    return this.teamAnimeService.getAllTeamAnime();
+    return this.teamAnimeService.findAll();
   }
 
   @Post()
   @UseGuards(AuthGuard)
   async createTeamAnime(@Body() anime: CreateAnimeData) {
-    return this.teamAnimeService.createTeamAnime(anime);
+    return this.teamAnimeService.create(anime);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard)
   async deleteTeamAnime(@Param('id') id: string): Promise<boolean> {
-    return this.teamAnimeService.deleteTeamAnime(id);
+    return this.teamAnimeService.deleteById(id);
   }
 }
