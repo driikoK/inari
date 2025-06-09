@@ -26,27 +26,27 @@ export class TracksController {
   @Get()
   @UseGuards(AuthGuard)
   async getAllTracks(@Query() filter: FilterTrackData) {
-    return this.trackService.getTracks(filter);
+    return this.trackService.findAll(filter);
   }
 
   @Post()
   @UseGuards(AuthGuard)
   @ApiBody({ type: CreateTrackData })
   async addNewTrack(@Body() track: CreateTrackData) {
-    return this.trackService.createTrack(track);
+    return this.trackService.create(track);
   }
 
   @Put(':id')
   @UseGuards(AuthGuard)
   @ApiBody({ type: UpdateTrackData })
   updateTrack(@Param('id') id: string, @Body() track: UpdateTrackData) {
-    return this.trackService.updateTrack(id, track);
+    return this.trackService.update(id, track);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard)
   async deleteTrack(@Param('id') id: string) {
-    return this.trackService.deleteTrack(id);
+    return this.trackService.delete(id);
   }
 
   @Get('last')

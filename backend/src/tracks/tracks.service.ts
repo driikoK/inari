@@ -25,7 +25,7 @@ export class TrackService {
     private readonly usersService: UsersService,
   ) {}
 
-  async getTracks(filter: FilterTrackData): Promise<ITracksWithPagination> {
+  async findAll(filter: FilterTrackData): Promise<ITracksWithPagination> {
     const { page = 1, perPage = 10, ...queryFilter } = filter;
 
     const tracks = await this.trackModel
@@ -44,18 +44,7 @@ export class TrackService {
     };
   }
 
-  async deleteTrack(id: string) {
-    if (!isValidObjectId(id)) {
-      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
-    }
-
-    const track = await this.trackModel.findOne({
-      _id: id,
-    });
-
-    if (!track)
-      throw new HttpException('Трек не існує', HttpStatus.BAD_REQUEST);
-
+  private updateMembersCoins = async (track: ITrack) => {
     const member = await this.membersService.findMember(track.nickname);
 
     const existedSeasonIndex = member.seasons.findIndex(
@@ -64,16 +53,29 @@ export class TrackService {
 
     member.seasons[existedSeasonIndex].coins -= track.coins;
 
-    if (member) {
-      const updatedMember = {
-        nickname: member.nickname,
-        coins: Number(member.coins) - Number(track.coins),
-        types: member.types,
-        seasons: member.seasons,
-      };
+    const updatedMember = {
+      nickname: member.nickname,
+      coins: Number(member.coins) - Number(track.coins),
+      types: member.types,
+      seasons: member.seasons,
+    };
 
-      await this.membersService.updateMember(updatedMember);
+    await this.membersService.updateMember(updatedMember);
+  };
+
+  async delete(id: string) {
+    if (!isValidObjectId(id)) {
+      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
     }
+
+    const track = await this.trackModel.findById({
+      _id: id,
+    });
+
+    if (!track)
+      throw new HttpException('Трек не існує', HttpStatus.BAD_REQUEST);
+
+    await this.updateMembersCoins(track);
 
     await this.trackModel.deleteOne({
       _id: id,
@@ -107,7 +109,7 @@ export class TrackService {
     return newTrack;
   }
 
-  async updateTrack(id: string, track: UpdateTrackData): Promise<ITrack> {
+  async update(id: string, track: UpdateTrackData): Promise<ITrack> {
     const trackToUpdate: ITrack = await this.trackModel.findOne({
       _id: id,
     });
@@ -176,7 +178,7 @@ export class TrackService {
       this.dictionariesService.getCoins()[track.titleType][role];
   }
 
-  async createTrack(track: CreateTrackData): Promise<string> {
+  async create(track: CreateTrackData): Promise<string> {
     const currentUser = await this.usersService.findOne(track.username);
 
     if (!currentUser)

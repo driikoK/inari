@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
+import { createMock } from '@golevelup/ts-jest';
+
 import { TeamAnimesService } from './team-animes.service';
 import { ITeamAnime } from './interfaces/team-anime.interface';
 import { CreateAnimeData } from './data/create-team-anime.data';
@@ -13,19 +15,13 @@ describe('TeamAnimesService', () => {
     name: '100 дівчат, які дуже, дуже, дуже тебе кохають',
   };
 
-  const mockTeamAnimeService = {
-    find: jest.fn(),
-    create: jest.fn(),
-    deleteOne: jest.fn(),
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TeamAnimesService,
         {
           provide: 'TEAM_ANIME_MODEL',
-          useValue: mockTeamAnimeService,
+          useValue: createMock<TeamAnimesService>(),
         },
       ],
     }).compile();
