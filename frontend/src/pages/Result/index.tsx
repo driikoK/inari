@@ -16,17 +16,25 @@ const Result: FC = () => {
 
   return (
     <PageWrapper>
-      <TitleWrapper>
-        <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>Результати</H6>
-      </TitleWrapper>
+      {isLoading ? (
+        <CircularProgress />
+      ) : result.length > 0 ? (
+        <>
+          <TitleWrapper>
+            <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>Результати</H6>
+          </TitleWrapper>
 
-      <ListsWrapper>
-        {isLoading ? (
-          <CircularProgress />
-        ) : (
-          result.map((item) => <VoteList key={item.animeId} result={item} />)
-        )}
-      </ListsWrapper>
+          <ListsWrapper>
+            {result.map((item) => (
+              <VoteList key={item.animeId} result={item} />
+            ))}
+          </ListsWrapper>
+        </>
+      ) : (
+        <TitleWrapper>
+          <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>Результатів поки немає</H6>
+        </TitleWrapper>
+      )}
     </PageWrapper>
   );
 };

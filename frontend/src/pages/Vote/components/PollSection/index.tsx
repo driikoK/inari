@@ -16,7 +16,7 @@ const skeletons = new Array(10).fill(0);
 
 const PollSection: FC<ICardProps> = ({ animes, sectionTitle = '', isLoading }) => {
   return (
-    <>
+    <div>
       <TitleWrapper>
         <H6 sx={(theme) => ({ color: theme.palette.secondary.main })}>{sectionTitle}</H6>
       </TitleWrapper>
@@ -30,7 +30,7 @@ const PollSection: FC<ICardProps> = ({ animes, sectionTitle = '', isLoading }) =
               <PollCard key={`${card._id}-${sectionTitle}`} card={card} />
             ))}
       </CardsWrapper>
-    </>
+    </div>
   );
 };
 
