@@ -16,7 +16,12 @@ function RequireAuth({ children }: PropsWithChildren) {
   const { isLoggedIn, getCurrentUser, user } = useAuthStore();
 
   const pathname = location.pathname;
-  const isPathForUnloggedUser = pathname === '/login' || pathname === '/home';
+  const isPathForUnloggedUser =
+    pathname === '/login' ||
+    pathname === '/home' ||
+    pathname === '/forgot-password' ||
+    pathname === '/sign-up' ||
+    pathname.startsWith('/reset/');
 
   if (!isPathForUnloggedUser && !isLoggedIn) {
     window.location.replace('/login');

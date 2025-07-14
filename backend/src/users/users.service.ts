@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 
-import { IUser } from './interfaces/user.interface';
+import { CreateUserDto, IUser } from './interfaces/user.interface';
 import { ROLE } from './enums';
 import { UpdateUserData } from './data/update-user.data';
 
@@ -10,49 +10,114 @@ import { UpdateUserData } from './data/update-user.data';
 export class UsersService {
   @Inject('USER_MODEL') private readonly userModel: Model<IUser>;
 
-  async findOne(username: string): Promise<IUser | undefined> {
-    return this.userModel.findOne({ username }).exec();
+  async findOneByUsername(
+    username: string,
+    withPassword: true,
+  ): Promise<IUser | undefined>;
+  async findOneByUsername(
+    username: string,
+    withPassword?: false,
+  ): Promise<Omit<IUser, 'password'> | undefined>;
+  async findOneByUsername(
+    username: string,
+    withPassword?: boolean,
+  ): Promise<IUser | Omit<IUser, 'password'> | undefined> {
+    if (!username) throw new HttpException('Username is required', 400);
+    return this.findOneByField('username', username, withPassword);
+  }
+
+  async findOneByEmail(
+    email: string,
+    withPassword: true,
+  ): Promise<IUser | undefined>;
+  async findOneByEmail(
+    email: string,
+    withPassword?: false,
+  ): Promise<Omit<IUser, 'password'> | undefined>;
+  async findOneByEmail(
+    email: string,
+    withPassword?: boolean,
+  ): Promise<IUser | Omit<IUser, 'password'> | undefined> {
+    if (!email) throw new HttpException('Email is required', 400);
+    return this.findOneByField('email', email, withPassword);
+  }
+
+  private async findOneByField<T extends 'username' | 'email'>(
+    field: T,
+    value: string,
+    withPassword?: boolean,
+  ): Promise<IUser | Omit<IUser, 'password'> | undefined> {
+    return this.userModel
+      .findOne({ [field]: value }, { password: withPassword ? 1 : 0 })
+      .exec();
   }
 
   async findAll(): Promise<IUser[] | []> {
     return this.userModel.find({}, { username: 1, role: 1, _id: 1 }).exec();
   }
 
-  async create(
-    username: string,
-    password: string,
-    role: ROLE,
-  ): Promise<string> {
+  async create({
+    username,
+    password,
+    email,
+    role,
+  }: CreateUserDto): Promise<string> {
     bcrypt.hash(password, 10, (err, hash) => {
-      this.userModel.create({ username, password: hash, role });
+      this.userModel.create({ username, password: hash, role, email });
     });
 
     return 'Created';
   }
 
-  async getCurrentUser(username: string): Promise<Omit<IUser, 'password'>> {
-    const user = await this.userModel.findOne({ username }).exec();
+  private async checkPassword(
+    newPassword: string,
+    old: string,
+  ): Promise<string> {
+    const isPasswordTheSame = await bcrypt.compare(newPassword, old);
 
-    return { username: user.username, role: user.role };
+    if (isPasswordTheSame) {
+      return old;
+    } else {
+      return await bcrypt.hash(newPassword, 10);
+    }
   }
 
-  async updateCurrentUser(
-    username: string,
+  async update(
+    _id: string,
     updateUserData: UpdateUserData,
-  ): Promise<IUser> {
-    if (username === 'root')
+  ): Promise<Omit<IUser, 'password'>> {
+    const user = await this.userModel.findOne({ _id }).exec();
+    if (user.username === 'root') {
       throw new HttpException('Не можна редагувати юзера', HttpStatus.CONFLICT);
+    }
 
-    await this.userModel.updateOne(
-      {
-        username,
-      },
+    // if (updateUserData.password) {
+    //   const isPasswordTheSame = await bcrypt.compare(
+    //     updateUserData.password,
+    //     user.password,
+    //   );
+
+    //   if (isPasswordTheSame) {
+    //     updateUserData.password = user.password;
+    //   } else {
+    //     updateUserData.password = await bcrypt.hash(
+    //       updateUserData.password,
+    //       10,
+    //     );
+    //   }
+    // }
+    if (updateUserData.password) {
+      updateUserData.password = await this.checkPassword(
+        updateUserData.password,
+        user.password,
+      );
+    }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      _id,
       updateUserData,
+      { new: true, select: '-password -__v' },
     );
-
-    const updatedUser = await this.userModel.findOne({
-      username,
-    });
 
     return updatedUser;
   }

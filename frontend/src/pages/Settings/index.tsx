@@ -6,22 +6,7 @@ import { GridColDef, GridRowModel } from '@mui/x-data-grid';
 import { PageContainer, Title, TitleWrapper } from '../CookieList/styles';
 import { CustomTable } from '@/components';
 import useAuthStore, { User } from '@/stores/useAuthStore';
-import { ROLE } from '@/context/casl';
-
-export const userRoleOptions = [
-  {
-    label: 'Адмін',
-    value: ROLE.ADMIN,
-  },
-  {
-    label: 'Куратор',
-    value: ROLE.DIRECTOR,
-  },
-  {
-    label: 'Учасник',
-    value: ROLE.MEMBER,
-  },
-];
+import { userRoleOptions } from '@/utils/constants';
 
 const Settings = () => {
   const { getAllUsers, allUsers, updateUser, user } = useAuthStore();
@@ -63,7 +48,7 @@ const Settings = () => {
     }
 
     try {
-      await updateUser(newRow.username, newRow.role);
+      await updateUser(newRow._id, newRow.role);
       toast.success('Успішно оновлено');
 
       return newRow;

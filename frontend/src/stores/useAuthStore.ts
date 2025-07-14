@@ -6,6 +6,7 @@ export type User = {
   username: string;
   role: ROLE;
   _id: string;
+  email?: string;
 };
 
 interface State {
@@ -15,12 +16,14 @@ interface State {
 }
 
 interface Actions {
-  signUp: (username: string, password: string) => Promise<void>;
+  signUp: (username: string, password: string, email: string) => Promise<void>;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   getCurrentUser: () => Promise<void>;
   getAllUsers: () => Promise<void>;
-  updateUser: (username: string, role: ROLE) => Promise<void>;
+  updateUser: (id: string, role: ROLE, email?: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string) => Promise<void>;
 }
 
 const useAuthStore = create<State & Actions>((set) => ({
@@ -28,14 +31,13 @@ const useAuthStore = create<State & Actions>((set) => ({
   user: null,
   allUsers: [],
 
-  signUp: async (username: string, password: string) => {
+  signUp: async (username: string, password: string, email: string) => {
     try {
-      const response = await axios.post(`/auth/sign-up`, {
+      await axios.post(`/auth/sign-up`, {
         username,
         password,
+        email,
       });
-
-      localStorage.setItem('token', response.data.accessToken);
     } catch (error) {
       throw error;
     }
@@ -60,8 +62,7 @@ const useAuthStore = create<State & Actions>((set) => ({
 
   logout: () => {
     localStorage.removeItem('token');
-    set({ isLoggedIn: false });
-    set({ user: null });
+    set({ isLoggedIn: false, user: null });
   },
 
   getCurrentUser: async () => {
@@ -78,10 +79,28 @@ const useAuthStore = create<State & Actions>((set) => ({
     } catch (error) {}
   },
 
-  updateUser: async (username: string, role: ROLE) => {
+  updateUser: async (id: string, role: ROLE, email?: string) => {
     try {
-      await axios.put(`/users/${username}`, { role });
-    } catch (error) {}
+      await axios.put(`/users/${id}`, { role, email });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  forgotPassword: async (email: string) => {
+    try {
+      await axios.post(`/auth/forgot-password`, { email });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  resetPassword: async (token: string, password: string) => {
+    try {
+      await axios.post(`/auth/reset-password`, { token, password });
+    } catch (error) {
+      throw error;
+    }
   },
 }));
 

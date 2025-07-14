@@ -14,6 +14,7 @@ import { TracksModule } from './tracks/tracks.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DictionariesModule } from './dictionaries/dictionaries.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { DictionariesModule } from './dictionaries/dictionaries.module';
     AuthModule,
     UsersModule,
     DictionariesModule,
+    EmailModule,
   ],
 })
 export class AppModule implements NestModule {

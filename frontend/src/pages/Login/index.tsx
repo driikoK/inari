@@ -1,11 +1,9 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import { ErrorMessage } from '@hookform/error-message';
 
 import LoginIcon from '@mui/icons-material/Login';
-import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 
 import {
   Box,
@@ -13,6 +11,7 @@ import {
   Card,
   CardActions,
   CardContent,
+  Link,
   TextField,
   useMediaQuery,
 } from '@mui/material';
@@ -27,10 +26,8 @@ type FormValues = {
 };
 
 const Login: FC = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
-
   const isTablet = useMediaQuery(theme.screens.tablet);
-  const { signUp, login } = useAuthStore();
+  const { login } = useAuthStore();
   const navigate = useNavigate();
 
   const {
@@ -47,14 +44,8 @@ const Login: FC = () => {
     const { nickname, password } = form;
 
     try {
-      if (isSignUp) {
-        await signUp(nickname, password);
-        setIsSignUp(false);
-        toast.success('Реєстрація пройшла успішно!');
-      } else {
-        await login(nickname, password);
-        navigate('/cookie');
-      }
+      await login(nickname, password);
+      navigate('/cookie');
     } catch (e) {}
   };
 
@@ -77,7 +68,7 @@ const Login: FC = () => {
               gap: '16px',
             }}
           >
-            <H6>{isSignUp ? 'Зареєструватися' : 'Увійти'}</H6>
+            <H6>Увійти</H6>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'start' }}>
               <Controller
@@ -131,23 +122,30 @@ const Login: FC = () => {
                 name="password"
                 render={({ message }) => <ErrorText>{message}</ErrorText>}
               />
+
+              <Link
+                href="/forgot-password"
+                underline="hover"
+                sx={(theme) => ({
+                  color: theme.palette.secondary.contrastText,
+                  fontFamily: theme.typography.fontFamily,
+                  fontSize: '14px',
+                  marginLeft: 'auto',
+                })}
+              >
+                Забули пароль?
+              </Link>
             </Box>
           </CardContent>
 
-          <CardActions sx={{ flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
+          <CardActions sx={{ flexDirection: 'column', gap: 1, marginTop: '24px' }}>
             <Button
               variant="text"
               size="small"
               sx={{ cursor: 'pointer', color: 'black', textTransform: 'none' }}
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => navigate('/sign-up')}
             >
-              {isSignUp ? (
-                <>
-                  Увійти <LoginIcon sx={{ ml: 1 }} />
-                </>
-              ) : (
-                'Немає акаунту?'
-              )}
+              Немає акаунту?
             </Button>
 
             <Button
@@ -156,16 +154,7 @@ const Login: FC = () => {
               sx={{ color: 'black', width: '100%', textTransform: 'none' }}
               variant="contained"
             >
-              {isSignUp ? (
-                <>
-                  Зареєструватися
-                  <FileDownloadDoneIcon sx={{ ml: 1 }} />
-                </>
-              ) : (
-                <>
-                  Увійти <LoginIcon sx={{ ml: 1 }} />
-                </>
-              )}
+              Увійти <LoginIcon sx={{ ml: 1 }} />
             </Button>
           </CardActions>
         </form>

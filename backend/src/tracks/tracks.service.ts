@@ -179,7 +179,9 @@ export class TrackService {
   }
 
   async create(track: CreateTrackData): Promise<string> {
-    const currentUser = await this.usersService.findOne(track.username);
+    const currentUser = await this.usersService.findOneByUsername(
+      track.username,
+    );
 
     if (!currentUser)
       throw new HttpException('Такого юзера не існує', HttpStatus.BAD_REQUEST);

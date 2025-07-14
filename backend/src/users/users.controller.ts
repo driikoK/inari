@@ -14,7 +14,7 @@ export class UsersController {
   @Get('me')
   @UseGuards(AuthGuard)
   me(@CurrentUser() validatedUser: ValidatedUser) {
-    return this.userService.getCurrentUser(validatedUser.username);
+    return this.userService.findOneByUsername(validatedUser.username);
   }
 
   @Get()
@@ -23,12 +23,9 @@ export class UsersController {
     return this.userService.findAll();
   }
 
-  @Put(':username')
+  @Put(':id')
   @UseGuards(AuthGuard)
-  update(
-    @Param('username') username: string,
-    @Body() updateUserData: UpdateUserData,
-  ) {
-    return this.userService.updateCurrentUser(username, updateUserData);
+  update(@Param('id') id: string, @Body() updateUserData: UpdateUserData) {
+    return this.userService.update(id, updateUserData);
   }
 }

@@ -32,6 +32,7 @@ const Header: FunctionComponent = () => {
     isShowPoll ? { title: 'Голосування', link: '/vote' } : null,
     isShowResults ? { title: 'Результати', link: '/result' } : null,
     isAdmin ? { title: 'Налаштування', link: '/settings' } : null,
+    { title: 'Профіль', link: '/profile' },
     {
       title: 'Вийти',
       link: '/logout',

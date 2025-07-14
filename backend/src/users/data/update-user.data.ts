@@ -1,12 +1,27 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { ROLE } from '../enums';
 
 export class UpdateUserData {
-  @ApiProperty()
+  @IsOptional()
   @IsString()
   @IsEnum(ROLE, {
     message: 'Invalid role',
   })
-  role: string;
+  role?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEmail({}, { message: 'Неправильна пошта' })
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  password?: string;
 }

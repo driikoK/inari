@@ -12,6 +12,10 @@ const CookieRating = lazy(() => import('../pages/CookieRating'));
 const CookieList = lazy(() => import('../pages/CookieList'));
 const Login = lazy(() => import('../pages/Login'));
 const Settings = lazy(() => import('../pages/Settings'));
+const Profile = lazy(() => import('../pages/Profile'));
+const ForgotPassword = lazy(() => import('../pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('../pages/ResetPassword'));
+const SignUp = lazy(() => import('../pages/SignUp'));
 
 const conditionalRoutes = (condition: boolean, route: RouteObject) => (condition ? [route] : []);
 
@@ -57,6 +61,22 @@ const useConditionalRoutes = () => {
         {
           path: 'settings',
           element: <Settings />,
+        },
+        {
+          path: 'profile',
+          element: <Profile />,
+        },
+        {
+          path: 'forgot-password',
+          element: <ForgotPassword />,
+        },
+        {
+          path: 'reset/:token',
+          element: <ResetPassword />,
+        },
+        {
+          path: 'sign-up',
+          element: <SignUp />,
         },
         {
           path: '*',
