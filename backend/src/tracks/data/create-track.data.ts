@@ -111,4 +111,9 @@ export class CreateTrackData {
   @ApiProperty()
   @IsString()
   username: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isSubsOnly?: boolean;
 }
