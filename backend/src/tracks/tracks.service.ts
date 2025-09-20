@@ -102,7 +102,9 @@ export class TrackService {
   };
 
   private getCoinsForTrack(track: ITrack, newTrack: UpdateTrackData) {
-    if (track.isGuest && newTrack.coins) newTrack.coins = newTrack.coins / 2;
+    if (track.isGuest && newTrack.coins) {
+      newTrack.coins = newTrack.coins * MULTIPLIER.IS_GUEST;
+    }
 
     newTrack.coins += this.calculateAdditionalCoins(track, newTrack.coins);
 
