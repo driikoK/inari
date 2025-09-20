@@ -1,3 +1,5 @@
+import { ANIME_TYPE } from '@/types';
+
 interface Multipliers {
   isOngoing: boolean;
   isPriority: boolean;
@@ -11,6 +13,16 @@ export interface MemberInfo {
   isGuest: boolean;
 }
 
+export interface BasicTrackProps {
+  titleName: string;
+  episode: string;
+  onClose: () => void;
+  animeType: ANIME_TYPE;
+  season: string;
+  year: string;
+  duration?: number;
+}
+
 export interface CreateTrackType extends Multipliers {
   membersInfo: MemberInfo[];
   currentEpisode: number;
@@ -22,6 +34,7 @@ export interface CreateTrackType extends Multipliers {
   isGiveEditorCoins?: boolean;
   isGiveTypesetterCoins?: boolean;
   username: string;
+  isSubsOnly?: boolean;
 }
 
 export interface FieldFormValue {
@@ -53,6 +66,17 @@ export interface CreateTrackFormValues extends Multipliers {
   isLastEpisode?: boolean;
 }
 
+export interface CreateTrackWithSubsOnlyFormValues
+  extends Omit<CreateTrackFormValues, 'membersInfo' | 'isLastEpisode'> {
+  membersInfo: {
+    director: FieldFormValue;
+    sub: FieldFormValue;
+    editor?: NotRequiredFieldFormValue | null;
+    releasers: FieldFormValue[];
+    typesetter?: NotRequiredFieldFormValue | null;
+  };
+}
+
 export interface ChooseAnimeFormValues {
   titleName: string;
   episode: number;
@@ -60,4 +84,5 @@ export interface ChooseAnimeFormValues {
   season: string;
   year: string;
   duration?: number;
+  isSubsOnly?: boolean;
 }

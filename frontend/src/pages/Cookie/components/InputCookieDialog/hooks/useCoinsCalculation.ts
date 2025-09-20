@@ -1,18 +1,27 @@
 import { useEffect, useState } from 'react';
-import { UseFormWatch } from 'react-hook-form';
+import { UseFormWatch, Path } from 'react-hook-form';
 
 import { CoinsType } from '@/types';
-import { CreateTrackFormValues, FieldFormValue } from './types';
+import { FieldFormValue } from '../types';
 
-type Props = {
-  watch: UseFormWatch<CreateTrackFormValues>;
+type MembersInfoWithCoins = {
+  dubs?: FieldFormValue[];
+  releasers?: FieldFormValue[];
+  fixers?: FieldFormValue[];
+};
+
+type Props<T extends { membersInfo: MembersInfoWithCoins }> = {
+  watch: UseFormWatch<T>;
   defaultCoins: CoinsType;
 };
 
-const useCoinsCalculation = ({ watch, defaultCoins }: Props) => {
-  const watchDubs = watch('membersInfo.dubs');
-  const watchReleasers = watch('membersInfo.releasers');
-  const watchFixers = watch('membersInfo.fixers');
+const useCoinsCalculation = <T extends { membersInfo: MembersInfoWithCoins }>({
+  watch,
+  defaultCoins,
+}: Props<T>) => {
+  const watchDubs = (watch('membersInfo.dubs' as Path<T>) ?? []) as FieldFormValue[];
+  const watchReleasers = (watch('membersInfo.releasers' as Path<T>) ?? []) as FieldFormValue[];
+  const watchFixers = (watch('membersInfo.fixers' as Path<T>) ?? []) as FieldFormValue[];
 
   const calculateCoinsSpent = (items: FieldFormValue[]) =>
     items.reduce((sum, item) => sum + Number(item.coins || '0'), 0);

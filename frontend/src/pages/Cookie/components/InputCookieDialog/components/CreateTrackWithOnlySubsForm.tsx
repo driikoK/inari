@@ -1,14 +1,18 @@
 import { FC, useEffect, useMemo } from 'react';
-import { useForm, FormProvider, Controller, UseFormWatch } from 'react-hook-form';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { Box, Checkbox, FormControlLabel, TextField } from '@mui/material';
 
 import { FormField } from './FormField';
-import { CoinsCalculator } from './CoinsCalculator';
-import { createTrackFormSchema, initialFormValues } from '../const/form';
-import { BasicTrackProps, CreateTrackFormValues, CreateTrackType, FieldFormValue } from '../types';
+import { createTrackWithSubsOnlyFormSchema, initialSubsOnlyFormValues } from '../const/form';
+import {
+  CreateTrackWithSubsOnlyFormValues,
+  CreateTrackType,
+  FieldFormValue,
+  BasicTrackProps,
+} from '../types';
 import { CheckboxWrapper } from '../styles';
 import { CoinsType } from '@/types';
 import { useAuthStore, useMembersStore, useTracksStore } from '@/stores';
@@ -18,7 +22,7 @@ import { startNameForMemberField } from '../const';
 import { useCoinsByDuration, useWatchCheckboxValues, useWatchNicknames } from '../hooks';
 import { checkIsOnlyOneEpisode, finalizeMembersInfoArray } from '../helpers';
 
-export const CreateTrackForm: FC<BasicTrackProps> = ({
+export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
   titleName,
   episode,
   onClose,
@@ -52,17 +56,17 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
   };
 
   const transformMembersInfo = (
-    membersInfo: CreateTrackFormValues['membersInfo'],
+    membersInfo: CreateTrackWithSubsOnlyFormValues['membersInfo'],
     coins: CoinsType,
     lastTracks?: { typeRole: string; nickname: string }[]
-  ): CreateTrackFormValues['membersInfo'] => {
+  ): CreateTrackWithSubsOnlyFormValues['membersInfo'] => {
     return Object.entries(membersInfo).reduce((acc, [key, value]) => {
       if (Array.isArray(value)) {
-        (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue[]) = [
+        (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue[]) = [
           ...findTracksByKey(key, value),
         ];
       } else {
-        (acc[key as keyof CreateTrackFormValues['membersInfo']] as FieldFormValue) = {
+        (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue) = {
           ...value,
           coins: coins[key as keyof typeof coins].toString(),
           nickname:
@@ -70,21 +74,21 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
         };
       }
       return acc;
-    }, {} as CreateTrackFormValues['membersInfo']);
+    }, {} as CreateTrackWithSubsOnlyFormValues['membersInfo']);
   };
 
-  const defaultValues: CreateTrackFormValues = useMemo(() => {
+  const defaultValues: CreateTrackWithSubsOnlyFormValues = useMemo(() => {
     return {
-      ...initialFormValues,
-      membersInfo: transformMembersInfo(initialFormValues.membersInfo, coins),
+      ...initialSubsOnlyFormValues,
+      membersInfo: transformMembersInfo(initialSubsOnlyFormValues.membersInfo, coins),
       isLastEpisode:
         isOnlyOneEpisode || !!lastTracks?.find((track) => track.typeRole === 'roleBreaker'),
     };
   }, []);
 
-  const methods = useForm<CreateTrackFormValues>({
+  const methods = useForm<CreateTrackWithSubsOnlyFormValues>({
     defaultValues,
-    resolver: yupResolver(createTrackFormSchema(coins)),
+    resolver: yupResolver(createTrackWithSubsOnlyFormSchema(coins)),
     criteriaMode: 'all',
     mode: 'onChange',
   });
@@ -102,26 +106,15 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
     reset(updatedValues);
   }, [lastTracks.length]);
 
-  const { coinsForDubs, coinsForReleasers, coinsForFixers } = useCoinsCalculation({
+  const { coinsForReleasers } = useCoinsCalculation({
     watch,
     defaultCoins: coins,
   });
 
-  const watchDubs = watch('membersInfo.dubs');
-  const isDoubleDubs = watchDubs.length <= 2;
-
-  const watchIsLastEpisode = watch('isLastEpisode');
-
-  useEffect(() => {
-    if (!watchIsLastEpisode) setValue('membersInfo.roleBreaker.nickname', '');
-  }, [watchIsLastEpisode]);
-
   useWatchCheckboxValues(watch, setValue);
   useWatchNicknames(watch, setValue);
 
-  const onSubmitForm = async (form: CreateTrackFormValues) => {
-    delete form.isLastEpisode;
-
+  const onSubmitForm = async (form: CreateTrackWithSubsOnlyFormValues) => {
     const payload: CreateTrackType = {
       ...form,
       membersInfo: finalizeMembersInfoArray(form.membersInfo),
@@ -132,6 +125,7 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
       year: Number(year),
       note: form.note || '',
       username: user!.username,
+      isSubsOnly: true,
     };
 
     try {
@@ -155,7 +149,6 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
         >
           <H6 sx={{ textAlign: 'center' }}>{titleName}</H6>
 
-          <FormField name={`${startNameForMemberField}.sound`} label="Звукореж" isDisabled />
           <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
           <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
 
@@ -201,16 +194,6 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
             />
           </div>
 
-          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForDubs} крихт`}</Subtitle>
-
-          <CoinsCalculator coinsForDubs={isDoubleDubs ? coins.dub.double : coins.dub.multi} />
-          <FormField
-            name={`${startNameForMemberField}.dubs`}
-            label="Дабери"
-            isArray
-            maxLength={10}
-          />
-
           <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForReleasers} крихт`}</Subtitle>
           <FormField
             name={`${startNameForMemberField}.releasers`}
@@ -218,35 +201,6 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
             isArray
             maxLength={2}
           />
-
-          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForFixers} крихт`}</Subtitle>
-          <FormField
-            name={`${startNameForMemberField}.fixers`}
-            label="Фіксери"
-            isArray
-            maxLength={2}
-          />
-
-          <FormControlLabel
-            label="Останній епізод"
-            control={
-              <Controller
-                name="isLastEpisode"
-                control={control}
-                render={({ field: { value, ...field } }) => (
-                  <Checkbox {...field} checked={!!value} disabled={isOnlyOneEpisode} />
-                )}
-              />
-            }
-          />
-
-          {watchIsLastEpisode && (
-            <FormField
-              name={`${startNameForMemberField}.roleBreaker`}
-              label="Розбивач ролей"
-              isDisabled
-            />
-          )}
 
           <div>
             <P sx={{ alignSelf: 'flex-start' }}>Нотатка:</P>

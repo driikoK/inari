@@ -37,6 +37,7 @@ export interface TrackType {
   username: string;
   createdAt: string;
   updatedAt: string;
+  isSubsOnly?: boolean;
 }
 
 export interface CoinsType {

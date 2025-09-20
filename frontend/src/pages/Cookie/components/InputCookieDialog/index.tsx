@@ -8,6 +8,7 @@ import { ChooseAnimeForm } from './components/ChooseAnimeForm';
 import { useAnimesStore, useCoinsStore } from '@/stores';
 import { ANIME_TYPE } from '@/types';
 import { CustomDialog } from '@/components';
+import { CreateTrackWithOnlySubsForm } from './components/CreateTrackWithOnlySubsForm';
 
 export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -35,6 +36,10 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
     setIsNextStep(true);
   };
 
+  useEffect(() => {
+    if (!isNextStep) setChosenAnime(null);
+  }, [isNextStep]);
+
   return (
     <CustomDialog
       onClose={onClose}
@@ -46,13 +51,21 @@ const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, o
         <ChooseAnimeForm saveFormValues={saveFormValues} initialValues={chosenAnime} />
       )}
 
-      {isNextStep && chosenAnime && (
+      {chosenAnime && chosenAnime.isSubsOnly && (
+        <CreateTrackWithOnlySubsForm
+          onClose={handleCreateTrackClose}
+          {...chosenAnime}
+          animeType={chosenAnime.animeType as ANIME_TYPE}
+          episode={chosenAnime.episode.toString()}
+        />
+      )}
+
+      {chosenAnime && !chosenAnime.isSubsOnly && (
         <CreateTrackForm
           onClose={handleCreateTrackClose}
           {...chosenAnime}
           animeType={chosenAnime.animeType as ANIME_TYPE}
           episode={chosenAnime.episode.toString()}
-          duration={chosenAnime.duration}
         />
       )}
     </CustomDialog>

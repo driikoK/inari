@@ -4,7 +4,15 @@ import { ErrorMessage } from '@hookform/error-message';
 import { yupResolver } from '@hookform/resolvers/yup';
 import toast from 'react-hot-toast';
 
-import { Autocomplete, Box, FormControl, MenuItem, TextField } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  MenuItem,
+  TextField,
+} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 
 import { ChooseAnimeFormValues } from '../types';
@@ -73,12 +81,14 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
       setValue('animeType', '');
       setValue('season', '');
       setValue('year', '');
+      setValue('isSubsOnly', false);
     } else {
       const existedTrack = lastTracks[0];
 
       setValue('animeType', existedTrack.titleType);
       setValue('season', existedTrack.season);
       setValue('year', existedTrack.year.toString());
+      setValue('isSubsOnly', existedTrack.isSubsOnly);
     }
   }, [lastTracks.length, watchTitleName]);
 
@@ -120,6 +130,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
       <form onSubmit={handleSubmit(onSubmitForm)} style={{ width: '100%' }}>
         <DialogFormWrapper>
           <H6>Назва тайтлу та номер епізоду:</H6>
+
           <div>
             <FlexRow>
               <Controller
@@ -196,6 +207,19 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                 render={({ message }) => <ErrorText>{message}</ErrorText>}
               />
             </FlexColumn>
+
+            <FormControlLabel
+              label="Тільки субтитри"
+              control={
+                <Controller
+                  name="isSubsOnly"
+                  control={control}
+                  render={({ field: { value, ...field } }) => (
+                    <Checkbox {...field} checked={!!value} />
+                  )}
+                />
+              }
+            />
           </div>
 
           <H6>Тип аніме:</H6>

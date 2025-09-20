@@ -1,6 +1,11 @@
 import * as Yup from 'yup';
 
-import { ChooseAnimeFormValues, CreateTrackFormValues, FieldFormValue } from '../types';
+import {
+  ChooseAnimeFormValues,
+  CreateTrackFormValues,
+  CreateTrackWithSubsOnlyFormValues,
+  FieldFormValue,
+} from '../types';
 import { CoinsType, ANIME_TYPE } from '@/types';
 
 type ArrayFields = 'dubs' | 'releasers' | 'fixers';
@@ -141,6 +146,7 @@ export const createChooseAnimeForm = () => {
         then: (schema) => schema.required('Обов’язкове поле'),
         otherwise: (schema) => schema.notRequired(),
       }),
+    isSubsOnly: Yup.boolean(),
   });
 };
 
@@ -151,4 +157,40 @@ export const chooseAnimeInitialFormValues: ChooseAnimeFormValues = {
   season: '',
   year: '',
   duration: 1,
+  isSubsOnly: false,
+};
+
+// ** Form for creating track with subs only
+export const createTrackWithSubsOnlyFormSchema = (titleCoins: CoinsType) => {
+  return Yup.object().shape({
+    membersInfo: Yup.object().shape({
+      director: fieldSchema.required(),
+      sub: fieldSchema.required(),
+      editor: notRequiredFieldSchema.nullable().notRequired(),
+      releasers: getArraySchema('releasers', titleCoins),
+      typesetter: notRequiredFieldSchema.nullable().notRequired(),
+    }),
+    note: Yup.string(),
+    isOngoing: Yup.boolean().required(),
+    isPriority: Yup.boolean().required(),
+    isInTime: Yup.boolean().required(),
+    isGiveEditorCoins: Yup.boolean(),
+    isGiveTypesetterCoins: Yup.boolean(),
+  });
+};
+
+export const initialSubsOnlyFormValues: CreateTrackWithSubsOnlyFormValues = {
+  membersInfo: {
+    director: { nickname: '', coins: '', isGuest: false },
+    sub: { nickname: '', coins: '', isGuest: false },
+    editor: { nickname: '', coins: '', isGuest: false },
+    releasers: [{ nickname: '', coins: '', isGuest: false }],
+    typesetter: { nickname: '', coins: '', isGuest: false },
+  },
+  note: '',
+  isOngoing: false,
+  isPriority: false,
+  isInTime: false,
+  isGiveEditorCoins: false,
+  isGiveTypesetterCoins: false,
 };

@@ -33,7 +33,8 @@ type RowType = {
   isPriority: string;
   isInTime: string;
   isGuest: string;
-} & Omit<TrackType, 'isOngoing' | 'isPriority' | 'isInTime' | 'isGuest'>;
+  isSubsOnly: string;
+} & Omit<TrackType, 'isOngoing' | 'isPriority' | 'isInTime' | 'isGuest' | 'isSubsOnly'>;
 
 const CookieList: FunctionComponent = () => {
   const { tracks, getTracks, deleteTracks, updateTrack, isLoading, appliedFilters } =
@@ -66,6 +67,14 @@ const CookieList: FunctionComponent = () => {
       perPage: paginationModel.pageSize,
     });
   }, [paginationModel]);
+
+  const booleanCell = {
+    sortable: false,
+    resizable: false,
+    cellClassName: (params: GridCellParams<any>) => {
+      return params.value === 'Ні' ? 'cell-red' : 'cell-green';
+    },
+  };
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
     {
@@ -117,38 +126,27 @@ const CookieList: FunctionComponent = () => {
     {
       field: 'isOngoing',
       headerName: 'Онґоїнґ',
-      sortable: false,
-      resizable: false,
-      cellClassName: (params: GridCellParams<any>) => {
-        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
-      },
+      ...booleanCell,
     },
     {
       field: 'isPriority',
       headerName: 'Пріоритет',
-      sortable: false,
-      resizable: false,
-      cellClassName: (params: GridCellParams<any>) => {
-        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
-      },
+      ...booleanCell,
     },
     {
       field: 'isInTime',
       headerName: 'Вчасно',
-      sortable: false,
-      resizable: false,
-      cellClassName: (params: GridCellParams<any>) => {
-        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
-      },
+      ...booleanCell,
     },
     {
       field: 'isGuest',
       headerName: 'Гість',
-      sortable: false,
-      resizable: false,
-      cellClassName: (params: GridCellParams<any>) => {
-        return params.value === 'Ні' ? 'cell-red' : 'cell-green';
-      },
+      ...booleanCell,
+    },
+    {
+      field: 'isSubsOnly',
+      headerName: 'Лише саби',
+      ...booleanCell,
     },
     {
       field: 'username',
@@ -210,6 +208,7 @@ const CookieList: FunctionComponent = () => {
       isOngoing: formatBoolean(track.isOngoing),
       isPriority: formatBoolean(track.isPriority),
       isGuest: formatBoolean(track.isGuest),
+      isSubsOnly: formatBoolean(!!track.isSubsOnly),
       username: track.username || '-',
       createdAt: prettifyDate(track.createdAt) || '-',
       updatedAt: prettifyDate(track.updatedAt) || '-',
