@@ -1,16 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsInt, IsPositive, IsString, Min } from 'class-validator';
+import { z } from 'zod';
 
-export class LastTracksData {
-  @ApiProperty({ example: 'Кохання на кінчиках пальців' })
-  @IsString()
-  titleName: string;
+export const LastTracksData = z.object({
+  titleName: z.string().meta({ example: 'Кохання на кінчиках пальців' }),
+  episode: z.coerce
+    .number()
+    .int()
+    .min(2, 'Епізод мусить бути мінімум 2')
+    .meta({ example: 2 }),
+});
 
-  @ApiProperty({ example: 2 })
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  @Min(2, { message: 'Епізод мусить бути мінімум 2' })
-  episode: number;
-}
+export type LastTracksData = z.infer<typeof LastTracksData>;

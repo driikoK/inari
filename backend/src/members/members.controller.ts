@@ -22,19 +22,25 @@ export class MembersController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getMembers(@Query() filter: MemberFilterData) {
+  async getMembers(
+    @Query({ schema: MemberFilterData }) filter: MemberFilterData,
+  ) {
     return this.membersService.findAll(filter);
   }
 
   @Post()
   @UseGuards(AuthGuard)
-  async createMember(@Body() member: CreateMemberData) {
+  async createMember(
+    @Body({ schema: CreateMemberData }) member: CreateMemberData,
+  ) {
     return this.membersService.createMember(member);
   }
 
   @Put()
   @UseGuards(AuthGuard)
-  async updateMember(@Body() member: UpdateMemberData) {
+  async updateMember(
+    @Body({ schema: UpdateMemberData }) member: UpdateMemberData,
+  ) {
     return this.membersService.updateMember(member);
   }
 

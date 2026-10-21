@@ -10,7 +10,6 @@ import {
 
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -42,7 +41,9 @@ export class PollsController {
   @Post('/add-anime')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Add anime for voting' })
-  async createAnime(@Body() anime: CreateAnimeData): Promise<CreateAnimeData> {
+  async createAnime(
+    @Body({ schema: CreateAnimeData }) anime: CreateAnimeData,
+  ): Promise<CreateAnimeData> {
     return this.pollsService.createAnime(anime);
   }
 
@@ -50,10 +51,9 @@ export class PollsController {
   @Post('/vote')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Vote for an anime' })
-  @ApiBody({ type: VoteData })
   async vote(
     @CurrentUser() user: ValidatedUser,
-    @Body() voteData: VoteData,
+    @Body({ schema: VoteData }) voteData: VoteData,
   ): Promise<boolean> {
     await this.pollsService.vote(user.username, voteData);
     return true;

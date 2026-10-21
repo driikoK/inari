@@ -1,53 +1,14 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { Type } from 'class-transformer';
-
+import { z } from 'zod';
 import { MEMBER_ROLE, SEASON } from '../../shared/index.js';
 
-export class FilterTrackData {
-  @ApiPropertyOptional({ nullable: true })
-  @IsOptional()
-  @IsString()
-  nickname?: string;
+export const FilterTrackData = z.object({
+  nickname: z.string().optional(),
+  season: z.enum(SEASON).optional(),
+  year: z.coerce.number().optional(),
+  nameTitle: z.string().optional(),
+  typeRole: z.enum(MEMBER_ROLE).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  perPage: z.coerce.number().int().min(1).default(10),
+});
 
-  @ApiPropertyOptional({
-    nullable: true,
-    enum: SEASON,
-    enumName: 'Season',
-  })
-  @IsOptional()
-  @IsEnum(SEASON)
-  season?: SEASON;
-
-  @ApiPropertyOptional({ nullable: true })
-  @IsOptional()
-  year?: number;
-
-  @ApiPropertyOptional({ nullable: true })
-  @IsOptional()
-  @IsString()
-  nameTitle?: string;
-
-  @ApiPropertyOptional({
-    nullable: true,
-    enum: MEMBER_ROLE,
-    enumName: 'Role',
-  })
-  @IsOptional()
-  @IsEnum(MEMBER_ROLE)
-  typeRole?: MEMBER_ROLE;
-
-  @ApiPropertyOptional({ example: 1 })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
-
-  @ApiPropertyOptional({ example: 10 })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  perPage?: number = 10;
-}
+export type FilterTrackData = z.infer<typeof FilterTrackData>;

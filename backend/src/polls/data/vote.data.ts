@@ -1,26 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsString, ArrayMaxSize, IsEnum } from 'class-validator';
+import { z } from 'zod';
 import { ROLES_ON_VOTE } from '../enums/index.js';
 
-class AnimeRoles {
-  @ApiProperty()
-  @IsString()
-  animeId: string;
+const AnimeRoles = z.object({
+  animeId: z.string(),
+  roles: z.array(z.enum(ROLES_ON_VOTE)).max(6, 'Обрано забагато ролей'),
+});
 
-  @ApiProperty({
-    nullable: true,
-    enum: ROLES_ON_VOTE,
-    enumName: 'Role',
-  })
-  @IsArray()
-  @ArrayMaxSize(6, { message: 'Обрано забагато ролей' })
-  @IsEnum(ROLES_ON_VOTE, { each: true })
-  roles: ROLES_ON_VOTE;
-}
+export const VoteData = z.object({
+  votes: z.array(AnimeRoles).max(10, 'Обрано більше 10 аніме'),
+});
 
-export class VoteData {
-  @ApiProperty()
-  @IsArray()
-  @ArrayMaxSize(10, { message: 'Обрано більше 10 аніме' })
-  votes: AnimeRoles[];
-}
+export type VoteData = z.infer<typeof VoteData>;

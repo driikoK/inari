@@ -1,45 +1,19 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { z } from 'zod';
 
-export class CreateAnimeData {
-  @ApiProperty({ example: 'Кохання на кінчиках пальців' })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({
+export const CreateAnimeData = z.object({
+  name: z.string().min(1).meta({ example: 'Кохання на кінчиках пальців' }),
+  link: z.string().min(1).meta({
     example:
       'https://myanimelist.net/anime/57533/Youkai_Gakkou_no_Sensei_Hajimemashita/',
-  })
-  @IsString()
-  @IsNotEmpty()
-  link: string;
-
-  @ApiProperty({
+  }),
+  posterUrl: z.string().min(1).meta({
     example: 'https://cdn.myanimelist.net/images/anime/1800/145662.jpg',
-  })
-  @IsString()
-  @IsNotEmpty()
-  posterUrl: string;
+  }),
+  isOngoing: z.boolean(),
+  isPriority: z.boolean(),
+  isDecided: z.boolean(),
+  isSponsored: z.boolean(),
+  note: z.string().nullish(),
+});
 
-  @ApiProperty()
-  @IsBoolean()
-  isOngoing: boolean;
-
-  @ApiProperty()
-  @IsBoolean()
-  isPriority: boolean;
-
-  @ApiProperty()
-  @IsBoolean()
-  isDecided: boolean;
-
-  @ApiProperty()
-  @IsBoolean()
-  isSponsored: boolean;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  note?: string;
-}
+export type CreateAnimeData = z.infer<typeof CreateAnimeData>;

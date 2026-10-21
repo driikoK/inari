@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { StandardSchemaValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -38,7 +38,7 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document);
 
   app.enableCors(corsOptions);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new StandardSchemaValidationPipe());
 
   await app.listen(config.get('app.port', { infer: true }));
 }

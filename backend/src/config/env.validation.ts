@@ -1,53 +1,17 @@
-// class-transformer reads decorator metadata, so this module must not rely on Nest loading it
-import 'reflect-metadata';
-import { plainToInstance } from 'class-transformer';
-import {
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-  validateSync,
-} from 'class-validator';
+import { z } from 'zod';
 
-class EnvironmentVariables {
-  @IsString()
-  @IsNotEmpty()
-  JWT_SECRET_KEY: string;
+const port = z.coerce.number().int().min(1).max(65535).optional();
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Max(65535)
-  PORT?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Max(65535)
-  MONGO_PORT?: number;
-
-  @IsOptional()
-  @IsString()
-  MONGO_HOST?: string;
-
-  @IsOptional()
-  @IsString()
-  MONGO_DATABASE?: string;
-
-  @IsOptional()
-  @IsString()
-  MONGO_USERNAME?: string;
-
-  @IsOptional()
-  @IsString()
-  MONGO_PASSWORD?: string;
-
-  @IsOptional()
-  @IsString()
-  CORS?: string;
-}
+const environmentSchema = z.object({
+  JWT_SECRET_KEY: z.string({ error: 'is required' }).min(1, 'is required'),
+  PORT: port,
+  MONGO_PORT: port,
+  MONGO_HOST: z.string().optional(),
+  MONGO_DATABASE: z.string().optional(),
+  MONGO_USERNAME: z.string().optional(),
+  MONGO_PASSWORD: z.string().optional(),
+  CORS: z.string().optional(),
+});
 
 // Fails fast at startup instead of at the first request that needs a setting.
 export function validate(config: Record<string, unknown>) {
@@ -55,18 +19,13 @@ export function validate(config: Record<string, unknown>) {
   const present = Object.fromEntries(
     Object.entries(config).filter(([, value]) => value !== ''),
   );
-  const env = plainToInstance(EnvironmentVariables, present, {
-    enableImplicitConversion: true,
-  });
-  const errors = validateSync(env);
+  const result = environmentSchema.safeParse(present);
 
-  if (errors.length > 0) {
-    const problems = errors.flatMap((error) =>
-      Object.values(error.constraints ?? {}),
+  if (!result.success) {
+    const problems = result.error.issues.map(
+      (issue) => `  - ${issue.path.join('.')}: ${issue.message}`,
     );
-    throw new Error(
-      `Invalid environment variables:\n${problems.map((problem) => `  - ${problem}`).join('\n')}`,
-    );
+    throw new Error(`Invalid environment variables:\n${problems.join('\n')}`);
   }
 
   return config;

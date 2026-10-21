@@ -25,7 +25,10 @@ export class UsersController {
 
   @Put(':id')
   @UseGuards(AuthGuard)
-  update(@Param('id') id: string, @Body() updateUserData: UpdateUserData) {
+  update(
+    @Param('id') id: string,
+    @Body({ schema: UpdateUserData }) updateUserData: UpdateUserData,
+  ) {
     return this.userService.update(id, updateUserData);
   }
 }

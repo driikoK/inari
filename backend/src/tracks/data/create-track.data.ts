@@ -1,119 +1,36 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  ArrayNotEmpty,
-  IsBoolean,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsPositive,
-  IsString,
-  Max,
-  Min,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '../../shared/index.js';
 
-import { MEMBER_ROLE, SEASON, ANIME_TYPE } from '../../shared/index.js';
+export const MemberInfo = z.object({
+  nickname: z.string().min(1),
+  typeRole: z.enum(MEMBER_ROLE),
+  coins: z
+    .number({ error: 'Coins must be a number' })
+    .positive('Coins must be at least 1'),
+  isGuest: z.boolean().nullish(),
+});
 
-export class MemberInfo {
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  nickname: string;
+export type MemberInfo = z.infer<typeof MemberInfo>;
 
-  @ApiProperty()
-  @IsEnum(MEMBER_ROLE)
-  typeRole: MEMBER_ROLE;
+export const CreateTrackData = z.object({
+  membersInfo: z.array(MemberInfo).min(1),
+  isOngoing: z.boolean().nullish(),
+  isPriority: z.boolean().nullish(),
+  isInTime: z.boolean().nullish(),
+  isGiveEditorCoins: z.boolean().nullish(),
+  isGiveTypesetterCoins: z.boolean().nullish(),
+  isGuest: z.boolean().nullish(),
+  currentEpisode: z
+    .int()
+    .positive('Мусить бути більше 0')
+    .max(999, 'Мусить бути менше 999'),
+  nameTitle: z.string(),
+  titleType: z.enum(ANIME_TYPE),
+  season: z.enum(SEASON),
+  year: z.int().min(2000),
+  note: z.string().nullish(),
+  username: z.string(),
+  isSubsOnly: z.boolean().nullish(),
+});
 
-  @ApiProperty()
-  @IsNumber(
-    { allowInfinity: false, allowNaN: false },
-    { message: 'Coins must be a number' },
-  )
-  @IsPositive({
-    message: 'Coins must be at least 1',
-  })
-  coins: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isGuest?: boolean;
-}
-
-export class CreateTrackData {
-  @ApiProperty({ type: [MemberInfo] })
-  @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => MemberInfo)
-  membersInfo: MemberInfo[];
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isOngoing?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isPriority?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isInTime?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isGiveEditorCoins?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isGiveTypesetterCoins?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isGuest?: boolean;
-
-  @ApiProperty()
-  @IsInt()
-  @IsPositive({ message: 'Мусить бути більше 0' })
-  @Max(999, { message: 'Мусить бути менше 999' })
-  currentEpisode: number;
-
-  @ApiProperty()
-  @IsString()
-  nameTitle: string;
-
-  @ApiProperty()
-  @IsEnum(ANIME_TYPE)
-  titleType: ANIME_TYPE;
-
-  @ApiProperty({ enum: SEASON, enumName: 'Season' })
-  @IsEnum(SEASON)
-  season: SEASON;
-
-  @ApiProperty()
-  @IsInt()
-  @Min(2000)
-  year: number;
-
-  @ApiPropertyOptional({ nullable: true })
-  @IsOptional()
-  @IsString()
-  note?: string;
-
-  @ApiProperty()
-  @IsString()
-  username: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isSubsOnly?: boolean;
-}
+export type CreateTrackData = z.infer<typeof CreateTrackData>;

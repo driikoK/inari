@@ -1,29 +1,12 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
+import { z } from 'zod';
 
-export class CreateMemberData {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  nickname: string;
+export const CreateMemberData = z.object({
+  nickname: z.string().min(1),
+  types: z.array(z.string()),
+  coins: z
+    .int('Coins must be an integer')
+    .min(0, 'Coins must be at least 0')
+    .nullish(),
+});
 
-  @ApiProperty()
-  @IsArray()
-  @IsString({ each: true })
-  types: string[];
-
-  @ApiPropertyOptional({
-    type: Number,
-  })
-  @IsOptional()
-  @IsInt({ message: 'Coins must be an integer' })
-  @Min(0, { message: 'Coins must be at least 0' })
-  coins?: number;
-}
+export type CreateMemberData = z.infer<typeof CreateMemberData>;

@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TrackService } from './tracks.service.js';
 import { CreateTrackData } from './data/create-track.data.js';
 import { FilterTrackData } from './data/filter-track.data.js';
@@ -25,21 +25,24 @@ export class TracksController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getAllTracks(@Query() filter: FilterTrackData) {
+  async getAllTracks(
+    @Query({ schema: FilterTrackData }) filter: FilterTrackData,
+  ) {
     return this.trackService.findAll(filter);
   }
 
   @Post()
   @UseGuards(AuthGuard)
-  @ApiBody({ type: CreateTrackData })
-  async addNewTrack(@Body() track: CreateTrackData) {
+  async addNewTrack(@Body({ schema: CreateTrackData }) track: CreateTrackData) {
     return this.trackService.create(track);
   }
 
   @Put(':id')
   @UseGuards(AuthGuard)
-  @ApiBody({ type: UpdateTrackData })
-  updateTrack(@Param('id') id: string, @Body() track: UpdateTrackData) {
+  updateTrack(
+    @Param('id') id: string,
+    @Body({ schema: UpdateTrackData }) track: UpdateTrackData,
+  ) {
     return this.trackService.update(id, track);
   }
 
@@ -51,7 +54,9 @@ export class TracksController {
 
   @Get('last')
   @UseGuards(AuthGuard)
-  async getLastTracksForTitle(@Query() data: LastTracksData) {
+  async getLastTracksForTitle(
+    @Query({ schema: LastTracksData }) data: LastTracksData,
+  ) {
     return this.trackService.getLastTracks(data);
   }
 }

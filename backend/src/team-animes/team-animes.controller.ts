@@ -27,7 +27,9 @@ export class TeamAnimesController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async createTeamAnime(@Body() anime: CreateTeamAnimeData) {
+  async createTeamAnime(
+    @Body({ schema: CreateTeamAnimeData }) anime: CreateTeamAnimeData,
+  ) {
     return this.teamAnimeService.create(anime);
   }
 

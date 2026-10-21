@@ -1,17 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { z } from 'zod';
 
-export class UpdateTrackData {
-  @ApiProperty()
-  @IsNumber(
-    { allowInfinity: false, allowNaN: false },
-    { message: 'Coins must be a number' },
-  )
-  @Min(0)
-  coins: number;
+export const UpdateTrackData = z.object({
+  coins: z
+    .number({ error: 'Coins must be a number' })
+    .min(0, 'Coins must be at least 0'),
+  username: z.string().min(1),
+});
 
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  username: string;
-}
+export type UpdateTrackData = z.infer<typeof UpdateTrackData>;

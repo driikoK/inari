@@ -89,11 +89,12 @@ export class SeedCommand {
     for (const anime of animeSeries) {
       if (existing.has(anime.name)) continue;
 
-      const animeTemplate = Object.assign(
-        new CreateAnimeData(),
-        { isPriority: false, isDecided: false, isSponsored: false },
-        anime,
-      );
+      const animeTemplate: CreateAnimeData = {
+        isPriority: false,
+        isDecided: false,
+        isSponsored: false,
+        ...anime,
+      };
       await this.pollsService.createAnime(animeTemplate);
       created++;
     }
@@ -158,7 +159,7 @@ export class SeedCommand {
     const roles = Object.values(ROLES_ON_VOTE);
 
     for (const [userIndex, user] of userSeeds.entries()) {
-      const voteData = Object.assign(new VoteData(), {
+      const voteData: VoteData = {
         votes: ongoings.slice(0, 3 + userIndex).map((anime, animeIndex) => ({
           animeId: String((anime as unknown as { _id: Types.ObjectId })._id),
           roles: [
@@ -166,7 +167,7 @@ export class SeedCommand {
             roles[(userIndex + animeIndex + 1) % roles.length],
           ],
         })),
-      });
+      };
 
       await this.pollsService.vote(user.username, voteData);
     }

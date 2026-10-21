@@ -1,27 +1,10 @@
-import {
-  IsEmail,
-  IsEnum,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
+import { z } from 'zod';
 import { ROLE } from '../enums/index.js';
 
-export class UpdateUserData {
-  @IsOptional()
-  @IsString()
-  @IsEnum(ROLE, {
-    message: 'Invalid role',
-  })
-  role?: string;
+export const UpdateUserData = z.object({
+  role: z.enum(ROLE, { error: 'Invalid role' }).nullish(),
+  email: z.email({ error: 'Неправильна пошта' }).nullish(),
+  password: z.string().min(3).nullish(),
+});
 
-  @IsOptional()
-  @IsString()
-  @IsEmail({}, { message: 'Неправильна пошта' })
-  email?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(3)
-  password?: string;
-}
+export type UpdateUserData = z.infer<typeof UpdateUserData>;

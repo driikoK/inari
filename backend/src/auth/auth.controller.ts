@@ -12,17 +12,19 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('sign-up')
-  signUp(@Body() signUpDto: SignUpData) {
+  signUp(@Body({ schema: SignUpData }) signUpDto: SignUpData) {
     return this.authService.signUp({ ...signUpDto });
   }
 
   @Post('login')
-  signIn(@Body() signInDto: LoginData) {
+  signIn(@Body({ schema: LoginData }) signInDto: LoginData) {
     return this.authService.login(signInDto.username, signInDto.password);
   }
 
   @Post('forgot-password')
-  forgotPassword(@Body() { email }: ForgotPasswordData): Promise<void> {
+  forgotPassword(
+    @Body({ schema: ForgotPasswordData }) { email }: ForgotPasswordData,
+  ): Promise<void> {
     return this.authService.forgotPassword(email);
   }
 

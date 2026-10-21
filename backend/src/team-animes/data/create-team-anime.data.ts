@@ -1,8 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { z } from 'zod';
 
-export class CreateTeamAnimeData {
-  @ApiProperty()
-  @IsString()
-  name: string;
-}
+export const CreateTeamAnimeData = z.object({
+  name: z.string(),
+});
+
+export type CreateTeamAnimeData = z.infer<typeof CreateTeamAnimeData>;
