@@ -36,7 +36,7 @@ describe('TeamAnimesService', () => {
         () =>
           ({
             sort: jest.fn().mockResolvedValue([mockTeamAnime]),
-          } as any),
+          }) as any,
       );
 
       const result = await teamAnimesService.findAll();

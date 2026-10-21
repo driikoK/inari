@@ -9,7 +9,7 @@ export const createChooseAnimeForm = () =>
         Yup.object({
           animeId: Yup.string().required(),
           roles: Yup.array().of(Yup.string().required()).required(),
-        })
+        }),
       )
       .min(1, 'Виберіть хоча б один тайтл')
       .required(),

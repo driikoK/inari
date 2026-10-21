@@ -6,7 +6,7 @@ export const checkIsOnlyOneEpisode = (animeType: ANIME_TYPE) => {
 };
 
 export const finalizeMembersInfoArray = (
-  membersInfo: Record<string, NotRequiredFieldFormValue | FieldFormValue | FieldFormValue[] | null>
+  membersInfo: Record<string, NotRequiredFieldFormValue | FieldFormValue | FieldFormValue[] | null>,
 ) => {
   return Object.entries(membersInfo).flatMap(([key, value]) => {
     if (Array.isArray(value)) {

@@ -58,23 +58,27 @@ export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
   const transformMembersInfo = (
     membersInfo: CreateTrackWithSubsOnlyFormValues['membersInfo'],
     coins: CoinsType,
-    lastTracks?: { typeRole: string; nickname: string }[]
+    lastTracks?: { typeRole: string; nickname: string }[],
   ): CreateTrackWithSubsOnlyFormValues['membersInfo'] => {
-    return Object.entries(membersInfo).reduce((acc, [key, value]) => {
-      if (Array.isArray(value)) {
-        (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue[]) = [
-          ...findTracksByKey(key, value),
-        ];
-      } else {
-        (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue) = {
-          ...value,
-          coins: coins[key as keyof typeof coins].toString(),
-          nickname:
-            lastTracks?.find((track) => track.typeRole === key)?.nickname || value?.nickname || '',
-        };
-      }
-      return acc;
-    }, {} as CreateTrackWithSubsOnlyFormValues['membersInfo']);
+    return Object.entries(membersInfo).reduce(
+      (acc, [key, value]) => {
+        if (Array.isArray(value)) {
+          (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue[]) =
+            [...findTracksByKey(key, value)];
+        } else {
+          (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue) = {
+            ...value,
+            coins: coins[key as keyof typeof coins].toString(),
+            nickname:
+              lastTracks?.find((track) => track.typeRole === key)?.nickname ||
+              value?.nickname ||
+              '',
+          };
+        }
+        return acc;
+      },
+      {} as CreateTrackWithSubsOnlyFormValues['membersInfo'],
+    );
   };
 
   const defaultValues: CreateTrackWithSubsOnlyFormValues = useMemo(() => {

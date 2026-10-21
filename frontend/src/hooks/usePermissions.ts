@@ -11,7 +11,7 @@ const usePermissions = () => {
     (permission: SUBJECTS) => {
       return permissions.includes(permission);
     },
-    [permissions]
+    [permissions],
   );
 
   const checkAccessFn = useCallback(
@@ -22,7 +22,7 @@ const usePermissions = () => {
 
       return hasAccess(permission);
     },
-    [hasAccess]
+    [hasAccess],
   );
 
   useEffect(() => {

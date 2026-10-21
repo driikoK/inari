@@ -32,7 +32,7 @@ const useCoinsCalculation = <T extends { membersInfo: MembersInfoWithCoins }>({
   const fixersSpent = calculateCoinsSpent(watchFixers);
 
   const [coinsForDubs, setCoinsForDubs] = useState(
-    isDoubleDubs ? defaultCoins.dub.double : defaultCoins.dub.multi
+    isDoubleDubs ? defaultCoins.dub.double : defaultCoins.dub.multi,
   );
   const [coinsForReleasers, setCoinsForReleasers] = useState(defaultCoins.releaser);
   const [coinsForFixers, setCoinsForFixers] = useState(defaultCoins.fixer);

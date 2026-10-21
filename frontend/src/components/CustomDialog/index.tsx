@@ -34,7 +34,12 @@ const CustomDialog = ({ onClose, onBack, isShowBack, open, children }: CustomDia
     >
       <div className={styles.dialogHeader}>
         {isShowBack && (
-          <Button startIcon={<ArrowBackIcon />} onClick={onBack} sx={{ paddingLeft: '20px' }} color="secondary">
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={onBack}
+            sx={{ paddingLeft: '20px' }}
+            color="secondary"
+          >
             Назад
           </Button>
         )}

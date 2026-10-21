@@ -19,7 +19,7 @@ const testIsMoreThanNeedCoins = (
   fieldValue: FieldFormValue[] = [],
   fieldName: ArrayFields,
   context: Yup.TestContext<Yup.AnyObject>,
-  titleCoins: CoinsType
+  titleCoins: CoinsType,
 ) => {
   // ** Needs only for checking number of dubs
   const isMulti = fieldValue!.length > 2;
@@ -71,7 +71,7 @@ const getArraySchema = (fieldName: ArrayFields, titleCoins: CoinsType, maxLength
     .min(1)
     .max(maxLength)
     .test(`sum-of-coins-${fieldName}`, '', (value, context) =>
-      testIsMoreThanNeedCoins(value, fieldName, context, titleCoins)
+      testIsMoreThanNeedCoins(value, fieldName, context, titleCoins),
     )
     .required();
 };

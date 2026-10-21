@@ -115,7 +115,7 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
 
   const handleCoinsChange = (
     value: string,
-    currentField: ControllerRenderProps<FieldValues, `${string}.coins`>
+    currentField: ControllerRenderProps<FieldValues, `${string}.coins`>,
   ) => {
     const validValue = value.replace(/[^0-9.]/g, '').replace(/(,|\.)+(?=.*[,.])/g, '');
 

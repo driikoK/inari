@@ -249,7 +249,7 @@ const CookieList: FunctionComponent = () => {
           resolve(oldRow);
         }
       }),
-    []
+    [],
   );
 
   const handleUpdateNo = () => {

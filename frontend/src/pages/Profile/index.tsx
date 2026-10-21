@@ -38,7 +38,9 @@ const Profile = () => {
 
       <article className={styles.card}>
         <section className={styles.avatarRow}>
-          <span className={styles.avatar} aria-hidden="true">{avatarLetter}</span>
+          <span className={styles.avatar} aria-hidden="true">
+            {avatarLetter}
+          </span>
           <div className={styles.avatarInfo}>
             <h2 className={styles.username}>{user?.username}</h2>
             <span
@@ -57,7 +59,9 @@ const Profile = () => {
         <hr className={styles.divider} />
 
         <section className={styles.fieldRow}>
-          <label className={styles.fieldLabel} htmlFor="profile-email">Email</label>
+          <label className={styles.fieldLabel} htmlFor="profile-email">
+            Email
+          </label>
           <div className={styles.emailRow}>
             <TextField
               id="profile-email"

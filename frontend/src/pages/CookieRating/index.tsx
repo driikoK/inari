@@ -92,7 +92,8 @@ const CookieRating: FunctionComponent = () => {
       return {
         nickname: member.nickname,
         coins: member.seasons.find(
-          (season) => season.season === appliedFilters.season && season.year === appliedFilters.year
+          (season) =>
+            season.season === appliedFilters.season && season.year === appliedFilters.year,
         )?.coins,
         season: `${convertSeasonEngToUkr(appliedFilters.season!)} ${appliedFilters.year}`,
         ...basicInfo,
@@ -116,7 +117,7 @@ const CookieRating: FunctionComponent = () => {
           resolve(oldRow);
         }
       }),
-    []
+    [],
   );
 
   const handleUpdateNo = () => {
