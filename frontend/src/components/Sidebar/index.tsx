@@ -12,6 +12,7 @@ import {
   FormatListBulletedOutlined,
   StarBorderOutlined,
   LeaderboardOutlined,
+  LightbulbOutlined,
   AutoGraphOutlined,
   SettingsOutlined,
   Person2Outlined,
@@ -68,6 +69,16 @@ const Sidebar: FC = () => {
             path: '/sheet',
             label: 'Лисяча комора',
             icon: <TableChartOutlined />,
+          },
+        ]
+      : []),
+    ...(isLoggedIn
+      ? [
+          {
+            id: 'proposals',
+            path: '/proposals',
+            label: 'Пропозиції',
+            icon: <LightbulbOutlined />,
           },
         ]
       : []),

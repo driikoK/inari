@@ -2,6 +2,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
 import { PollsService } from '../polls/polls.service.js';
+import { ProposalsService } from '../proposals/proposals.service.js';
 import { ROLE } from './enums/index.js';
 import type { ValidatedUser } from './interfaces/user.interface.js';
 import { UsersController } from './users.controller.js';
@@ -21,12 +22,18 @@ describe('UsersController', () => {
 
   let usersService: DeepMocked<UsersService>;
   let pollsService: DeepMocked<PollsService>;
+  let proposalsService: DeepMocked<ProposalsService>;
   let controller: UsersController;
 
   beforeEach(() => {
     usersService = createMock<UsersService>();
     pollsService = createMock<PollsService>();
-    controller = new UsersController(usersService, pollsService);
+    proposalsService = createMock<ProposalsService>();
+    controller = new UsersController(
+      usersService,
+      pollsService,
+      proposalsService,
+    );
   });
 
   describe('update', () => {
@@ -74,6 +81,31 @@ describe('UsersController', () => {
 
       expect(usersService.delete).toHaveBeenCalledWith('m1', 'a1');
       expect(pollsService.deleteVotesByUser).toHaveBeenCalledWith('ghost');
+      expect(proposalsService.deleteParticipationsByUser).toHaveBeenCalledWith(
+        'ghost',
+      );
+    });
+
+    it('still removes the proposal paws when the vote cleanup fails, then reports the failure', async () => {
+      usersService.delete.mockResolvedValue('ghost');
+      pollsService.deleteVotesByUser.mockRejectedValue(new Error('db down'));
+
+      await expect(controller.remove('m1', admin)).rejects.toThrow('db down');
+
+      expect(proposalsService.deleteParticipationsByUser).toHaveBeenCalledWith(
+        'ghost',
+      );
+    });
+
+    it('still removes the vote when the paw cleanup fails', async () => {
+      usersService.delete.mockResolvedValue('ghost');
+      proposalsService.deleteParticipationsByUser.mockRejectedValue(
+        new Error('db down'),
+      );
+
+      await expect(controller.remove('m1', admin)).rejects.toThrow('db down');
+
+      expect(pollsService.deleteVotesByUser).toHaveBeenCalledWith('ghost');
     });
 
     it('keeps the vote when the account could not be deleted', async () => {
@@ -82,6 +114,9 @@ describe('UsersController', () => {
       await expect(controller.remove('m1', admin)).rejects.toThrow('refused');
 
       expect(pollsService.deleteVotesByUser).not.toHaveBeenCalled();
+      expect(
+        proposalsService.deleteParticipationsByUser,
+      ).not.toHaveBeenCalled();
     });
   });
 });

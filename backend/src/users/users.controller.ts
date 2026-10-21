@@ -11,6 +11,7 @@ import {
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
 import { PollsService } from '../polls/polls.service.js';
+import { ProposalsService } from '../proposals/proposals.service.js';
 import { ROLE } from './enums/index.js';
 import type { ValidatedUser } from './interfaces/user.interface.js';
 import { UsersService } from './users.service.js';
@@ -24,6 +25,7 @@ export class UsersController {
   constructor(
     private readonly userService: UsersService,
     private readonly pollsService: PollsService,
+    private readonly proposalsService: ProposalsService,
   ) {}
 
   @Get('me')
@@ -65,7 +67,18 @@ export class UsersController {
   ): Promise<boolean> {
     const username = await this.userService.delete(id, currentUser._id);
 
-    await this.pollsService.deleteVotesByUser(username);
+    // The account is already gone and cannot be deleted again, so one failing
+    // cleanup must not stop the other.
+    const cleanups = await Promise.allSettled([
+      this.pollsService.deleteVotesByUser(username),
+      this.proposalsService.deleteParticipationsByUser(username),
+    ]);
+    const failed = cleanups.find(
+      (cleanup): cleanup is PromiseRejectedResult =>
+        cleanup.status === 'rejected',
+    );
+
+    if (failed) throw failed.reason;
 
     return true;
   }

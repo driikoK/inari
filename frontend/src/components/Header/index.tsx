@@ -29,6 +29,7 @@ const Header: FunctionComponent = () => {
 
   const loggedInLinks = [
     { title: 'Крихти', link: '/cookie' },
+    { title: 'Пропозиції', link: '/proposals' },
     isShowPoll ? { title: 'Голосування', link: '/vote' } : null,
     isShowResults ? { title: 'Результати', link: '/result' } : null,
     isAdmin ? { title: 'Налаштування', link: '/settings' } : null,

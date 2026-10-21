@@ -12,6 +12,8 @@ import { UsersService } from '../users/users.service.js';
 import { ROLE } from '../users/enums/index.js';
 import { animeSeries } from './datas/anime.data.js';
 import { PollsService } from '../polls/polls.service.js';
+import { ProposalsService } from '../proposals/proposals.service.js';
+import { proposalSeasons } from './datas/proposals.data.js';
 import { CreateAnimeData, VoteData } from '../polls/data/index.js';
 import { ROLES_ON_VOTE } from '../polls/enums/index.js';
 import { TeamAnimesService } from '../team-animes/team-animes.service.js';
@@ -26,6 +28,7 @@ export class SeedCommand {
     private readonly usersService: UsersService,
     private readonly membersService: MembersService,
     private readonly pollsService: PollsService,
+    private readonly proposalsService: ProposalsService,
     private readonly teamAnimesService: TeamAnimesService,
     private readonly trackService: TrackService,
     private readonly config: ConfigService<AppConfig, true>,
@@ -147,6 +150,50 @@ export class SeedCommand {
     );
   }
 
+  async proposals() {
+    const { seasons: existing } = await this.proposalsService.findAll();
+    let created = 0;
+
+    for (const { season, year, proposals } of proposalSeasons) {
+      let current = existing.find(
+        (s) => s.season === season && s.year === year,
+      );
+
+      if (!current) {
+        const { _id } = await this.proposalsService.createSeason({
+          season,
+          year,
+        });
+        current = { _id, season, year, isClosed: false, proposals: [] };
+      }
+
+      // A closed season takes no new titles, it stays as an admin left it.
+      if (current.isClosed) continue;
+
+      const known = new Set(current.proposals.map(({ ukrName }) => ukrName));
+
+      for (const { participants, ...proposal } of proposals) {
+        if (known.has(proposal.ukrName)) continue;
+
+        const { _id } = await this.proposalsService.createProposal({
+          ...proposal,
+          seasonId: String(current._id),
+        });
+
+        for (const { userName, roles } of participants) {
+          await this.proposalsService.setParticipation(
+            userName,
+            String(_id),
+            roles,
+          );
+        }
+        created++;
+      }
+    }
+
+    console.log(`seed:proposals - created ${created} proposals`);
+  }
+
   async votes() {
     const { ongoings } = await this.pollsService.findAll();
 
@@ -226,6 +273,7 @@ export class SeedCommand {
     await this.anime();
     await this.teamAnimes();
     await this.votes();
+    await this.proposals();
     await this.tracks();
   }
 

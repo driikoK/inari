@@ -8,6 +8,13 @@ import {
 import { UpdateMemberData } from '../members/data/update-member.data.js';
 import { UpdateMemberKindData } from '../members/data/update-member-kind.data.js';
 import { VoteData } from '../polls/data/vote.data.js';
+import {
+  CreateProposalData,
+  CreateSeasonData,
+  ParticipationData,
+  SeasonStateData,
+  UpdateProposalData,
+} from '../proposals/data/index.js';
 import { CreateTrackData } from '../tracks/data/create-track.data.js';
 import { FilterTrackData } from '../tracks/data/filter-track.data.js';
 import { LastTracksData } from '../tracks/data/last-tracks.js';
@@ -165,6 +172,105 @@ describe('request DTO schemas', () => {
         UNMARKED_KIND,
       );
       expect(MemberFilterData.safeParse({ kind: 'owner' }).success).toBe(false);
+    });
+  });
+
+  describe('proposals', () => {
+    const proposal = {
+      seasonId: '61c0ccf11d7bf83d153d7c06',
+      ukrName: 'Школа привидів',
+      romajiName: 'Youkai Gakkou',
+      link: 'https://myanimelist.net/anime/1',
+      isOngoing: true,
+      isSequel: false,
+    };
+
+    it('accepts a title with only the required fields', () => {
+      expect(CreateProposalData.safeParse(proposal).success).toBe(true);
+    });
+
+    it('accepts the optional poster, note and funding, and their nulls', () => {
+      expect(
+        CreateProposalData.safeParse({
+          ...proposal,
+          posterUrl: 'https://cdn.myanimelist.net/images/1.jpg',
+          note: 'Замовлення',
+          funding: 'patron',
+        }).success,
+      ).toBe(true);
+      expect(
+        CreateProposalData.safeParse({
+          ...proposal,
+          posterUrl: null,
+          note: null,
+          funding: null,
+        }).success,
+      ).toBe(true);
+    });
+
+    it.each([
+      ['ukrName', ''],
+      ['romajiName', ''],
+      ['link', 'not a link'],
+      ['link', 'ftp://example.com/x'],
+      ['posterUrl', 'nope'],
+      ['note', 'x'.repeat(501)],
+      ['funding', 'free'],
+      ['isOngoing', undefined],
+      ['isSequel', 'yes'],
+    ])('rejects %s = %o', (field, value) => {
+      expect(
+        CreateProposalData.safeParse({ ...proposal, [field]: value }).success,
+      ).toBe(false);
+    });
+
+    it('lets an update leave the season out and keeps the rest required', () => {
+      const { seasonId, ...rest } = proposal;
+
+      expect(UpdateProposalData.safeParse(rest).success).toBe(true);
+      expect(
+        UpdateProposalData.safeParse({ ...rest, ukrName: '' }).success,
+      ).toBe(false);
+    });
+
+    it('takes a season of the year and a year', () => {
+      expect(
+        CreateSeasonData.safeParse({ season: 'winter', year: 2027 }).success,
+      ).toBe(true);
+      expect(
+        CreateSeasonData.safeParse({ season: 'monsoon', year: 2027 }).success,
+      ).toBe(false);
+      expect(
+        CreateSeasonData.safeParse({ season: 'winter', year: 2027.5 }).success,
+      ).toBe(false);
+    });
+
+    it('takes only the eight roles, and an empty list means withdraw', () => {
+      expect(ParticipationData.safeParse({ roles: [] }).success).toBe(true);
+      expect(
+        ParticipationData.safeParse({
+          roles: [
+            'sub',
+            'editor',
+            'typesetter',
+            'dubs',
+            'fixers',
+            'sound',
+            'releasers',
+            'director',
+          ],
+        }).success,
+      ).toBe(true);
+      expect(
+        ParticipationData.safeParse({ roles: ['roleBreaker'] }).success,
+      ).toBe(false);
+    });
+
+    it('closes and reopens with a plain boolean', () => {
+      expect(SeasonStateData.safeParse({ isClosed: true }).success).toBe(true);
+      expect(SeasonStateData.safeParse({ isClosed: 'yes' }).success).toBe(
+        false,
+      );
     });
   });
 

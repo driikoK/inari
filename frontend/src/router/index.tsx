@@ -6,6 +6,7 @@ import { SUBJECTS } from '@/context/casl';
 
 const Vote = lazy(() => import('../pages/Vote'));
 const Result = lazy(() => import('../pages/Result'));
+const Proposals = lazy(() => import('../pages/Proposals'));
 const Sheet = lazy(() => import('../pages/Sheet'));
 const Cookie = lazy(() => import('../pages/Cookie'));
 const Home = lazy(() => import('../pages/Home'));
@@ -39,6 +40,10 @@ const useConditionalRoutes = () => {
           path: 'vote',
           element: <Vote />,
         }),
+        {
+          path: 'proposals',
+          element: <Proposals />,
+        },
         ...conditionalRoutes(
           hasAccess(SUBJECTS.SHOW_RESULTS) || process.env.VITE_FEATURE_RESULTS === 'true',
           {

@@ -38,6 +38,10 @@ const commands: Record<string, Command> = {
     describe: 'create demo votes for ongoing anime (needs seed:anime)',
     run: (seed) => seed.votes(),
   },
+  'seed:proposals': {
+    describe: 'create demo seasons with proposals and participants',
+    run: (seed) => seed.proposals(),
+  },
   'seed:tracks': {
     describe: 'create demo tracks (needs seed:root and seed:nicknames)',
     run: (seed) => seed.tracks(),

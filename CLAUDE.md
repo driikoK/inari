@@ -26,7 +26,8 @@ Use npm everywhere (Node 24, npm 11), never yarn. Do not commit `.env` files.
 - **Member / nickname** — a person in the team's rating (nickname, roles, coins, and a kind: team member or guest). Not linked to a user account. Nicknames from before the kind existed have none until an admin marks them in the Rating table.
 - **Track** — one member's work on one episode in one role. It earns **coins** (the UI says «крихти»), which add up to the member's total and to a per-season total. Rates and multipliers (ongoing, priority, in time, guest) are in the backend's `DictionariesService` and `tracks/enums`.
 - **Rating** — members ordered by coins, optionally for one season.
-- **Poll** — the team votes on upcoming anime, choosing the roles they want. **Team animes** are the titles offered when recording tracks.
+- **Poll** — the team votes on upcoming anime, choosing the roles they want. It is being replaced by **Proposals**. **Team animes** are the titles offered when recording tracks.
+- **Proposal** («Пропозиція») — a title offered for an upcoming season. Admins create seasons (a tab each), add titles and close or delete seasons. Members «докладають лапу»: they join a title with any of 8 roles, at most 3 titles per person per season. A closed season is read-only for members.
 
 ## Shared tooling
 

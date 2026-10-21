@@ -55,11 +55,14 @@ Defined in `src/router/index.tsx`. All routes are lazy-loaded. Two routes are co
 - `VITE_FEATURE_POLL === 'true'` → `/vote`
 - `hasAccess(SUBJECTS.SHOW_RESULTS) || VITE_FEATURE_RESULTS === 'true'` → `/result`
 
+`/proposals` is always on for logged-in users, with a sidebar item and a header link. It is meant to replace `/vote` and `/result`, which stay until a follow-up removes them.
+
 ### State (Zustand)
 
 All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`. Key stores:
 
 - `useAuthStore` — login/logout, current user, all users, update/delete user
+- `useProposalsStore` — seasons with their proposals. Every mutation refetches the list, so the page always shows what the server holds. Its `ensure()` turns a response-less Axios result into an error, and components call `notifyFailure(error)` in `catch`, because the interceptor only toasts errors the server answered
 - `usePollStore` — voting state
 - `useAnimesStore` / `useTracksStore` — anime/episode data
 - `useCoinsStore` — coin values by anime type
@@ -92,6 +95,13 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 - Both "add nickname" dialogs use `MemberKindToggle` with nothing preselected, and save stays disabled until a kind is chosen.
 - The Rating page has a `Тип` column (`MemberKindCell`): a select for admins (`EDIT_MEMBER_KIND`), plain text for everyone else. It saves through `updateMemberKind`, never through `updateMember`, because a season-filtered row holds the season's coins and would overwrite the total.
 - In the track form a row's «Гість» box follows the kind of its nickname, whether the nickname was picked or prefilled from the previous episode (an effect in `FormField`'s `InputFields`, keyed on the nickname and its kind). The box stays editable until the nickname changes, and `isGuest` is still sent per track line.
+
+### Proposals page
+
+- `src/pages/Proposals/`: season tabs, a `ProposalCard` per title (participants grouped by role, all 8 roles listed, a dash for an empty one), `JoinDialog`, and admin-only dialogs for seasons, titles and participants. Admin controls are gated by `SUBJECTS.MANAGE_PROPOSALS`, which only hides UI.
+- The tab is remembered as soon as it is resolved. Deriving "the first open season" on every render makes the page jump to another season when the current one is closed.
+- The quota «Ваша квота: n з 3» is only counted for display. The backend sends the limit (`maxPerPerson`) and refuses a join over it. A full member sees «Ліміт: n з n» on the other titles, and can still edit or withdraw where already joined.
+- A closed season shows «Сезон закрито» in place of the join button. Deleting a season is offered only when it is closed.
 
 ### API Layer
 
