@@ -5,6 +5,7 @@ import { DatabaseModule } from '../database/database.module.js';
 import { PollsModule } from '../polls/polls.module.js';
 import { UsersController } from './users.controller.js';
 
+@Global()
 @Module({
   imports: [DatabaseModule, PollsModule],
   providers: [UsersService, ...usersProviders],
