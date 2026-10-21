@@ -1,5 +1,11 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { isValidObjectId, Model } from 'mongoose';
 import { IMember } from './interfaces/members.interface.js';
 import { MemberData } from './data/member.data.js';
 import { MEMBER_ROLE } from '../shared/index.js';
@@ -13,7 +19,7 @@ export class MembersService {
   ) {}
 
   async findAll(filter: MemberFilterData): Promise<IMember[]> {
-    const query: any = {};
+    const query: any = { deletedAt: null };
 
     if (filter.id) {
       query._id = filter.id;
@@ -32,10 +38,38 @@ export class MembersService {
     return this.memberModel.find(query).sort({ nickname: 1 });
   }
 
-  createMember(member: MemberData): Promise<IMember> {
+  async createMember(member: MemberData): Promise<IMember> {
+    const restored = await this.memberModel.findOneAndUpdate(
+      { nickname: member.nickname, deletedAt: { $ne: null } },
+      {
+        $unset: { deletedAt: 1 },
+        $addToSet: { types: { $each: member.types ?? [] } },
+      },
+      { new: true },
+    );
+
+    if (restored) return restored;
+
     if (member.coins === undefined) member.coins = 0;
 
     return this.memberModel.create(member);
+  }
+
+  async deleteMember(id: string): Promise<boolean> {
+    if (!isValidObjectId(id)) {
+      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
+    }
+
+    const result = await this.memberModel.updateOne(
+      { _id: id, deletedAt: null },
+      { $set: { deletedAt: new Date() } },
+    );
+
+    if (result.matchedCount === 0) {
+      throw new NotFoundException('Нікнейм не знайдено');
+    }
+
+    return true;
   }
 
   async updateMember(member: UpdateMemberData) {

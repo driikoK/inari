@@ -7,6 +7,7 @@ import Layout from './Layout';
 import Sidebar from './Sidebar';
 import SelectField from './SelectField';
 import { ConfirmTableChangeDialog } from './ConfirmTableChangeDialog';
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { H5, H6, ErrorText, P, Subtitle } from './Typography';
 import CustomDialog from './CustomDialog';
 import { TextWrapTableCell } from './TextWrapTableCell';
@@ -27,6 +28,7 @@ export {
   P,
   Subtitle,
   ConfirmTableChangeDialog,
+  ConfirmDeleteDialog,
   CustomDialog,
   TextWrapTableCell,
   CustomBreadcrumbs,

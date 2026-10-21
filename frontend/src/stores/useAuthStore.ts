@@ -22,6 +22,7 @@ interface Actions {
   getCurrentUser: () => Promise<void>;
   getAllUsers: () => Promise<void>;
   updateUser: (id: string, role: ROLE, email?: string) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
 }
@@ -85,6 +86,12 @@ const useAuthStore = create<State & Actions>((set) => ({
     } catch (error) {
       throw error;
     }
+  },
+
+  deleteUser: async (id: string) => {
+    await axios.delete(`/users/${id}`);
+
+    set((state) => ({ allUsers: state.allUsers.filter((user) => user._id !== id) }));
   },
 
   forgotPassword: async (email: string) => {

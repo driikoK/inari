@@ -12,6 +12,8 @@ export enum SUBJECTS {
   ADD_POLL_ANIME = 'add-poll-anime',
   DELETE_POLL_ANIME = 'delete-poll-anime',
   DELETE_TEAM_ANIME = 'delete-team-anime',
+  DELETE_USERS = 'delete-users',
+  DELETE_MEMBERS = 'delete-members',
   SHOW_RESULTS = 'show-results',
   CLEAR_RESULTS = 'clear-results',
 }

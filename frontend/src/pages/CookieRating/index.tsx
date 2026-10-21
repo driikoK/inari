@@ -1,13 +1,14 @@
 import { FunctionComponent, useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import { Box } from '@mui/material';
-import { GridColDef, GridRowModel } from '@mui/x-data-grid';
+import { GridActionsCellItem, GridActionsColDef, GridColDef, GridRowModel } from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { RatingFilters } from './components/RatingFilters';
 import { useMembersStore, useRolesStore } from '@/stores';
-import { CustomTable, ConfirmTableChangeDialog } from '@/components';
+import { CustomTable, ConfirmTableChangeDialog, ConfirmDeleteDialog } from '@/components';
 import { convertSeasonEngToUkr } from '@/utils/convert';
 import { MemberType } from '@/types';
 import { usePermissions } from '@/hooks';
@@ -24,10 +25,13 @@ function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
 
 const CookieRating: FunctionComponent = () => {
   const getRoles = useRolesStore((state) => state.getRoles);
-  const { members, getMembers, appliedFilters, updateMember } = useMembersStore();
+  const { members, getMembers, appliedFilters, updateMember, deleteMember } = useMembersStore();
   const { hasAccess } = usePermissions();
 
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
+  const [memberToDelete, setMemberToDelete] = useState<{ id: string; nickname: string } | null>(
+    null,
+  );
 
   const sortedMembers = [...members].sort((a, b) => b.coins - a.coins);
 
@@ -69,7 +73,22 @@ const CookieRating: FunctionComponent = () => {
     },
   ];
 
-  const columns: GridColDef<(typeof rows)[number]>[] = isYearAndSeasonApplied
+  const actionsColumn: GridActionsColDef<(typeof rows)[number]> = {
+    field: 'actions',
+    type: 'actions',
+    headerName: 'Дії',
+    getActions: ({ row }) => [
+      <GridActionsCellItem
+        key="delete"
+        icon={<DeleteIcon />}
+        label="Видалити"
+        onClick={() => setMemberToDelete({ id: row.id, nickname: row.nickname })}
+        color="inherit"
+      />,
+    ],
+  };
+
+  const dataColumns: GridColDef<(typeof rows)[number]>[] = isYearAndSeasonApplied
     ? [
         ...basicColumns,
         {
@@ -80,6 +99,24 @@ const CookieRating: FunctionComponent = () => {
         },
       ]
     : basicColumns;
+
+  const columns: GridColDef<(typeof rows)[number]>[] = [
+    ...dataColumns,
+    ...(hasAccess(SUBJECTS.DELETE_MEMBERS) ? [actionsColumn] : []),
+  ];
+
+  const handleDeleteConfirm = async () => {
+    if (!memberToDelete) return;
+
+    try {
+      await deleteMember(memberToDelete.id);
+      toast.success('Нікнейм видалено');
+    } catch {
+      // The axios interceptor already shows the server's message
+    } finally {
+      setMemberToDelete(null);
+    }
+  };
 
   const rows = sortedMembers.map((member, index) => {
     const basicInfo = {
@@ -163,6 +200,14 @@ const CookieRating: FunctionComponent = () => {
           handleNo={handleUpdateNo}
           open={!!promiseArguments}
           row={{ oldRow: promiseArguments?.oldRow, newRow: promiseArguments?.newRow }}
+        />
+
+        <ConfirmDeleteDialog
+          open={!!memberToDelete}
+          title="Видалити нікнейм?"
+          message={`Нікнейм «${memberToDelete?.nickname}» зникне зі списку та з вибору учасників. Історія його крихт і треків збережеться, а якщо додати такий нікнейм знову, він повернеться з тими самими крихтами.`}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setMemberToDelete(null)}
         />
       </Box>
     </PageContainer>

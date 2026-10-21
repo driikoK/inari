@@ -3,4 +3,5 @@ export interface IMember extends Document {
   types: string[];
   coins: number;
   seasons: { season: string; year: number; coins: number }[];
+  deletedAt?: Date;
 }

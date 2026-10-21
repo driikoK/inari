@@ -9,12 +9,14 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { IncomingHttpHeaders } from 'node:http';
 import type { AppConfig } from '../config/configuration.js';
+import { UsersService } from '../users/users.service.js';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private config: ConfigService<AppConfig, true>,
+    private usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,15 +27,25 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
+    let payload: { username?: string };
+
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      payload = await this.jwtService.verifyAsync(token, {
         secret: this.config.get('auth.jwtSecret', { infer: true }),
       });
-
-      request['user'] = payload;
     } catch {
       throw new UnauthorizedException();
     }
+
+    const user =
+      payload.username &&
+      (await this.usersService.findOneByUsername(payload.username));
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    request['user'] = user;
 
     return true;
   }

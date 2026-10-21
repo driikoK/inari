@@ -69,6 +69,10 @@ export class PollsService {
     return true;
   }
 
+  async deleteVotesByUser(userName: string): Promise<void> {
+    await this.voteModel.deleteMany({ userName });
+  }
+
   async getVoteResult(): Promise<Result[]> {
     try {
       const votes = await this.voteModel.aggregate([

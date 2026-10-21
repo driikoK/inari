@@ -1,13 +1,15 @@
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { GridColDef } from '@mui/x-data-grid';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import { GridActionsCellItem, GridActionsColDef, GridColDef } from '@mui/x-data-grid';
 import { Box, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 
-import { CustomTable } from '@/components';
+import { ConfirmDeleteDialog, CustomTable } from '@/components';
+import { usePermissions } from '@/hooks';
 import useAuthStore, { User } from '@/stores/useAuthStore';
 import { userRoleOptions } from '@/utils/constants';
-import { ROLE } from '@/context/casl';
+import { ROLE, SUBJECTS } from '@/context/casl';
 import styles from './Settings.module.scss';
 
 const ROLE_COLOR: Record<string, string> = {
@@ -80,15 +82,47 @@ const RoleCell: FC<RoleCellProps> = ({ userId, currentRole, isSelf, onUpdate, on
 };
 
 const Settings = () => {
-  const { getAllUsers, allUsers, updateUser, user } = useAuthStore();
+  const { getAllUsers, allUsers, updateUser, deleteUser, user } = useAuthStore();
+  const { hasAccess } = usePermissions();
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   useEffect(() => {
     getAllUsers();
   }, []);
 
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+
+    try {
+      await deleteUser(userToDelete._id);
+      toast.success('Користувача видалено');
+    } catch {
+    } finally {
+      setUserToDelete(null);
+    }
+  };
+
   const rows: User[] = allUsers
     .filter((u) => u.username !== 'root')
     .map((u) => ({ ...u, id: u._id }));
+
+  const actionsColumn: GridActionsColDef<(typeof rows)[number]> = {
+    field: 'actions',
+    type: 'actions',
+    headerName: 'Дії',
+    getActions: ({ row }) =>
+      row.username === user?.username
+        ? []
+        : [
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Видалити"
+              onClick={() => setUserToDelete(row)}
+              color="inherit"
+            />,
+          ],
+  };
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
     {
@@ -110,6 +144,7 @@ const Settings = () => {
         />
       ),
     },
+    ...(hasAccess(SUBJECTS.DELETE_USERS) ? [actionsColumn] : []),
   ];
 
   return (
@@ -120,6 +155,14 @@ const Settings = () => {
       </div>
 
       <CustomTable rows={rows} columns={columns} />
+
+      <ConfirmDeleteDialog
+        open={!!userToDelete}
+        title="Видалити користувача?"
+        message={`Користувача «${userToDelete?.username}» буде видалено разом з його голосом у голосуванні. Цю дію не можна скасувати.`}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setUserToDelete(null)}
+      />
     </div>
   );
 };

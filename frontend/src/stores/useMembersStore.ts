@@ -20,6 +20,7 @@ interface Actions {
   getMembers: (filters?: Partial<FilterData>) => Promise<void>;
   addMember: (newMember: Omit<MemberType, '_id' | 'updatedAt'>) => Promise<void>;
   updateMember: (updatedMember: MemberType) => Promise<MemberType>;
+  deleteMember: (id: string) => Promise<void>;
 }
 
 const useMembersStore = create<State & Actions>((set) => ({
@@ -72,6 +73,15 @@ const useMembersStore = create<State & Actions>((set) => ({
     } catch (error) {
       throw error;
     }
+  },
+
+  deleteMember: async (id) => {
+    await axios.delete(`/members/${id}`);
+
+    set((state) => ({
+      members: state.members.filter((member) => member._id !== id),
+      membersDictionary: state.membersDictionary.filter((member) => member._id !== id),
+    }));
   },
 }));
 

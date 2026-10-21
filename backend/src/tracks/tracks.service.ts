@@ -188,6 +188,17 @@ export class TrackService {
     if (!currentUser)
       throw new HttpException('Такого юзера не існує', HttpStatus.BAD_REQUEST);
 
+    for (const { nickname } of track.membersInfo) {
+      const member = await this.membersService.findMember(nickname);
+
+      if (member.deletedAt) {
+        throw new HttpException(
+          `Нікнейм «${nickname}» видалено зі списку`,
+          HttpStatus.CONFLICT,
+        );
+      }
+    }
+
     if (track.isGiveEditorCoins)
       this.addAdditionalCoinsToTranslator(track, MEMBER_ROLE.EDITOR);
     if (track.isGiveTypesetterCoins)

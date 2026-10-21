@@ -1,6 +1,12 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import bcrypt from 'bcrypt';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 
 import { CreateUserDto, IUser } from './interfaces/user.interface.js';
 import { ROLE } from './enums/index.js';
@@ -119,5 +125,29 @@ export class UsersService {
     );
 
     return updatedUser;
+  }
+
+  async delete(id: string, currentUserId: string): Promise<string> {
+    if (!isValidObjectId(id)) {
+      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.userModel.findById(id).exec();
+
+    if (!user) {
+      throw new NotFoundException('Юзера не знайдено');
+    }
+
+    if (user.username === 'root') {
+      throw new HttpException('Не можна видаляти юзера', HttpStatus.CONFLICT);
+    }
+
+    if (String(user._id) === String(currentUserId)) {
+      throw new HttpException('Не можна видалити себе', HttpStatus.CONFLICT);
+    }
+
+    await this.userModel.deleteOne({ _id: id });
+
+    return user.username;
   }
 }
