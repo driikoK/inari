@@ -1,5 +1,5 @@
-import './env.js';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -8,7 +8,7 @@ import {
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { AppModule } from './app.module.js';
-import configuration from './config/index.js';
+import type { AppConfig } from './config/configuration.js';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -16,8 +16,10 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
+  const config = app.get<ConfigService<AppConfig, true>>(ConfigService);
+
   const corsOptions = {
-    origin: configuration.cors,
+    origin: config.get('app.cors', { infer: true }),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   };
@@ -38,6 +40,6 @@ async function bootstrap() {
   app.enableCors(corsOptions);
   app.useGlobalPipes(new ValidationPipe());
 
-  await app.listen(configuration.port);
+  await app.listen(config.get('app.port', { infer: true }));
 }
 await bootstrap();

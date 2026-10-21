@@ -4,6 +4,9 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration.js';
+import { validate } from './config/env.validation.js';
 import { SeedModule } from './seeds/seed.module.js';
 import { MembersModule } from './members/members.module.js';
 import { PollsModule } from './polls/polls.module.js';
@@ -17,6 +20,7 @@ import { EmailModule } from './email/email.module.js';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true, load: [configuration], validate }),
     SeedModule,
     MembersModule,
     PollsModule,

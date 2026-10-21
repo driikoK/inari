@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { Types } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { nicknames } from './datas/nicknames.data.js';
 import { users as userSeeds } from './datas/users.data.js';
@@ -15,6 +16,7 @@ import { CreateAnimeData, VoteData } from '../polls/data/index.js';
 import { ROLES_ON_VOTE } from '../polls/enums/index.js';
 import { TeamAnimesService } from '../team-animes/team-animes.service.js';
 import { TrackService } from '../tracks/tracks.service.js';
+import type { AppConfig } from '../config/configuration.js';
 
 const ROOT_USERNAME = 'root';
 
@@ -26,6 +28,7 @@ export class SeedCommand {
     private readonly pollsService: PollsService,
     private readonly teamAnimesService: TeamAnimesService,
     private readonly trackService: TrackService,
+    private readonly config: ConfigService<AppConfig, true>,
   ) {}
 
   private resolvePassword(fromEnv?: string) {
@@ -41,13 +44,13 @@ export class SeedCommand {
     }
 
     const { password, isGenerated } = this.resolvePassword(
-      process.env.ROOT_PASSWORD,
+      this.config.get('seed.rootPassword', { infer: true }),
     );
 
     await this.usersService.create({
       username: ROOT_USERNAME,
       password,
-      email: process.env.ROOT_EMAIL || 'root@inari.local',
+      email: this.config.get('seed.rootEmail', { infer: true }),
       role: ROLE.ADMIN,
     });
 
@@ -57,7 +60,7 @@ export class SeedCommand {
 
   async users() {
     const { password, isGenerated } = this.resolvePassword(
-      process.env.SEED_USER_PASSWORD,
+      this.config.get('seed.userPassword', { infer: true }),
     );
     let created = 0;
 

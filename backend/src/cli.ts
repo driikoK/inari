@@ -1,4 +1,3 @@
-import './env.js';
 import { parseArgs } from 'node:util';
 import { NestFactory } from '@nestjs/core';
 import mongoose from 'mongoose';
