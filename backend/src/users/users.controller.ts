@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
-import { AuthGuard, CurrentUser } from '@auth/auth.guard';
-import { ValidatedUser } from './interfaces/user.interface';
-import { UsersService } from './users.service';
-import { UpdateUserData } from './data/update-user.data';
+import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
+import type { ValidatedUser } from './interfaces/user.interface.js';
+import { UsersService } from './users.service.js';
+import { UpdateUserData } from './data/update-user.data.js';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Users')

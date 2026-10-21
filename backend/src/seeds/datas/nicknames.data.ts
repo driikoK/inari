@@ -1,4 +1,4 @@
-import { MemberData } from '@members/data/member.data';
+import { MemberData } from '../../members/data/member.data.js';
 
 export const nicknames: MemberData[] = [
   {

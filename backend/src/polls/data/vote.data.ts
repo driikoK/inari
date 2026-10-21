@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsString, ArrayMaxSize, IsEnum } from 'class-validator';
-import { ROLES_ON_VOTE } from '../enums';
+import { ROLES_ON_VOTE } from '../enums/index.js';
 
 class AnimeRoles {
   @ApiProperty()

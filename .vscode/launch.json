@@ -10,7 +10,7 @@
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}/backend",
       "env": {
-        "PORT": "8002"
+        "PORT": "8000"
       }
     }
   ]

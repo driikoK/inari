@@ -1,4 +1,4 @@
-import { ROLES_ON_VOTE } from '../enums';
+import { ROLES_ON_VOTE } from '../enums/index.js';
 
 interface Vote {
   userName: string;

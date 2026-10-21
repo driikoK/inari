@@ -1,10 +1,10 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { IMember } from './interfaces/members.interface';
-import { MemberData } from './data/member.data';
-import { MEMBER_ROLE } from '@shared';
-import { MemberFilterData } from './data/filter-members.data';
-import { UpdateMemberData } from './data/update-member.data';
+import { IMember } from './interfaces/members.interface.js';
+import { MemberData } from './data/member.data.js';
+import { MEMBER_ROLE } from '../shared/index.js';
+import { MemberFilterData } from './data/filter-members.data.js';
+import { UpdateMemberData } from './data/update-member.data.js';
 
 @Injectable()
 export class MembersService {

@@ -4,13 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '@users/users.service';
-import * as nodemailer from 'nodemailer';
-import * as Mail from 'nodemailer/lib/mailer';
+import { UsersService } from '../users/users.service.js';
+import nodemailer from 'nodemailer';
+
+type Transport = ReturnType<typeof nodemailer.createTransport>;
+type MailOptions = Parameters<Transport['sendMail']>[0];
 
 @Injectable()
 export class EmailService {
-  private readonly nodemailerTransport: Mail;
+  private readonly nodemailerTransport: Transport;
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -26,7 +28,7 @@ export class EmailService {
     });
   }
 
-  private sendMail(options: Mail.Options) {
+  private sendMail(options: MailOptions) {
     return this.nodemailerTransport.sendMail(options);
   }
 

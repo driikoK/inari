@@ -1,6 +1,6 @@
-import { CreateAnimeData } from 'src/team-animes/data/create-team-anime.data';
+import { CreateTeamAnimeData } from '../../team-animes/data/create-team-anime.data.js';
 
-export const teamAnimes: CreateAnimeData[] = [
+export const teamAnimes: CreateTeamAnimeData[] = [
   { name: 'Wind Breaker' },
   { name: 'Date A Live V' },
   { name: 'Blue Archive' },

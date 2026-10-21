@@ -5,7 +5,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { ROLE } from '../enums';
+import { ROLE } from '../enums/index.js';
 
 export class UpdateUserData {
   @IsOptional()

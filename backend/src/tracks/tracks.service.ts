@@ -1,20 +1,20 @@
 import { isValidObjectId, Model } from 'mongoose';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 
-import { MembersService } from '@members/members.service';
-import { MEMBER_ROLE, pick } from '@shared';
-import { DictionariesService } from '@dictionaries/dictionaries.service';
-import { UsersService } from '@users/users.service';
-import { UpdateTrackData } from './data/update-track.data';
-import { CreateTrackData, MemberInfo } from './data/create-track.data';
-import { FilterTrackData } from './data/filter-track.data';
+import { MembersService } from '../members/members.service.js';
+import { MEMBER_ROLE, pick } from '../shared/index.js';
+import { DictionariesService } from '../dictionaries/dictionaries.service.js';
+import { UsersService } from '../users/users.service.js';
+import { UpdateTrackData } from './data/update-track.data.js';
+import { CreateTrackData, MemberInfo } from './data/create-track.data.js';
+import { FilterTrackData } from './data/filter-track.data.js';
 import {
   ITrack,
   ITracksWithPagination,
   Multipliers,
-} from './interfaces/track.interface';
-import { MULTIPLIER } from './enums/types.enum';
-import { LastTracksData } from './data/last-tracks';
+} from './interfaces/track.interface.js';
+import { MULTIPLIER } from './enums/types.enum.js';
+import { LastTracksData } from './data/last-tracks.js';
 
 @Injectable()
 export class TrackService {

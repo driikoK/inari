@@ -1,5 +1,5 @@
-import { CreateUserDto } from '@users/interfaces/user.interface';
-import { ROLE } from '@users/enums';
+import { CreateUserDto } from '../../users/interfaces/user.interface.js';
+import { ROLE } from '../../users/enums/index.js';
 
 export const users: Omit<CreateUserDto, 'password'>[] = [
   {

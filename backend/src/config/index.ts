@@ -1,8 +1,7 @@
-import * as dotenv from 'dotenv';
-
-dotenv.config();
+import '../env.js';
 
 export default {
+  port: Number(process.env.PORT) || 8000,
   mongo: {
     user: process.env.MONGO_USERNAME,
     password: process.env.MONGO_PASSWORD,

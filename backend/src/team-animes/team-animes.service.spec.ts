@@ -1,14 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
-import { createMock } from '@golevelup/ts-jest';
+import { vi } from 'vitest';
+import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
-import { TeamAnimesService } from './team-animes.service';
-import { ITeamAnime } from './interfaces/team-anime.interface';
-import { CreateAnimeData } from './data/create-team-anime.data';
+import { TeamAnimesService } from './team-animes.service.js';
+import { ITeamAnime } from './interfaces/team-anime.interface.js';
+import { CreateTeamAnimeData } from './data/create-team-anime.data.js';
 
 describe('TeamAnimesService', () => {
   let teamAnimesService: TeamAnimesService;
-  let model: Model<ITeamAnime>;
+  let model: DeepMocked<Model<ITeamAnime>>;
 
   const mockTeamAnime = {
     _id: '61c0ccf11d7bf83d153d7c06',
@@ -21,21 +22,21 @@ describe('TeamAnimesService', () => {
         TeamAnimesService,
         {
           provide: 'TEAM_ANIME_MODEL',
-          useValue: createMock<TeamAnimesService>(),
+          useValue: createMock<Model<ITeamAnime>>(),
         },
       ],
     }).compile();
 
     teamAnimesService = module.get(TeamAnimesService);
-    model = module.get<Model<ITeamAnime>>('TEAM_ANIME_MODEL');
+    model = module.get('TEAM_ANIME_MODEL');
   });
 
   describe('findAll', () => {
     it('should return an array of team animes', async () => {
-      jest.spyOn(model, 'find').mockImplementation(
+      model.find.mockImplementation(
         () =>
           ({
-            sort: jest.fn().mockResolvedValue([mockTeamAnime]),
+            sort: vi.fn().mockResolvedValue([mockTeamAnime]),
           }) as any,
       );
 
@@ -51,12 +52,12 @@ describe('TeamAnimesService', () => {
         name: 'New awesome anime',
       };
 
-      jest
-        .spyOn(model, 'create')
-        .mockImplementationOnce(() => Promise.resolve(mockTeamAnime as any));
+      model.create.mockImplementationOnce(() =>
+        Promise.resolve(mockTeamAnime as any),
+      );
 
       const result = await teamAnimesService.create(
-        newAnime as CreateAnimeData,
+        newAnime as CreateTeamAnimeData,
       );
 
       expect(result).toEqual(mockTeamAnime);
@@ -65,7 +66,7 @@ describe('TeamAnimesService', () => {
 
   describe('deleteById', () => {
     it('should delete and return boolean value', async () => {
-      jest.spyOn(model, 'deleteOne').mockResolvedValue({
+      model.deleteOne.mockResolvedValue({
         acknowledged: true,
         deletedCount: 1,
       });

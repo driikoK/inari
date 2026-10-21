@@ -15,7 +15,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-import { MEMBER_ROLE, SEASON, ANIME_TYPE } from '@shared';
+import { MEMBER_ROLE, SEASON, ANIME_TYPE } from '../../shared/index.js';
 
 export class MemberInfo {
   @ApiProperty()

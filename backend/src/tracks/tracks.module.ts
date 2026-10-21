@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 
-import { DatabaseModule } from '@db/database.module';
-import { MembersService } from '@members/members.service';
-import { membersProviders } from '@members/members.provider';
-import { DictionariesService } from '@dictionaries/dictionaries.service';
-import { UsersService } from '@users/users.service';
-import { TracksController } from './tracks.controller';
-import { TrackService } from './tracks.service';
-import { tracksProviders } from './tracks.provider';
-import { usersProviders } from '@users/users.provider';
+import { DatabaseModule } from '../database/database.module.js';
+import { MembersService } from '../members/members.service.js';
+import { membersProviders } from '../members/members.provider.js';
+import { DictionariesService } from '../dictionaries/dictionaries.service.js';
+import { UsersService } from '../users/users.service.js';
+import { TracksController } from './tracks.controller.js';
+import { TrackService } from './tracks.service.js';
+import { tracksProviders } from './tracks.provider.js';
+import { usersProviders } from '../users/users.provider.js';
 
 @Module({
   imports: [DatabaseModule],

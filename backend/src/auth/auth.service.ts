@@ -5,12 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 
-import { UsersService } from '@users/users.service';
-import { ROLE } from '@users/enums';
-import { EmailService } from 'src/email/email.service';
-import { SignUpData } from './data/sign-up.data';
+import { UsersService } from '../users/users.service.js';
+import { ROLE } from '../users/enums/index.js';
+import { EmailService } from '../email/email.service.js';
+import { SignUpData } from './data/sign-up.data.js';
 
 @Injectable()
 export class AuthService {

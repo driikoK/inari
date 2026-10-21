@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { DictionariesService } from './dictionaries.service';
-import { AuthGuard } from '@auth/auth.guard';
+import { DictionariesService } from './dictionaries.service.js';
+import { AuthGuard } from '../auth/auth.guard.js';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Dictionaries')

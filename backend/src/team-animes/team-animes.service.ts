@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 
-import { ITeamAnime } from './interfaces/team-anime.interface';
-import { CreateAnimeData } from './data/create-team-anime.data';
+import { ITeamAnime } from './interfaces/team-anime.interface.js';
+import { CreateTeamAnimeData } from './data/create-team-anime.data.js';
 
 @Injectable()
 export class TeamAnimesService {
@@ -15,7 +15,7 @@ export class TeamAnimesService {
     return await this.teamAnimeModel.find().sort({ name: 1 });
   }
 
-  async create(anime: CreateAnimeData): Promise<ITeamAnime> {
+  async create(anime: CreateTeamAnimeData): Promise<ITeamAnime> {
     return this.teamAnimeModel.create({ name: anime.name });
   }
 

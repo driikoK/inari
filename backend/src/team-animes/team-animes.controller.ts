@@ -8,10 +8,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { TeamAnimesService } from './team-animes.service';
-import { CreateAnimeData } from './data/create-team-anime.data';
-import { AuthGuard } from '@auth/auth.guard';
-import { ITeamAnime } from './interfaces/team-anime.interface';
+import { TeamAnimesService } from './team-animes.service.js';
+import { CreateTeamAnimeData } from './data/create-team-anime.data.js';
+import { AuthGuard } from '../auth/auth.guard.js';
+import { ITeamAnime } from './interfaces/team-anime.interface.js';
 
 @ApiTags('Team animes')
 @Controller('team-animes')
@@ -27,7 +27,7 @@ export class TeamAnimesController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async createTeamAnime(@Body() anime: CreateAnimeData) {
+  async createTeamAnime(@Body() anime: CreateTeamAnimeData) {
     return this.teamAnimeService.create(anime);
   }
 

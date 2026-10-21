@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 
-import { CreateUserDto, IUser } from './interfaces/user.interface';
-import { ROLE } from './enums';
-import { UpdateUserData } from './data/update-user.data';
+import { CreateUserDto, IUser } from './interfaces/user.interface.js';
+import { ROLE } from './enums/index.js';
+import { UpdateUserData } from './data/update-user.data.js';
 
 @Injectable()
 export class UsersService {

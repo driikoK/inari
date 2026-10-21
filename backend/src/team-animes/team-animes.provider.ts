@@ -1,5 +1,5 @@
 import { Mongoose } from 'mongoose';
-import { TeamAnimeSchema } from '../team-animes/schemas/team-anime.schema';
+import { TeamAnimeSchema } from './schemas/team-anime.schema.js';
 
 export const teamAnimesProviders = [
   {

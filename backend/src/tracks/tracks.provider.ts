@@ -1,6 +1,6 @@
 import { Mongoose } from 'mongoose';
 
-import { TracksSchema } from './schemas/tracks.schema';
+import { TracksSchema } from './schemas/tracks.schema.js';
 
 export const tracksProviders = [
   {

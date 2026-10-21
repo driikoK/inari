@@ -1,5 +1,5 @@
 import { Mongoose } from 'mongoose';
-import { VoteSchema, AnimeSchema } from './schemas';
+import { VoteSchema, AnimeSchema } from './schemas/index.js';
 
 export const pollsProviders = [
   {

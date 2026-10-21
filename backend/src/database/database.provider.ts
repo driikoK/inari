@@ -1,5 +1,5 @@
-import * as mongoose from 'mongoose';
-import config from 'src/config';
+import mongoose from 'mongoose';
+import config from '../config/index.js';
 
 mongoose.set('debug', true);
 

@@ -1,5 +1,5 @@
 import { Mongoose } from 'mongoose';
-import { UsersSchema } from './schemas/users.schema';
+import { UsersSchema } from './schemas/users.schema.js';
 
 export const usersProviders = [
   {

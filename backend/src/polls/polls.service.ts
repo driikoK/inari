@@ -1,8 +1,13 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 
-import { Vote, PollAnime, PollAnimeWithoutVotes, Result } from './interfaces';
-import { CreateAnimeData, VoteData } from './data';
+import {
+  Vote,
+  PollAnime,
+  PollAnimeWithoutVotes,
+  Result,
+} from './interfaces/index.js';
+import { CreateAnimeData, VoteData } from './data/index.js';
 
 @Injectable()
 export class PollsService {

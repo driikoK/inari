@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PollsController } from './polls.controller';
-import { PollsService } from './polls.service';
-import { DatabaseModule } from 'src/database/database.module';
-import { pollsProviders } from './polls.provider';
+import { PollsController } from './polls.controller.js';
+import { PollsService } from './polls.service.js';
+import { DatabaseModule } from '../database/database.module.js';
+import { pollsProviders } from './polls.provider.js';
 
 @Module({
   imports: [DatabaseModule],

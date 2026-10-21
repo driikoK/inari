@@ -1,31 +1,23 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es2017",
+    "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "rootDir": ".",
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-    "resolveJsonModule": true,
-    "paths": {
-      "@db/*": ["src/database/*"],
-      "@members/*": ["src/members/*"],
-      "@auth/*": ["src/auth/*"],
-      "@dictionaries/*": ["src/dictionaries/*"],
-      "@users/*": ["src/users/*"],
-      "@shared": ["src/shared/index"],
-      "@tracks/*": ["src/tracks/*"]
-    }
+    "strict": false,
+    "strictPropertyInitialization": false,
+    "types": ["vitest/globals", "node"]
   }
 }

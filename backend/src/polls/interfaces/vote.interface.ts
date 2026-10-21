@@ -1,5 +1,5 @@
 import { Document, Types } from 'mongoose';
-import { ROLES_ON_VOTE } from '../enums';
+import { ROLES_ON_VOTE } from '../enums/index.js';
 
 interface AnimeRole {
   animeId: Types.ObjectId;

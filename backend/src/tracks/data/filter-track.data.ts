@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
-import { MEMBER_ROLE, SEASON } from '@shared';
+import { MEMBER_ROLE, SEASON } from '../../shared/index.js';
 
 export class FilterTrackData {
   @ApiPropertyOptional({ nullable: true })

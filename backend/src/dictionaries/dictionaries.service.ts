@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ICoins, IDub } from './interfaces/dictionaries.interface';
-import { MEMBER_ROLE, ANIME_TYPE } from '@shared';
+import { ICoins, IDub } from './interfaces/dictionaries.interface.js';
+import { MEMBER_ROLE, ANIME_TYPE } from '../shared/index.js';
 
 @Injectable()
 export class DictionariesService {

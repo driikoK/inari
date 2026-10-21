@@ -1,3 +1,3 @@
-export * from './anime.interface';
-export * from './vote.interface';
-export * from './result.interface';
+export * from './anime.interface.js';
+export * from './vote.interface.js';
+export * from './result.interface.js';

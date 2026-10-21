@@ -10,12 +10,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
-import { TrackService } from './tracks.service';
-import { CreateTrackData } from './data/create-track.data';
-import { FilterTrackData } from './data/filter-track.data';
-import { UpdateTrackData } from './data/update-track.data';
-import { AuthGuard } from '@auth/auth.guard';
-import { LastTracksData } from './data/last-tracks';
+import { TrackService } from './tracks.service.js';
+import { CreateTrackData } from './data/create-track.data.js';
+import { FilterTrackData } from './data/filter-track.data.js';
+import { UpdateTrackData } from './data/update-track.data.js';
+import { AuthGuard } from '../auth/auth.guard.js';
+import { LastTracksData } from './data/last-tracks.js';
 
 @ApiTags('Tracks')
 @Controller('tracks')

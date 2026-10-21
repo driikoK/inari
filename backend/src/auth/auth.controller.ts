@@ -1,10 +1,10 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { AuthService } from './auth.service';
-import { SignUpData } from './data/sign-up.data';
-import { LoginData } from './data/login.data';
-import { ForgotPasswordData } from './data/forgot-password.data';
+import { AuthService } from './auth.service.js';
+import { SignUpData } from './data/sign-up.data.js';
+import { LoginData } from './data/login.data.js';
+import { ForgotPasswordData } from './data/forgot-password.data.js';
 
 @ApiTags('Auth')
 @Controller('auth')

@@ -1,4 +1,4 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
 
 export const VoteSchema = new mongoose.Schema({
   userName: { type: String, ref: 'user', required: true },

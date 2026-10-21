@@ -1,2 +1,2 @@
-export * from './create-anime.data';
-export * from './vote.data';
+export * from './create-anime.data.js';
+export * from './vote.data.js';

@@ -1,5 +1,5 @@
 import { Mongoose } from 'mongoose';
-import { MemberSchema } from './schemas/member.schemas';
+import { MemberSchema } from './schemas/member.schemas.js';
 
 export const membersProviders = [
   {

@@ -8,11 +8,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { MembersService } from './members.service';
-import { CreateMemberData } from './data/create-member.data';
-import { MemberFilterData } from './data/filter-members.data';
-import { AuthGuard } from '@auth/auth.guard';
-import { UpdateMemberData } from './data/update-member.data';
+import { MembersService } from './members.service.js';
+import { CreateMemberData } from './data/create-member.data.js';
+import { MemberFilterData } from './data/filter-members.data.js';
+import { AuthGuard } from '../auth/auth.guard.js';
+import { UpdateMemberData } from './data/update-member.data.js';
 
 @ApiTags('Members')
 @Controller('members')

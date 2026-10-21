@@ -15,11 +15,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthGuard, CurrentUser } from '@auth/auth.guard';
-import { ValidatedUser } from '@users/interfaces/user.interface';
-import { CreateAnimeData, VoteData } from './data';
-import { PollsService } from './polls.service';
-import { PollAnimeWithoutVotes, Result } from './interfaces';
+import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
+import type { ValidatedUser } from '../users/interfaces/user.interface.js';
+import { CreateAnimeData, VoteData } from './data/index.js';
+import { PollsService } from './polls.service.js';
+import { PollAnimeWithoutVotes, Result } from './interfaces/index.js';
 
 @ApiTags('Polls')
 @Controller('polls')

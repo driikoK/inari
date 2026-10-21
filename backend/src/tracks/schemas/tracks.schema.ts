@@ -1,5 +1,5 @@
-import * as mongoose from 'mongoose';
-import { MEMBER_ROLE } from '@shared';
+import mongoose from 'mongoose';
+import { MEMBER_ROLE } from '../../shared/index.js';
 
 export const TracksSchema = new mongoose.Schema(
   {

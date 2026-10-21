@@ -1,4 +1,4 @@
-import { MEMBER_ROLE, SEASON, ANIME_TYPE } from '@shared';
+import { MEMBER_ROLE, SEASON, ANIME_TYPE } from '../../shared/index.js';
 
 export interface Multipliers {
   isOngoing: boolean;

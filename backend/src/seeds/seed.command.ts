@@ -1,21 +1,20 @@
 import { randomBytes } from 'crypto';
 import { Types } from 'mongoose';
-import { Command } from 'nestjs-command';
 import { Injectable } from '@nestjs/common';
-import { nicknames } from './datas/nicknames.data';
-import { users as userSeeds } from './datas/users.data';
-import { teamAnimes as teamAnimeSeeds } from './datas/team-animes.data';
-import { tracks as trackSeeds } from './datas/tracks.data';
-import { MemberData } from '@members/data/member.data';
-import { MembersService } from '@members/members.service';
-import { UsersService } from '@users/users.service';
-import { ROLE } from '@users/enums';
-import { animeSeries } from './datas/anime.data';
-import { PollsService } from 'src/polls/polls.service';
-import { CreateAnimeData, VoteData } from 'src/polls/data';
-import { ROLES_ON_VOTE } from 'src/polls/enums';
-import { TeamAnimesService } from 'src/team-animes/team-animes.service';
-import { TrackService } from 'src/tracks/tracks.service';
+import { nicknames } from './datas/nicknames.data.js';
+import { users as userSeeds } from './datas/users.data.js';
+import { teamAnimes as teamAnimeSeeds } from './datas/team-animes.data.js';
+import { tracks as trackSeeds } from './datas/tracks.data.js';
+import { MemberData } from '../members/data/member.data.js';
+import { MembersService } from '../members/members.service.js';
+import { UsersService } from '../users/users.service.js';
+import { ROLE } from '../users/enums/index.js';
+import { animeSeries } from './datas/anime.data.js';
+import { PollsService } from '../polls/polls.service.js';
+import { CreateAnimeData, VoteData } from '../polls/data/index.js';
+import { ROLES_ON_VOTE } from '../polls/enums/index.js';
+import { TeamAnimesService } from '../team-animes/team-animes.service.js';
+import { TrackService } from '../tracks/tracks.service.js';
 
 const ROOT_USERNAME = 'root';
 
@@ -35,10 +34,6 @@ export class SeedCommand {
       : { password: randomBytes(12).toString('hex'), isGenerated: true };
   }
 
-  @Command({
-    command: 'seed:root',
-    describe: 'create root admin user (ROOT_PASSWORD, ROOT_EMAIL from env)',
-  })
   async root() {
     if (await this.usersService.findOneByUsername(ROOT_USERNAME)) {
       console.log('seed:root - already exists, skipped');
@@ -60,10 +55,6 @@ export class SeedCommand {
     if (isGenerated) console.log(`seed:root - generated password: ${password}`);
   }
 
-  @Command({
-    command: 'seed:users',
-    describe: 'create demo users (SEED_USER_PASSWORD from env)',
-  })
   async users() {
     const { password, isGenerated } = this.resolvePassword(
       process.env.SEED_USER_PASSWORD,
@@ -87,10 +78,6 @@ export class SeedCommand {
     }
   }
 
-  @Command({
-    command: 'seed:anime',
-    describe: 'create anime',
-  })
   async anime() {
     const { ongoings, olds } = await this.pollsService.findAll();
     const existing = new Set([...ongoings, ...olds].map(({ name }) => name));
@@ -115,10 +102,6 @@ export class SeedCommand {
     );
   }
 
-  @Command({
-    command: 'seed:nicknames',
-    describe: 'create nicknames',
-  })
   async nicknames() {
     const existing = new Set(
       (await this.membersService.findAll({})).map(({ nickname }) => nickname),
@@ -140,10 +123,6 @@ export class SeedCommand {
     );
   }
 
-  @Command({
-    command: 'seed:team-animes',
-    describe: 'create team animes',
-  })
   async teamAnimes() {
     const existing = new Set(
       (await this.teamAnimesService.findAll()).map(({ name }) => name),
@@ -164,10 +143,6 @@ export class SeedCommand {
     );
   }
 
-  @Command({
-    command: 'seed:votes',
-    describe: 'create demo votes for ongoing anime (needs seed:anime)',
-  })
   async votes() {
     const { ongoings } = await this.pollsService.findAll();
 
@@ -196,10 +171,6 @@ export class SeedCommand {
     console.log(`seed:votes - voted for ${userSeeds.length} demo users`);
   }
 
-  @Command({
-    command: 'seed:tracks',
-    describe: 'create demo tracks (needs seed:root and seed:nicknames)',
-  })
   async tracks() {
     if (!(await this.usersService.findOneByUsername(ROOT_USERNAME))) {
       throw new Error('seed:tracks - root user not found, run seed:root first');
@@ -244,10 +215,6 @@ export class SeedCommand {
     );
   }
 
-  @Command({
-    command: 'seed:all',
-    describe: 'run every seed in dependency order',
-  })
   async all() {
     await this.root();
     await this.users();
@@ -258,10 +225,6 @@ export class SeedCommand {
     await this.tracks();
   }
 
-  @Command({
-    command: 'seed:clear',
-    describe: 'clear lists',
-  })
   async clear() {
     console.log('to do');
   }

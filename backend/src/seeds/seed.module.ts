@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { SeedCommand } from './seed.command';
-import { MembersModule } from '@members/members.module';
-import { UsersModule } from '@users/users.module';
-import { PollsModule } from 'src/polls/polls.module';
-import { TeamAnimesModule } from 'src/team-animes/team-animes.module';
-import { TracksModule } from 'src/tracks/tracks.module';
+import { SeedCommand } from './seed.command.js';
+import { MembersModule } from '../members/members.module.js';
+import { UsersModule } from '../users/users.module.js';
+import { PollsModule } from '../polls/polls.module.js';
+import { TeamAnimesModule } from '../team-animes/team-animes.module.js';
+import { TracksModule } from '../tracks/tracks.module.js';
 
 @Module({
   imports: [

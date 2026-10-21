@@ -1,5 +1,8 @@
-import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '@shared';
-import { CreateTrackData, MemberInfo } from 'src/tracks/data/create-track.data';
+import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '../../shared/index.js';
+import {
+  CreateTrackData,
+  MemberInfo,
+} from '../../tracks/data/create-track.data.js';
 
 const CREATOR = 'root';
 
