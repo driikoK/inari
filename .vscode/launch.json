@@ -5,8 +5,8 @@
       "type": "node",
       "request": "launch",
       "name": "Launch via NPM",
-      "runtimeExecutable": "yarn",
-      "runtimeArgs": ["start:dev"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:dev"],
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}/backend",
       "env": {
