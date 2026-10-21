@@ -1,29 +1,38 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in `frontend/`. Repo-wide rules and the domain glossary are in `../CLAUDE.md`.
 
 ## Commands
 
 ```bash
-npm start          # Vite dev server
-npm run build      # tsc && vite build
-npm run lint       # Biome lint, warnings fail the run
-npm run lint:fix   # Biome lint, apply safe fixes
-npm run format     # Biome format (shared config: ../biome.json)
-npm run preview    # Preview production build
+npm install            # npm only, the lockfile is package-lock.json
+npm start              # Vite dev server on :5173 (expects the backend at VITE_API_URL)
+npm run build          # tsc && vite build
+npx tsc --noEmit       # type-check only
+npm run lint           # Biome lint, --error-on-warnings
+npm run lint:fix       # Biome lint, apply safe fixes
+npm run format         # Biome format --write (shared config: ../biome.json)
+npm run format:check   # Biome format, no writes
+npm run preview        # Preview the production build
 ```
+
+There is no unit-test runner. Verify a change with `npx tsc --noEmit`, `npm run format:check`, `npm run lint`, `npm run build` and a pass through the affected pages in a browser.
+
+`npm run lint` already fails because of existing findings, so compare the `Found N errors/warnings` counts before and after your change instead of expecting a clean run. Do not add new ones. Biome does not format `.scss`.
 
 ## Stack
 
-- **React 19 + TypeScript + Vite**
+- **React 19 + TypeScript 5.9 + Vite 5**
 - **UI:** Material UI (MUI) v6 + Emotion
-- **Data tables:** `@mui/x-data-grid` via the `CustomTable` wrapper component
-- **State:** Zustand stores (`src/stores/`)
-- **Routing:** React Router v6 with lazy-loaded pages
-- **Forms:** React Hook Form + Zod (`zodResolver`; schemas live in each page's `const/form.ts`)
+- **Data tables:** `@mui/x-data-grid` v7 via the `CustomTable` wrapper component
+- **State:** Zustand v4 stores (`src/stores/`)
+- **Routing:** React Router v6 with lazy-loaded pages. The v7 future flags (`v7_startTransition`, `v7_relativeSplatPath`) are switched on in `src/index.tsx`
+- **Forms:** React Hook Form + Zod (`zodResolver`)
 - **Auth/RBAC:** hand-written permission context in `src/context/casl.ts` (no CASL library)
 - **HTTP:** Axios with Bearer token interceptor
 - **Notifications:** react-hot-toast
+
+Stay on these majors. Moving MUI/MUI X, Vite, React Router, Zustand or TypeScript to the next major is a separate piece of work.
 
 ## Architecture
 
@@ -50,19 +59,37 @@ Defined in `src/router/index.tsx`. All routes are lazy-loaded. Two routes are co
 
 All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`. Key stores:
 
-- `useAuthStore` — login/logout, current user, token
+- `useAuthStore` — login/logout, current user, all users, update/delete user
 - `usePollStore` — voting state
 - `useAnimesStore` / `useTracksStore` — anime/episode data
 - `useCoinsStore` — coin values by anime type
-- `useMembersStore` / `useRolesStore` — team/role data
+- `useMembersStore` / `useRolesStore` — team members ("nicknames") and roles; `deleteMember` also updates `membersDictionary`
+
+Do not write `try { … } catch (e) { throw e }` in a store action, it only adds a lint error. Let the error propagate.
 
 ### Permissions
 
-`src/context/casl.ts` defines the `SUBJECTS` enum (granular actions like `ADD_COOKIES`, `PERMISSION_EDIT`) and `ROLE` enum (`ADMIN`, `DIRECTOR`, `MEMBER`). `getPermissionsByRole(role)` maps roles to allowed subjects. Use `usePermissions()` from `src/hooks/` to check access in components.
+`src/context/casl.ts` defines the `SUBJECTS` enum (granular actions like `ADD_COOKIES`, `PERMISSION_EDIT`, `DELETE_USERS`, `DELETE_MEMBERS`) and the `ROLE` enum (`ADMIN`, `DIRECTOR`, `MEMBER`). `getPermissionsByRole(role)` maps roles to allowed subjects: admins get every subject automatically, directors and members have explicit lists. Use `usePermissions()` from `src/hooks/` to check access in components.
+
+This only hides UI. The backend decides what is allowed, and today only its two delete endpoints (and role changes) are admin-only, so a new subject here is not a security boundary.
+
+### Forms and validation (Zod)
+
+- Schemas live in each page's `const/form.ts` as factories (`createTrackFormSchema(coins)`, …) and are passed to `zodResolver`.
+- Annotate the factory's return type as `z.ZodType<FormValues, FormValues>` so the compiler checks the schema against the form's interface.
+- Zod strips keys that are not in the schema, so declare every field the form has. The poll form once lost its optional `note` this way.
+- Required fields use `z.string({ error: msg }).min(1, msg)`, which keeps the Ukrainian "Обов’язкове поле" style messages the UI shows through `ErrorMessage`.
+- A `.check()` chained after `.min()`/`.max()` is skipped when those fail, so put custom checks first. `z.number({ error })` replaces the message of every issue, give the range checks their own messages.
+- URL fields: `.trim().min(1).pipe(z.url({ protocol: /^https?$/ }))`, which reports "required" before "invalid link".
+- Errors on a field array element go on a path like `membersInfo.dubs.1.coins`, which is how `FormField` finds them.
+
+### Deleting things
+
+Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` with a `GridActionsCellItem` and `DeleteOutlined` icon) shown only when `hasAccess(SUBJECTS.DELETE_*)`, a `memberToDelete`/`userToDelete` state, and `ConfirmDeleteDialog` (`src/components/ConfirmDeleteDialog`) with a message that says what is kept or lost. The Axios interceptor already toasts the server's error, so the `catch` can be empty with a comment saying so.
 
 ### API Layer
 
-`src/api/index.ts` exports a configured Axios instance. Request interceptor attaches the Bearer token from `localStorage`. Response interceptor shows error toasts and redirects to `/login` on 401.
+`src/api/index.ts` exports a configured Axios instance. The request interceptor attaches the Bearer token from `localStorage`. The response interceptor shows `error.response.data.message` as a toast and redirects to `/login` on 401. Backend validation errors arrive as an array of `field: message` strings. The JWT carries only the username, never read roles from it.
 
 ### Styling
 
@@ -84,16 +111,26 @@ All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`
 
 **New component styling** — use MUI `sx` prop for MUI components; use `.module.scss` CSS modules for plain HTML elements. Reference design tokens via `var(--accent)` etc. in SCSS.
 
-**Do not create new styled components.** Existing pages still have legacy `styles.ts` files that use styled-components, but new code must not add more.
+**Do not create new styled components.** Existing pages still have legacy `styles.ts` files that use styled-components, but new code must not add more. `src/styled.d.ts` types `DefaultTheme` as the theme object so `theme.mq` and friends type-check.
 
 ### Path Aliases
 
 `@/` maps to `src/` (via `vite-tsconfig-paths`). Always use `@/` imports, never relative paths that traverse upward.
 
-### Feature Flags (env vars)
+### Environment variables
 
-| Variable               | Purpose           |
-| ---------------------- | ----------------- |
-| `VITE_API_URL`         | Backend base URL  |
-| `VITE_FEATURE_POLL`    | Show voting page  |
-| `VITE_FEATURE_RESULTS` | Show results page |
+Read as `process.env.VITE_*` (injected by `define` in `vite.config.ts`), set in `frontend/.env` (see `.env.example`).
+
+| Variable                | Purpose                                                  |
+| ----------------------- | -------------------------------------------------------- |
+| `VITE_API_URL`          | Backend base URL                                         |
+| `VITE_FEATURE_POLL`     | Show voting page                                         |
+| `VITE_FEATURE_RESULTS`  | Show results page                                        |
+| `VITE_SHEET_EMBED_URL`  | Published Google Sheet embed URL, blank hides the page   |
+
+Known issue: `define: { 'process.env': process.env }` in `vite.config.ts` inlines the whole environment of the machine that runs `vite build` into the shipped JavaScript. Never build with secrets in the environment, and prefer moving to `import.meta.env.VITE_*`.
+
+## Dev server gotchas (Windows)
+
+- Restart `npm start` after adding or removing a dependency. A stale Vite optimizer cache fails with `ENOENT … index.esm.js` and lazy pages render blank. `npm start -- --force` rebuilds the cache.
+- Stop the dev server before `npm install`, it locks the esbuild and rollup binaries. Stopping the task can leave the `node …vite.js` process behind, check that port 5173 is free.
