@@ -48,7 +48,7 @@ export class AuthService {
     return bcrypt.compare(password, user.password).then(async (result) => {
       if (result) {
         return {
-          accessToken: await this.jwtService.signAsync({ username, password }),
+          accessToken: await this.jwtService.signAsync({ username }),
         };
       } else {
         throw new HttpException('Невірний пароль', HttpStatus.BAD_REQUEST);
