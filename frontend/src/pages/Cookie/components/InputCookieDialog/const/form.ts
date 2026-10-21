@@ -1,105 +1,102 @@
-import * as Yup from 'yup';
+import { z } from 'zod';
 
 import {
   ChooseAnimeFormValues,
   CreateTrackFormValues,
   CreateTrackWithSubsOnlyFormValues,
-  FieldFormValue,
 } from '../types';
 import { CoinsType, ANIME_TYPE } from '@/types';
 
 type ArrayFields = 'dubs' | 'releasers' | 'fixers';
 
+const REQUIRED_MESSAGE = 'Обов’язкове поле';
+const NO_COINS_MESSAGE = 'Дай хоча б 1 крихту';
+const NICKNAME_MESSAGE = 'Нікнейм обов’язковий';
+
+const requiredString = z.string({ error: REQUIRED_MESSAGE }).min(1, REQUIRED_MESSAGE);
+
 // ** For create track form
-const testIsNotZero = Yup.string()
-  .test('is-not-zero', 'Дай хоча б 1 крихту', (value) => value !== '' && value !== '0')
-  .required('Дай хоча б 1 крихту');
+const coinsField = z
+  .string({ error: NO_COINS_MESSAGE })
+  .refine((value) => value !== '' && value !== '0', NO_COINS_MESSAGE);
 
-const testIsMoreThanNeedCoins = (
-  fieldValue: FieldFormValue[] = [],
-  fieldName: ArrayFields,
-  context: Yup.TestContext<Yup.AnyObject>,
-  titleCoins: CoinsType,
-) => {
-  // ** Needs only for checking number of dubs
-  const isMulti = fieldValue!.length > 2;
-
-  let coinsToCheck = 0;
-
-  if (fieldName === 'releasers') {
-    coinsToCheck = titleCoins.releaser;
-  } else {
-    coinsToCheck = isMulti ? titleCoins.dub.multi : titleCoins.dub.double;
-  }
-
-  const totalCoins =
-    fieldValue?.reduce((sum, member) => {
-      const coins = Number(member.coins);
-      return sum + (isNaN(coins) ? 0 : coins);
-    }, 0) || 0;
-
-  if (totalCoins > coinsToCheck) {
-    return context.createError({
-      path: `membersInfo.${fieldName}.${fieldValue!.length - 1}.coins`,
-      message: `Сума крихт повинна бути менше ${coinsToCheck}`,
-    });
-  }
-
-  return true;
-};
-
-const fieldSchema = Yup.object().shape({
-  nickname: Yup.string().required('Нікнейм обов’язковий'),
-  coins: testIsNotZero,
-  isGuest: Yup.boolean(),
+const fieldSchema = z.object({
+  nickname: z.string({ error: NICKNAME_MESSAGE }).min(1, NICKNAME_MESSAGE),
+  coins: coinsField,
+  isGuest: z.boolean().optional(),
 });
 
-const notRequiredFieldSchema = Yup.object().shape({
-  nickname: Yup.string(),
-  coins: Yup.string().when('nickname', (nickname) => {
-    if (nickname[0]) return testIsNotZero;
-
-    return Yup.string().notRequired();
-  }),
-
-  isGuest: Yup.boolean(),
-});
+// Coins only matter once somebody is picked for the role
+const notRequiredFieldSchema = z
+  .object({
+    nickname: z.string().optional(),
+    coins: z.string().optional(),
+    isGuest: z.boolean().optional(),
+  })
+  .refine((field) => !field.nickname || (!!field.coins && field.coins !== '0'), {
+    path: ['coins'],
+    error: NO_COINS_MESSAGE,
+  });
 
 const getArraySchema = (fieldName: ArrayFields, titleCoins: CoinsType, maxLength: number = 2) => {
-  return Yup.array()
-    .of(fieldSchema)
+  // The sum check goes first: zod skips checks chained after a failed min()/max()
+  return z
+    .array(fieldSchema)
+    .check((ctx) => {
+      const fieldValue = ctx.value;
+
+      // ** Needs only for checking number of dubs
+      const isMulti = fieldValue.length > 2;
+
+      let coinsToCheck = 0;
+
+      if (fieldName === 'releasers') {
+        coinsToCheck = titleCoins.releaser;
+      } else {
+        coinsToCheck = isMulti ? titleCoins.dub.multi : titleCoins.dub.double;
+      }
+
+      const totalCoins = fieldValue.reduce((sum, member) => {
+        const coins = Number(member.coins);
+        return sum + (isNaN(coins) ? 0 : coins);
+      }, 0);
+
+      if (totalCoins > coinsToCheck) {
+        // ** The error is shown under the last member of the group
+        ctx.issues.push({
+          code: 'custom',
+          input: fieldValue,
+          path: [fieldValue.length - 1, 'coins'],
+          message: `Сума крихт повинна бути менше ${coinsToCheck}`,
+        });
+      }
+    })
     .min(1)
-    .max(maxLength)
-    .test(`sum-of-coins-${fieldName}`, '', (value, context) =>
-      testIsMoreThanNeedCoins(value, fieldName, context, titleCoins),
-    )
-    .required();
+    .max(maxLength);
 };
 
-export const createTrackFormSchema = (titleCoins: CoinsType) => {
-  return Yup.object().shape({
-    membersInfo: Yup.object().shape({
-      sound: fieldSchema.required(),
-      director: fieldSchema.required(),
-      sub: fieldSchema.required(),
-      editor: notRequiredFieldSchema.nullable().notRequired(),
+export const createTrackFormSchema = (
+  titleCoins: CoinsType,
+): z.ZodType<CreateTrackFormValues, CreateTrackFormValues> => {
+  return z.object({
+    membersInfo: z.object({
+      sound: fieldSchema,
+      director: fieldSchema,
+      sub: fieldSchema,
+      editor: notRequiredFieldSchema.nullish(),
       dubs: getArraySchema('dubs', titleCoins, 10),
       fixers: getArraySchema('fixers', titleCoins),
-      roleBreaker: fieldSchema.when('isLastEpisode', {
-        is: (val: boolean) => val === true,
-        then: (schema) => schema.required('Обов’язкове поле'),
-        otherwise: () => notRequiredFieldSchema.notRequired(),
-      }),
+      roleBreaker: notRequiredFieldSchema.nullish(),
       releasers: getArraySchema('releasers', titleCoins),
-      typesetter: notRequiredFieldSchema.nullable().notRequired(),
+      typesetter: notRequiredFieldSchema.nullish(),
     }),
-    note: Yup.string(),
-    isOngoing: Yup.boolean().required(),
-    isPriority: Yup.boolean().required(),
-    isInTime: Yup.boolean().required(),
-    isGiveEditorCoins: Yup.boolean(),
-    isGiveTypesetterCoins: Yup.boolean(),
-    isLastEpisode: Yup.boolean(),
+    note: z.string().optional(),
+    isOngoing: z.boolean(),
+    isPriority: z.boolean(),
+    isInTime: z.boolean(),
+    isGiveEditorCoins: z.boolean().optional(),
+    isGiveTypesetterCoins: z.boolean().optional(),
+    isLastEpisode: z.boolean().optional(),
   });
 };
 
@@ -128,26 +125,31 @@ export const initialFormValues: CreateTrackFormValues = {
 };
 
 // ** For choose anime form
-export const createChooseAnimeForm = () => {
-  return Yup.object().shape({
-    titleName: Yup.string().required('Обов’язкове поле'),
-    episode: Yup.number()
-      .min(1, 'Епізод мусить бути мінімум 1')
-      .max(999, 'Епізод мусить бути максимум 999')
-      .required('Обов’язкове поле'),
-    animeType: Yup.string().required('Обов’язкове поле'),
-    season: Yup.string().required('Обов’язкове поле'),
-    year: Yup.string().required('Обов’язкове поле'),
-    duration: Yup.number()
-      .min(1, 'Тривалість мусить бути мінімум 1')
-      .max(999, 'Тривалість мусить бути максимум 999')
-      .when('animeType', {
-        is: (val: string) => val === ANIME_TYPE.SHORT_FILM,
-        then: (schema) => schema.required('Обов’язкове поле'),
-        otherwise: (schema) => schema.notRequired(),
-      }),
-    isSubsOnly: Yup.boolean(),
-  });
+export const createChooseAnimeForm = (): z.ZodType<
+  ChooseAnimeFormValues,
+  ChooseAnimeFormValues
+> => {
+  return z
+    .object({
+      titleName: requiredString,
+      episode: z
+        .number({ error: REQUIRED_MESSAGE })
+        .min(1, 'Епізод мусить бути мінімум 1')
+        .max(999, 'Епізод мусить бути максимум 999'),
+      animeType: requiredString,
+      season: requiredString,
+      year: requiredString,
+      duration: z
+        .number()
+        .min(1, 'Тривалість мусить бути мінімум 1')
+        .max(999, 'Тривалість мусить бути максимум 999')
+        .optional(),
+      isSubsOnly: z.boolean().optional(),
+    })
+    .refine((form) => form.animeType !== ANIME_TYPE.SHORT_FILM || form.duration !== undefined, {
+      path: ['duration'],
+      error: REQUIRED_MESSAGE,
+    });
 };
 
 export const chooseAnimeInitialFormValues: ChooseAnimeFormValues = {
@@ -161,21 +163,23 @@ export const chooseAnimeInitialFormValues: ChooseAnimeFormValues = {
 };
 
 // ** Form for creating track with subs only
-export const createTrackWithSubsOnlyFormSchema = (titleCoins: CoinsType) => {
-  return Yup.object().shape({
-    membersInfo: Yup.object().shape({
-      director: fieldSchema.required(),
-      sub: fieldSchema.required(),
-      editor: notRequiredFieldSchema.nullable().notRequired(),
+export const createTrackWithSubsOnlyFormSchema = (
+  titleCoins: CoinsType,
+): z.ZodType<CreateTrackWithSubsOnlyFormValues, CreateTrackWithSubsOnlyFormValues> => {
+  return z.object({
+    membersInfo: z.object({
+      director: fieldSchema,
+      sub: fieldSchema,
+      editor: notRequiredFieldSchema.nullish(),
       releasers: getArraySchema('releasers', titleCoins),
-      typesetter: notRequiredFieldSchema.nullable().notRequired(),
+      typesetter: notRequiredFieldSchema.nullish(),
     }),
-    note: Yup.string(),
-    isOngoing: Yup.boolean().required(),
-    isPriority: Yup.boolean().required(),
-    isInTime: Yup.boolean().required(),
-    isGiveEditorCoins: Yup.boolean(),
-    isGiveTypesetterCoins: Yup.boolean(),
+    note: z.string().optional(),
+    isOngoing: z.boolean(),
+    isPriority: z.boolean(),
+    isInTime: z.boolean(),
+    isGiveEditorCoins: z.boolean().optional(),
+    isGiveTypesetterCoins: z.boolean().optional(),
   });
 };
 

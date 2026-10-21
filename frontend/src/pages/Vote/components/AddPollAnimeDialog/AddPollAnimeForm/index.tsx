@@ -1,7 +1,7 @@
 import { Controller, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ErrorMessage } from '@hookform/error-message';
 import { Checkbox, FormControlLabel, TextField } from '@mui/material';
 
@@ -24,7 +24,7 @@ export const AddPollAnimeForm = ({ onClose }: { onClose: () => void }) => {
     formState: { errors },
   } = useForm<NewPollAnime>({
     defaultValues: initialFormValues,
-    resolver: yupResolver(createPollAnimeSchema()),
+    resolver: zodResolver(createPollAnimeSchema()),
     mode: 'onChange',
   });
 

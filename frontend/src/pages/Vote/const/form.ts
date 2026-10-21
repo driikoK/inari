@@ -1,18 +1,28 @@
-import * as Yup from 'yup';
+import { z } from 'zod';
 import { ChosenAnime } from '../types';
 import { NewPollAnime } from '@/stores/usePollStore';
 
+const REQUIRED_MESSAGE = 'Обов’язкове поле';
+
+const requiredString = z.string({ error: REQUIRED_MESSAGE }).min(1, REQUIRED_MESSAGE);
+
+const requiredUrl = z
+  .string({ error: REQUIRED_MESSAGE })
+  .trim()
+  .min(1, REQUIRED_MESSAGE)
+  .pipe(z.url({ protocol: /^https?$/, error: 'Введіть коректне посилання' }));
+
 export const createChooseAnimeForm = () =>
-  Yup.object({
-    chosenAnimes: Yup.array()
-      .of(
-        Yup.object({
-          animeId: Yup.string().required(),
-          roles: Yup.array().of(Yup.string().required()).required(),
+  z.object({
+    chosenAnimes: z
+      .array(
+        z.object({
+          animeId: z.string().min(1),
+          roles: z.array(z.string().min(1)),
         }),
+        { error: 'Виберіть хоча б один тайтл' },
       )
-      .min(1, 'Виберіть хоча б один тайтл')
-      .required(),
+      .min(1, 'Виберіть хоча б один тайтл'),
   });
 
 export const chooseAnimeInitialFormValues = {
@@ -20,14 +30,15 @@ export const chooseAnimeInitialFormValues = {
 };
 
 export const createPollAnimeSchema = () => {
-  return Yup.object().shape({
-    name: Yup.string().required('Обов’язкове поле'),
-    link: Yup.string().url('Введіть коректне посилання').required('Обов’язкове поле'),
-    posterUrl: Yup.string().url('Введіть коректне посилання').required('Обов’язкове поле'),
-    isOngoing: Yup.boolean().required(),
-    isPriority: Yup.boolean().required(),
-    isDecided: Yup.boolean().required(),
-    isSponsored: Yup.boolean().required(),
+  return z.object({
+    name: requiredString,
+    link: requiredUrl,
+    posterUrl: requiredUrl,
+    isOngoing: z.boolean(),
+    isPriority: z.boolean(),
+    isDecided: z.boolean(),
+    isSponsored: z.boolean(),
+    note: z.string().optional(),
   });
 };
 

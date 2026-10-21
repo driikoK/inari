@@ -1,7 +1,7 @@
 import { FC, useEffect } from 'react';
 import { useForm, FormProvider, Controller, ControllerRenderProps } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
 
 import {
@@ -43,7 +43,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
   const methods = useForm<ChooseAnimeFormValues>({
     defaultValues: initialValues ? initialValues : chooseAnimeInitialFormValues,
-    resolver: yupResolver(createChooseAnimeForm()),
+    resolver: zodResolver(createChooseAnimeForm()),
     criteriaMode: 'all',
     mode: 'onChange',
   });

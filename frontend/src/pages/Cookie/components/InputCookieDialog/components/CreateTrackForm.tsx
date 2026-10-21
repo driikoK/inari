@@ -1,7 +1,7 @@
 import { FC, useEffect, useMemo } from 'react';
 import { useForm, FormProvider, Controller, UseFormWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Box, Checkbox, FormControlLabel, TextField } from '@mui/material';
 
@@ -90,7 +90,7 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
 
   const methods = useForm<CreateTrackFormValues>({
     defaultValues,
-    resolver: yupResolver(createTrackFormSchema(coins)),
+    resolver: zodResolver(createTrackFormSchema(coins)),
     criteriaMode: 'all',
     mode: 'onChange',
   });

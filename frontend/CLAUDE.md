@@ -15,13 +15,13 @@ npm run preview    # Preview production build
 
 ## Stack
 
-- **React 18 + TypeScript + Vite**
+- **React 19 + TypeScript + Vite**
 - **UI:** Material UI (MUI) v6 + Emotion
 - **Data tables:** `@mui/x-data-grid` via the `CustomTable` wrapper component
 - **State:** Zustand stores (`src/stores/`)
 - **Routing:** React Router v6 with lazy-loaded pages
-- **Forms:** React Hook Form + Yup
-- **Auth/RBAC:** CASL (`@casl/ability`, `@casl/react`)
+- **Forms:** React Hook Form + Zod (`zodResolver`; schemas live in each page's `const/form.ts`)
+- **Auth/RBAC:** hand-written permission context in `src/context/casl.ts` (no CASL library)
 - **HTTP:** Axios with Bearer token interceptor
 - **Notifications:** react-hot-toast
 
@@ -33,7 +33,7 @@ Put new components into new files. Do not create many components in the same fil
 
 `src/index.tsx` wraps everything in `BrowserRouter` → `Toaster` → `Suspense` → `App`.
 
-`App.tsx` applies MUI `ThemeProvider` (`src/theme/mui-theme.ts`), a legacy styled-components `ThemeProvider` (`src/theme/theme.ts`), and the CASL `AbilityContext`. A `RequireAuth` guard in `App.tsx` redirects unauthenticated users to `/login` and shows `FallbackComponent` while the user profile loads.
+`App.tsx` applies MUI `ThemeProvider` (`src/theme/mui-theme.ts`), a legacy styled-components `ThemeProvider` (`src/theme/theme.ts`), and the permissions `AbilityContext`. A `RequireAuth` guard in `App.tsx` redirects unauthenticated users to `/login` and shows `FallbackComponent` while the user profile loads.
 
 ### Layout
 
@@ -56,7 +56,7 @@ All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`
 - `useCoinsStore` — coin values by anime type
 - `useMembersStore` / `useRolesStore` — team/role data
 
-### Permissions (CASL)
+### Permissions
 
 `src/context/casl.ts` defines the `SUBJECTS` enum (granular actions like `ADD_COOKIES`, `PERMISSION_EDIT`) and `ROLE` enum (`ADMIN`, `DIRECTOR`, `MEMBER`). `getPermissionsByRole(role)` maps roles to allowed subjects. Use `usePermissions()` from `src/hooks/` to check access in components.
 

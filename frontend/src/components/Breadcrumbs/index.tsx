@@ -1,7 +1,6 @@
 import { Box, Breadcrumbs } from '@mui/material';
-import { FC, PropsWithChildren } from 'react';
+import { FC, type JSX, PropsWithChildren } from 'react';
 import { Link } from 'react-router-dom';
-import { isObjEmpty } from '@/utils/objects';
 
 type Link = {
   link: string;

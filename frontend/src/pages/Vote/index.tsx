@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Button from '@mui/material/Button';
 import { Box } from '@mui/material';
 
@@ -25,7 +25,7 @@ const Vote: FC = () => {
 
   const methods = useForm<ChooseAnimeFormValues>({
     defaultValues: chooseAnimeInitialFormValues,
-    resolver: yupResolver(createChooseAnimeForm()),
+    resolver: zodResolver(createChooseAnimeForm()),
     mode: 'onChange',
   });
 
