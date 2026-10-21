@@ -22,5 +22,6 @@ import { usersProviders } from '@users/users.provider';
     ...membersProviders,
     ...usersProviders,
   ],
+  exports: [TrackService],
 })
 export class TracksModule {}

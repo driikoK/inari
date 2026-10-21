@@ -62,9 +62,8 @@ export class UsersService {
     email,
     role,
   }: CreateUserDto): Promise<string> {
-    bcrypt.hash(password, 10, (err, hash) => {
-      this.userModel.create({ username, password: hash, role, email });
-    });
+    const hash = await bcrypt.hash(password, 10);
+    await this.userModel.create({ username, password: hash, role, email });
 
     return 'Created';
   }

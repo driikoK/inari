@@ -11,4 +11,24 @@ export const nicknames: MemberData[] = [
     types: ['sound', 'dub', 'sub'],
     coins: 0,
   },
+  {
+    nickname: 'Kitsune',
+    types: ['dubs'],
+    coins: 0,
+  },
+  {
+    nickname: 'Tanuki',
+    types: ['dubs', 'fixers'],
+    coins: 0,
+  },
+  {
+    nickname: 'Ronin',
+    types: ['editor', 'typesetter'],
+    coins: 0,
+  },
+  {
+    nickname: 'Sakura',
+    types: ['director', 'releasers'],
+    coins: 0,
+  },
 ];

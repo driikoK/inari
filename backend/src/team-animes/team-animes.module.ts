@@ -8,5 +8,6 @@ import { DatabaseModule } from 'src/database/database.module';
   imports: [DatabaseModule],
   controllers: [TeamAnimesController],
   providers: [TeamAnimesService, ...teamAnimesProviders],
+  exports: [TeamAnimesService],
 })
 export class TeamAnimesModule {}

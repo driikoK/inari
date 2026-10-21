@@ -1,3 +1,4 @@
+import * as mongoose from 'mongoose';
 import { NestFactory } from '@nestjs/core';
 import { CommandModule, CommandService } from 'nestjs-command';
 import { AppModule } from './app.module';
@@ -12,6 +13,7 @@ async function bootstrap() {
   try {
     await app.select(CommandModule).get(CommandService).exec();
     await app.close();
+    await mongoose.disconnect();
   } catch (error) {
     console.error(error);
     await app.close();
