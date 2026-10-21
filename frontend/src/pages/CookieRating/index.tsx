@@ -7,6 +7,7 @@ import { GridActionsCellItem, GridActionsColDef, GridColDef, GridRowModel } from
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { RatingFilters } from './components/RatingFilters';
+import { MemberKindCell } from './components/MemberKindCell';
 import { useMembersStore, useRolesStore } from '@/stores';
 import { CustomTable, ConfirmTableChangeDialog, ConfirmDeleteDialog } from '@/components';
 import { convertSeasonEngToUkr } from '@/utils/convert';
@@ -52,6 +53,19 @@ const CookieRating: FunctionComponent = () => {
       field: 'nickname',
       headerName: 'Нікнейм',
       flex: 0.2,
+    },
+    {
+      field: 'kind',
+      headerName: 'Тип',
+      flex: 0.25,
+      sortable: false,
+      renderCell: ({ row }) => (
+        <MemberKindCell
+          memberId={row.id}
+          kind={row.kind}
+          editable={hasAccess(SUBJECTS.EDIT_MEMBER_KIND)}
+        />
+      ),
     },
     {
       field: 'coins',
@@ -128,6 +142,7 @@ const CookieRating: FunctionComponent = () => {
     if (isYearAndSeasonApplied) {
       return {
         nickname: member.nickname,
+        kind: member.kind,
         coins: member.seasons.find(
           (season) =>
             season.season === appliedFilters.season && season.year === appliedFilters.year,

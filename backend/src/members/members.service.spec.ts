@@ -3,7 +3,8 @@ import { Model } from 'mongoose';
 import { vi } from 'vitest';
 import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
-import { MEMBER_ROLE } from '../shared/index.js';
+import { MEMBER_KIND, MEMBER_ROLE } from '../shared/index.js';
+import { UNMARKED_KIND } from './data/filter-members.data.js';
 import { IMember } from './interfaces/members.interface.js';
 import { MembersService } from './members.service.js';
 
@@ -48,6 +49,29 @@ describe('MembersService', () => {
     });
   });
 
+  describe('findAll by kind', () => {
+    const sort = vi.fn().mockResolvedValue([]);
+
+    beforeEach(() => {
+      model.find.mockImplementation(() => ({ sort }) as any);
+    });
+
+    it('lists guests only', async () => {
+      await service.findAll({ kind: MEMBER_KIND.GUEST });
+
+      expect(model.find).toHaveBeenCalledWith({
+        deletedAt: null,
+        kind: MEMBER_KIND.GUEST,
+      });
+    });
+
+    it('lists the nicknames that were never marked, which have no kind or a null one', async () => {
+      await service.findAll({ kind: UNMARKED_KIND });
+
+      expect(model.find).toHaveBeenCalledWith({ deletedAt: null, kind: null });
+    });
+  });
+
   describe('createMember', () => {
     it('restores a nickname that was removed earlier and keeps its coins', async () => {
       const restored = { nickname: 'Dixy', coins: 42 };
@@ -70,17 +94,71 @@ describe('MembersService', () => {
       expect(model.create).not.toHaveBeenCalled();
     });
 
+    it('applies the kind chosen on re-adding to the restored nickname', async () => {
+      model.findOneAndUpdate.mockResolvedValue({} as any);
+
+      await service.createMember({
+        nickname: 'Dixy',
+        types: [],
+        kind: MEMBER_KIND.GUEST,
+      });
+
+      expect(model.findOneAndUpdate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ $set: { kind: MEMBER_KIND.GUEST } }),
+        expect.anything(),
+      );
+    });
+
     it('creates a new member with zero coins when nothing was removed', async () => {
       model.findOneAndUpdate.mockResolvedValue(null);
       model.create.mockResolvedValue({} as any);
 
-      await service.createMember({ nickname: 'New', types: [] });
+      await service.createMember({
+        nickname: 'New',
+        types: [],
+        kind: MEMBER_KIND.TEAM,
+      });
 
       expect(model.create).toHaveBeenCalledWith({
         nickname: 'New',
         types: [],
+        kind: MEMBER_KIND.TEAM,
         coins: 0,
       });
+    });
+  });
+
+  describe('updateKind', () => {
+    it('marks a visible nickname and returns it', async () => {
+      const updated = { nickname: 'Dixy', kind: MEMBER_KIND.GUEST };
+      model.findOneAndUpdate.mockResolvedValue(updated as any);
+
+      await expect(service.updateKind(id, MEMBER_KIND.GUEST)).resolves.toBe(
+        updated,
+      );
+
+      expect(model.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: id, deletedAt: null },
+        { $set: { kind: MEMBER_KIND.GUEST } },
+        { new: true },
+      );
+    });
+
+    it('reports a nickname that is unknown or removed', async () => {
+      model.findOneAndUpdate.mockResolvedValue(null);
+
+      await expect(service.updateKind(id, MEMBER_KIND.TEAM)).rejects.toThrow(
+        'Нікнейм не знайдено',
+      );
+    });
+
+    it('rejects an id that is not an ObjectId without touching the database', async () => {
+      await expect(
+        service.updateKind('nope', MEMBER_KIND.TEAM),
+      ).rejects.toThrow('Невірний id');
+
+      expect(model.findOneAndUpdate).not.toHaveBeenCalled();
     });
   });
 

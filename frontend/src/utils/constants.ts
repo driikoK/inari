@@ -1,4 +1,5 @@
 import { ROLE } from '@/context/casl';
+import type { MemberKind } from '@/types';
 
 export const userRoleOptions = [
   {
@@ -14,6 +15,14 @@ export const userRoleOptions = [
     value: ROLE.MEMBER,
   },
 ];
+
+export const memberKindOptions: { label: string; value: MemberKind }[] = [
+  { label: 'Учасник команди', value: 'team' },
+  { label: 'Гість', value: 'guest' },
+];
+
+export const UNMARKED_KIND = 'unmarked';
+export const UNMARKED_KIND_LABEL = 'Не вказано';
 
 export const seasonOptions = [
   { label: 'Зима', value: 'winter' },

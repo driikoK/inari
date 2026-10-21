@@ -3,12 +3,19 @@ import { useEffect, useState } from 'react';
 import { SelectWrapper } from './styles';
 import { SelectField } from '@/components';
 import { useMembersStore, useRolesStore } from '@/stores';
-import { seasonOptions, yearOptions } from '@/utils/constants';
+import {
+  memberKindOptions,
+  seasonOptions,
+  UNMARKED_KIND,
+  UNMARKED_KIND_LABEL,
+  yearOptions,
+} from '@/utils/constants';
 
 export const RatingFilters = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>();
   const [selectedYear, setSelectedYear] = useState<number>();
   const [selectedRole, setSelectedRole] = useState<string>();
+  const [selectedKind, setSelectedKind] = useState<string>();
   const [selectedUser, setSelectedUser] = useState<string>();
 
   const roles = useRolesStore((state) => state.roles);
@@ -32,10 +39,11 @@ export const RatingFilters = () => {
     getMembers({
       id: selectedUser,
       role: selectedRole,
+      kind: selectedKind,
       season: selectedSeason,
       year: selectedYear,
     });
-  }, [selectedRole, selectedUser, selectedSeason, selectedYear]);
+  }, [selectedRole, selectedKind, selectedUser, selectedSeason, selectedYear]);
 
   const handleSeasonChange = (season: string = '') => {
     if (!season) {
@@ -57,6 +65,13 @@ export const RatingFilters = () => {
         value={selectedRole}
         onChange={setSelectedRole}
         options={roles.map((role) => ({ value: role.value, label: role.label }))}
+      />
+
+      <SelectField
+        label="Тип"
+        value={selectedKind}
+        onChange={setSelectedKind}
+        options={[...memberKindOptions, { value: UNMARKED_KIND, label: UNMARKED_KIND_LABEL }]}
       />
 
       <SelectField

@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -16,6 +17,7 @@ import { MemberFilterData } from './data/filter-members.data.js';
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { UpdateMemberData } from './data/update-member.data.js';
+import { UpdateMemberKindData } from './data/update-member-kind.data.js';
 
 @ApiTags('Members')
 @Controller('members')
@@ -45,6 +47,15 @@ export class MembersController {
     @Body({ schema: UpdateMemberData }) member: UpdateMemberData,
   ) {
     return this.membersService.updateMember(member);
+  }
+
+  @Patch(':id/kind')
+  @UseGuards(AuthGuard, AdminGuard)
+  async updateKind(
+    @Param('id') id: string,
+    @Body({ schema: UpdateMemberKindData }) { kind }: UpdateMemberKindData,
+  ) {
+    return this.membersService.updateKind(id, kind);
   }
 
   @Delete(':id')

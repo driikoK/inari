@@ -51,12 +51,14 @@ NestJS 12 on Fastify, ESM only (`"type": "module"`), Mongoose, Zod 4 for validat
 - `AuthGuard` verifies the signature and then loads the user from the database, so deleting an account locks the token out at once. Tokens without a `username` (the password-reset token carries `{ email }`) are rejected. It sets `request.user` to the user without the password, read it with `@CurrentUser()` (`ValidatedUser`).
 - `AdminGuard` only checks `request.user.role`, so it must come after `AuthGuard`: `@UseGuards(AuthGuard, AdminGuard)`.
 - `UsersModule` must stay `@Global()`. `AuthGuard` injects `UsersService` into whichever module uses it, and removing the decorator makes boot fail with "Nest can't resolve dependencies of the AuthGuard".
-- Today only the two deletes are admin-only, and `PUT /users/:id` lets admins edit anyone while everyone else may edit only themselves and never their own role. Every other write endpoint (members, tracks, team animes, polls) is open to any logged-in user and only hidden in the frontend. Add a guard when you add or touch a write endpoint.
+- Admin-only today: both deletes and `PATCH /members/:id/kind`. `PUT /users/:id` lets admins edit anyone while everyone else may edit only themselves and never their own role. Every other write endpoint (`POST /members`, `PUT /members`, tracks, team animes, polls) is open to any logged-in user and only hidden in the frontend. Add a guard when you add or touch a write endpoint.
+- CORS `methods` in `main.ts` is an explicit list (GET, POST, PUT, PATCH, DELETE). A route with a verb that is not in it works in tests and curl and fails only in the browser, at the preflight. Add the verb there with the route.
 
 ## Domain rules to preserve
 
 - `root` can be neither edited nor deleted, and nobody can delete their own account. Deleting a user also deletes their vote (`PollsService.deleteVotesByUser`). Tracks keep `username` as plain text.
 - Members ("nicknames") are soft-deleted with `deletedAt`. Every member listing must filter `deletedAt: null`. `findMember(nickname)` deliberately still finds hidden members so their old tracks can be edited and deleted. `createMember` restores a hidden nickname with its coins and merges the roles. Creating a track for a hidden nickname is refused with 409 before anything is written.
+- A member has a `kind`, `team` or `guest` (`MEMBER_KIND`). Nicknames created before the field have none and count as not marked, which is a normal state, not an error: `GET /members?kind=unmarked` lists them. `POST /members` requires a kind and applies it when it restores a hidden nickname. The kind changes only through `PATCH /members/:id/kind`, `PUT /members` strips it. Nothing on the backend turns a guest into a guest track line, the frontend ticks `isGuest` per line and the half-coins rule stays per track.
 - Tracks store the member's nickname as plain text, and editing or deleting a track adjusts the member's `coins` and the matching `seasons[]` total. Coin rates and multipliers live in `DictionariesService` and `tracks/enums`.
 
 ## Layout
@@ -80,6 +82,7 @@ NestJS 12 on Fastify, ESM only (`"type": "module"`), Mongoose, Zod 4 for validat
 
 ## Known issues
 
+- `AuthService.signUp` gives the admin role to the username `root`. Harmless while the seeded root exists (the duplicate check answers 409), but on an empty database the first visitor to register `root` becomes admin.
 - `mongoose.set('debug', true)` in `database.provider.ts` prints every query to the console, inserted documents (including password hashes) too.
 - `LoggerMiddleware` prints only the URL, `req.body` is always `undefined` at that stage.
 - `dictionaries.service.ts` has two existing Biome errors. Compare lint counts before and after a change instead of expecting zero.

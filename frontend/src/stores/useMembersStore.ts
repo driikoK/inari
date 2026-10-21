@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import axios from '@/api';
-import { MemberType } from '@/types';
+import { MemberKind, MemberType } from '@/types';
 import { isObjEmpty, isObjValuesExist } from '@/utils/objects';
 
 interface FilterData {
   id: string;
   role: string;
+  kind: string;
   season: string;
   year: number;
 }
@@ -16,10 +17,13 @@ interface State {
   appliedFilters: Partial<FilterData>;
 }
 
+type NewMember = Omit<MemberType, '_id' | 'updatedAt' | 'kind'> & { kind: MemberKind };
+
 interface Actions {
   getMembers: (filters?: Partial<FilterData>) => Promise<void>;
-  addMember: (newMember: Omit<MemberType, '_id' | 'updatedAt'>) => Promise<void>;
+  addMember: (newMember: NewMember) => Promise<void>;
   updateMember: (updatedMember: MemberType) => Promise<MemberType>;
+  updateMemberKind: (id: string, kind: MemberKind) => Promise<void>;
   deleteMember: (id: string) => Promise<void>;
 }
 
@@ -73,6 +77,17 @@ const useMembersStore = create<State & Actions>((set) => ({
     } catch (error) {
       throw error;
     }
+  },
+
+  updateMemberKind: async (id, kind) => {
+    await axios.patch(`/members/${id}/kind`, { kind });
+
+    const mark = (member: MemberType) => (member._id === id ? { ...member, kind } : member);
+
+    set((state) => ({
+      members: state.members.map(mark),
+      membersDictionary: state.membersDictionary.map(mark),
+    }));
   },
 
   deleteMember: async (id) => {

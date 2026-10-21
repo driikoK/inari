@@ -8,8 +8,8 @@ import {
 import { isValidObjectId, Model } from 'mongoose';
 import { IMember } from './interfaces/members.interface.js';
 import { MemberData } from './data/member.data.js';
-import { MEMBER_ROLE } from '../shared/index.js';
-import { MemberFilterData } from './data/filter-members.data.js';
+import { MEMBER_KIND, MEMBER_ROLE } from '../shared/index.js';
+import { MemberFilterData, UNMARKED_KIND } from './data/filter-members.data.js';
 import { UpdateMemberData } from './data/update-member.data.js';
 
 @Injectable()
@@ -29,6 +29,10 @@ export class MembersService {
       query.types = { $in: [filter.role] };
     }
 
+    if (filter.kind) {
+      query.kind = filter.kind === UNMARKED_KIND ? null : filter.kind;
+    }
+
     if (filter.season && filter.year) {
       query.seasons = {
         $elemMatch: { season: filter.season, year: filter.year },
@@ -43,6 +47,7 @@ export class MembersService {
       { nickname: member.nickname, deletedAt: { $ne: null } },
       {
         $unset: { deletedAt: 1 },
+        ...(member.kind && { $set: { kind: member.kind } }),
         $addToSet: { types: { $each: member.types ?? [] } },
       },
       { new: true },
@@ -70,6 +75,24 @@ export class MembersService {
     }
 
     return true;
+  }
+
+  async updateKind(id: string, kind: MEMBER_KIND): Promise<IMember> {
+    if (!isValidObjectId(id)) {
+      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
+    }
+
+    const member = await this.memberModel.findOneAndUpdate(
+      { _id: id, deletedAt: null },
+      { $set: { kind } },
+      { new: true },
+    );
+
+    if (!member) {
+      throw new NotFoundException('Нікнейм не знайдено');
+    }
+
+    return member;
   }
 
   async updateMember(member: UpdateMemberData) {

@@ -63,15 +63,14 @@ All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`
 - `usePollStore` — voting state
 - `useAnimesStore` / `useTracksStore` — anime/episode data
 - `useCoinsStore` — coin values by anime type
-- `useMembersStore` / `useRolesStore` — team members ("nicknames") and roles; `deleteMember` also updates `membersDictionary`
-
+- `useMembersStore` / `useRolesStore` — team members ("nicknames") and roles; `deleteMember` and `updateMemberKind` also update `membersDictionary`, `addMember` needs a `kind`
 Do not write `try { … } catch (e) { throw e }` in a store action, it only adds a lint error. Let the error propagate.
 
 ### Permissions
 
 `src/context/casl.ts` defines the `SUBJECTS` enum (granular actions like `ADD_COOKIES`, `PERMISSION_EDIT`, `DELETE_USERS`, `DELETE_MEMBERS`) and the `ROLE` enum (`ADMIN`, `DIRECTOR`, `MEMBER`). `getPermissionsByRole(role)` maps roles to allowed subjects: admins get every subject automatically, directors and members have explicit lists. Use `usePermissions()` from `src/hooks/` to check access in components.
 
-This only hides UI. The backend decides what is allowed, and today only its two delete endpoints (and role changes) are admin-only, so a new subject here is not a security boundary.
+This only hides UI. The backend decides what is allowed (see its `CLAUDE.md` for the admin-only routes), so a new subject here is not a security boundary. `EDIT_MEMBER_KIND` follows the same pattern as the delete subjects, admins only.
 
 ### Forms and validation (Zod)
 
@@ -87,9 +86,18 @@ This only hides UI. The backend decides what is allowed, and today only its two 
 
 Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` with a `GridActionsCellItem` and `DeleteOutlined` icon) shown only when `hasAccess(SUBJECTS.DELETE_*)`, a `memberToDelete`/`userToDelete` state, and `ConfirmDeleteDialog` (`src/components/ConfirmDeleteDialog`) with a message that says what is kept or lost. The Axios interceptor already toasts the server's error, so the `catch` can be empty with a comment saying so.
 
+### Nickname kind (team member / guest)
+
+- `MemberType.kind` is `'team' | 'guest'`, and missing for nicknames that were never marked. Show that as «Не вказано» (editable) or a dash (read-only), never as an error. The filter value for it is `UNMARKED_KIND` in `utils/constants.ts`, the same string the backend expects.
+- Both "add nickname" dialogs use `MemberKindToggle` with nothing preselected, and save stays disabled until a kind is chosen.
+- The Rating page has a `Тип` column (`MemberKindCell`): a select for admins (`EDIT_MEMBER_KIND`), plain text for everyone else. It saves through `updateMemberKind`, never through `updateMember`, because a season-filtered row holds the season's coins and would overwrite the total.
+- In the track form a row's «Гість» box follows the kind of its nickname, whether the nickname was picked or prefilled from the previous episode (an effect in `FormField`'s `InputFields`, keyed on the nickname and its kind). The box stays editable until the nickname changes, and `isGuest` is still sent per track line.
+
 ### API Layer
 
 `src/api/index.ts` exports a configured Axios instance. The request interceptor attaches the Bearer token from `localStorage`. The response interceptor shows `error.response.data.message` as a toast and redirects to `/login` on 401. Backend validation errors arrive as an array of `field: message` strings. The JWT carries only the username, never read roles from it.
+
+The response interceptor returns `undefined` for an error that has no `response` (network failure, a CORS preflight the server refused), so the awaited call resolves and the UI can report success for a request that never happened. When you add a route with a new HTTP verb, check it in a browser, not only with curl.
 
 ### Styling
 

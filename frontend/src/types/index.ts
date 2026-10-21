@@ -74,10 +74,13 @@ export enum ROLES_ON_VOTE {
   RELEASER = 'releaser',
 }
 
+export type MemberKind = 'team' | 'guest';
+
 export interface MemberType {
   _id: string;
   nickname: string;
   types: string[];
+  kind?: MemberKind | null;
   coins: number;
   seasons: { season: string; year: number; coins: number }[];
   updatedAt: string;

@@ -1,6 +1,12 @@
 import type { z } from 'zod';
 import { SignUpData } from '../auth/data/sign-up.data.js';
+import { CreateMemberData } from '../members/data/create-member.data.js';
+import {
+  MemberFilterData,
+  UNMARKED_KIND,
+} from '../members/data/filter-members.data.js';
 import { UpdateMemberData } from '../members/data/update-member.data.js';
+import { UpdateMemberKindData } from '../members/data/update-member-kind.data.js';
 import { VoteData } from '../polls/data/vote.data.js';
 import { CreateTrackData } from '../tracks/data/create-track.data.js';
 import { FilterTrackData } from '../tracks/data/filter-track.data.js';
@@ -123,6 +129,42 @@ describe('request DTO schemas', () => {
       expect(
         messagesOf(UpdateMemberData, { nickname: 'x', coins: -1 }),
       ).toEqual(['Coins must be at least 0']);
+    });
+  });
+
+  describe('member kind', () => {
+    const member = { nickname: 'x', types: [] };
+
+    it.each(['team', 'guest'])('accepts a new nickname marked %s', (kind) => {
+      expect(CreateMemberData.parse({ ...member, kind }).kind).toBe(kind);
+    });
+
+    it.each([undefined, null, '', 'owner'])(
+      'needs a valid kind on a new nickname, not %o',
+      (kind) => {
+        expect(messagesOf(CreateMemberData, { ...member, kind })).toEqual([
+          'Вкажіть, чи це гість, чи учасник команди',
+        ]);
+      },
+    );
+
+    it('is changed on its own, never through the coins endpoint', () => {
+      expect(UpdateMemberKindData.parse({ kind: 'guest' })).toEqual({
+        kind: 'guest',
+      });
+      expect(UpdateMemberKindData.safeParse({ kind: 'owner' }).success).toBe(
+        false,
+      );
+      expect(
+        UpdateMemberData.parse({ nickname: 'x', coins: 1, kind: 'guest' }),
+      ).toEqual({ nickname: 'x', coins: 1 });
+    });
+
+    it('can be filtered on, the unmarked ones included', () => {
+      expect(MemberFilterData.parse({ kind: UNMARKED_KIND }).kind).toBe(
+        UNMARKED_KIND,
+      );
+      expect(MemberFilterData.safeParse({ kind: 'owner' }).success).toBe(false);
     });
   });
 

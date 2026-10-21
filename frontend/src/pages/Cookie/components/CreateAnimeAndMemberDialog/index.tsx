@@ -5,6 +5,8 @@ import { Box, Button, DialogProps, TextField } from '@mui/material';
 
 import { useAnimesStore, useMembersStore } from '@/stores';
 import { H6, CustomDialog } from '@/components';
+import { MemberKind } from '@/types';
+import { AddMemberSection } from './AddMemberSection';
 
 export interface IDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -22,9 +24,9 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
     } catch (e) {}
   };
 
-  const handleSubmitMember = async (name: string) => {
+  const handleSubmitMember = async (name: string, kind: MemberKind) => {
     try {
-      await addMember({ nickname: name, types: [], coins: 0, seasons: [] });
+      await addMember({ nickname: name, kind, types: [], coins: 0, seasons: [] });
 
       toast.success('Новий учасник успішно створений!');
     } catch (e) {}
@@ -32,7 +34,7 @@ export const CreateAnimeAndMemberDialog: FC<IDialogProps> = ({ open, onClose }) 
 
   return (
     <CustomDialog onClose={onClose} open={open}>
-      <DialogSection sectionTitle="Додати учасника" handleSubmit={handleSubmitMember} />
+      <AddMemberSection onSubmit={handleSubmitMember} />
 
       <DialogSection sectionTitle="Додати аніме" handleSubmit={handleSubmitTitle} />
     </CustomDialog>
