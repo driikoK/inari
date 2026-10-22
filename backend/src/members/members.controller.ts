@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { MembersService } from './members.service.js';
+import { CoinsTotalFilterData } from './data/coins-total.data.js';
 import { CreateMemberData } from './data/create-member.data.js';
 import { MemberFilterData } from './data/filter-members.data.js';
 import { AdminGuard } from '../auth/admin.guard.js';
@@ -31,6 +32,14 @@ export class MembersController {
     @Query({ schema: MemberFilterData }) filter: MemberFilterData,
   ) {
     return this.membersService.findAll(filter);
+  }
+
+  @Get('coins-total')
+  @UseGuards(AuthGuard, AdminGuard)
+  async getCoinsTotal(
+    @Query({ schema: CoinsTotalFilterData }) filter: CoinsTotalFilterData,
+  ) {
+    return this.membersService.getCoinsTotal(filter);
   }
 
   @Post()

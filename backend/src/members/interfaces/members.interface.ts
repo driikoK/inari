@@ -8,3 +8,8 @@ export interface IMember extends Document {
   seasons: { season: string; year: number; coins: number }[];
   deletedAt?: Date;
 }
+
+export interface CoinsTotal {
+  total: number;
+  unmarkedCount: number;
+}

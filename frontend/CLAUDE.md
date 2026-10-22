@@ -98,6 +98,12 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 - The Rating page has a `Тип` column (`MemberKindCell`): a select for admins (`EDIT_MEMBER_KIND`), plain text for everyone else. It saves through `updateMemberKind`, never through `updateMember`, because a season-filtered row holds the season's coins and would overwrite the total.
 - In the track form a row's «Гість» box follows the kind of its nickname, whether the nickname was picked or prefilled from the previous episode (an effect in `FormField`'s `InputFields`, keyed on the nickname and its kind). The box stays editable until the nickname changes, and `isGuest` is still sent per track line.
 
+### Rating coins total
+
+- `CoinsTotalSummary` (`pages/CookieRating/components/`) sits above the Rating table and is shown only with `SUBJECTS.VIEW_COINS_TOTAL` (admins). The number comes from `GET /members/coins-total` through `getCoinsTotal` in `useMembersStore`, never from the rows of the table, because the sum ignores the kind and nickname filters and only follows the season. The page calls `resetFilters` when it unmounts: `RatingFilters` keeps its selections in local state, so without it a returning admin would still find the last season in `appliedFilters`.
+- The «Враховувати гостей» switch is sent as `includeGuests` and remembered in `localStorage` (`rating.includeGuests`, on by default). Every toggle is a request, the backend decides what the sum holds.
+- The store keeps the last params while the block is mounted, and `addMember`, `updateMember`, `updateMemberKind` and `deleteMember` refetch with them. The block clears them on unmount, so a non-admin never calls the admin-only endpoint. An answer for params the admin has already left is dropped.
+
 ### Proposals page
 
 - `src/pages/Proposals/`: season tabs, a `ProposalCard` per title (participants grouped by role, every role of the list listed, a dash for an empty one), `JoinDialog`, and admin-only dialogs for seasons, titles and participants. Admin controls are gated by `SUBJECTS.MANAGE_PROPOSALS`, which only hides UI.

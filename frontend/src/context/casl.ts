@@ -15,6 +15,7 @@ export enum SUBJECTS {
   DELETE_USERS = 'delete-users',
   DELETE_MEMBERS = 'delete-members',
   EDIT_MEMBER_KIND = 'edit-member-kind',
+  VIEW_COINS_TOTAL = 'view-coins-total',
   MANAGE_PROPOSALS = 'manage-proposals',
   MANAGE_PROJECTS = 'manage-projects',
   SHOW_RESULTS = 'show-results',

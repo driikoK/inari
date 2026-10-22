@@ -6,7 +6,7 @@ const guardsOf = (handler: (...args: any[]) => unknown): unknown[] =>
   Reflect.getMetadata('__guards__', handler) ?? [];
 
 describe('MembersController', () => {
-  it.each(['updateKind', 'deleteMember'] as const)(
+  it.each(['updateKind', 'deleteMember', 'getCoinsTotal'] as const)(
     '%s is for admins only',
     (handler) => {
       expect(guardsOf(MembersController.prototype[handler])).toEqual([

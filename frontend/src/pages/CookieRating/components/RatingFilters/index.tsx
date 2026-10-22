@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 
 import { SelectWrapper } from './styles';
+import { NicknameFilter } from '../NicknameFilter';
 import { SelectField } from '@/components';
-import { useMembersStore, useRolesStore } from '@/stores';
+import { useMembersStore } from '@/stores';
 import {
   memberKindOptions,
   seasonOptions,
@@ -14,12 +15,11 @@ import {
 export const RatingFilters = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>();
   const [selectedYear, setSelectedYear] = useState<number>();
-  const [selectedRole, setSelectedRole] = useState<string>();
   const [selectedKind, setSelectedKind] = useState<string>();
   const [selectedUser, setSelectedUser] = useState<string>();
 
-  const roles = useRolesStore((state) => state.roles);
-  const { getMembers, membersDictionary } = useMembersStore();
+  const getMembers = useMembersStore((state) => state.getMembers);
+  const membersDictionary = useMembersStore((state) => state.membersDictionary);
 
   const seasonsOfTheYear = seasonOptions.reduce(
     (acc, season) => {
@@ -38,12 +38,11 @@ export const RatingFilters = () => {
   useEffect(() => {
     getMembers({
       id: selectedUser,
-      role: selectedRole,
       kind: selectedKind,
       season: selectedSeason,
       year: selectedYear,
     });
-  }, [selectedRole, selectedKind, selectedUser, selectedSeason, selectedYear]);
+  }, [selectedKind, selectedUser, selectedSeason, selectedYear]);
 
   const handleSeasonChange = (season: string = '') => {
     if (!season) {
@@ -61,21 +60,13 @@ export const RatingFilters = () => {
   return (
     <SelectWrapper>
       <SelectField
-        label="Роль"
-        value={selectedRole}
-        onChange={setSelectedRole}
-        options={roles.map((role) => ({ value: role.value, label: role.label }))}
-      />
-
-      <SelectField
         label="Тип"
         value={selectedKind}
         onChange={setSelectedKind}
         options={[...memberKindOptions, { value: UNMARKED_KIND, label: UNMARKED_KIND_LABEL }]}
       />
 
-      <SelectField
-        label="Нікнейм"
+      <NicknameFilter
         value={selectedUser}
         onChange={setSelectedUser}
         options={membersDictionary.map((member) => ({

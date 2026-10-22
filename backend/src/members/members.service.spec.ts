@@ -3,7 +3,7 @@ import { Model } from 'mongoose';
 import { vi } from 'vitest';
 import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
-import { MEMBER_KIND, MEMBER_ROLE } from '../shared/index.js';
+import { MEMBER_KIND, MEMBER_ROLE, SEASON } from '../shared/index.js';
 import { UNMARKED_KIND } from './data/filter-members.data.js';
 import { IMember } from './interfaces/members.interface.js';
 import { MembersService } from './members.service.js';
@@ -89,6 +89,70 @@ describe('MembersService', () => {
       await service.findAll({ kind: UNMARKED_KIND });
 
       expect(model.find).toHaveBeenCalledWith({ deletedAt: null, kind: null });
+    });
+  });
+
+  describe('getCoinsTotal', () => {
+    const matchOf = () => (model.aggregate.mock.calls[0][0] as any[])[0].$match;
+    const projectOf = () =>
+      (model.aggregate.mock.calls[0][0] as any[])[1].$project;
+
+    beforeEach(() => {
+      model.aggregate.mockResolvedValue([]);
+    });
+
+    it('counts only the nicknames that were not removed, guests included by default', async () => {
+      await service.getCoinsTotal({ includeGuests: true });
+
+      expect(matchOf()).toEqual({ deletedAt: null });
+      expect(projectOf().coins).toBe('$coins');
+    });
+
+    it('leaves out the guests but keeps the nicknames without a kind', async () => {
+      await service.getCoinsTotal({ includeGuests: false });
+
+      expect(matchOf()).toEqual({
+        deletedAt: null,
+        kind: { $ne: MEMBER_KIND.GUEST },
+      });
+    });
+
+    it('sums the coins of one season and takes only nicknames that have it', async () => {
+      await service.getCoinsTotal({
+        season: SEASON.WINTER,
+        year: 2025,
+        includeGuests: true,
+      });
+
+      expect(matchOf()).toEqual({
+        deletedAt: null,
+        seasons: { $elemMatch: { season: SEASON.WINTER, year: 2025 } },
+      });
+      expect(projectOf().coins).not.toBe('$coins');
+    });
+
+    it('returns the total and how many nicknames without a kind it contains', async () => {
+      model.aggregate.mockResolvedValue([{ total: 120.5, unmarkedCount: 3 }]);
+
+      await expect(
+        service.getCoinsTotal({ includeGuests: true }),
+      ).resolves.toEqual({ total: 120.5, unmarkedCount: 3 });
+    });
+
+    it('rounds float noise away', async () => {
+      model.aggregate.mockResolvedValue([
+        { total: 0.1 + 0.2, unmarkedCount: 0 },
+      ]);
+
+      const { total } = await service.getCoinsTotal({ includeGuests: true });
+
+      expect(total).toBe(0.3);
+    });
+
+    it('answers zeros when nothing matches', async () => {
+      await expect(
+        service.getCoinsTotal({ includeGuests: true }),
+      ).resolves.toEqual({ total: 0, unmarkedCount: 0 });
     });
   });
 

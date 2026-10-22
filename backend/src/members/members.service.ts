@@ -6,9 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { isValidObjectId, Model } from 'mongoose';
-import { IMember } from './interfaces/members.interface.js';
+import { CoinsTotal, IMember } from './interfaces/members.interface.js';
 import { MemberData } from './data/member.data.js';
 import { MEMBER_KIND, MEMBER_ROLE } from '../shared/index.js';
+import { CoinsTotalFilterData } from './data/coins-total.data.js';
 import { MemberFilterData, UNMARKED_KIND } from './data/filter-members.data.js';
 import { UpdateMemberData } from './data/update-member.data.js';
 
@@ -40,6 +41,69 @@ export class MembersService {
     }
 
     return this.memberModel.find(query).sort({ nickname: 1 });
+  }
+
+  async getCoinsTotal({
+    season,
+    year,
+    includeGuests,
+  }: CoinsTotalFilterData): Promise<CoinsTotal> {
+    const bySeason = !!season && !!year;
+
+    const [result] = await this.memberModel.aggregate<CoinsTotal>([
+      {
+        $match: {
+          deletedAt: null,
+          ...(!includeGuests && { kind: { $ne: MEMBER_KIND.GUEST } }),
+          ...(bySeason && { seasons: { $elemMatch: { season, year } } }),
+        },
+      },
+      {
+        $project: {
+          kind: 1,
+          coins: bySeason
+            ? {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: '$seasons',
+                        as: 'item',
+                        cond: {
+                          $and: [
+                            { $eq: ['$$item.season', season] },
+                            { $eq: ['$$item.year', year] },
+                          ],
+                        },
+                      },
+                    },
+                    as: 'item',
+                    in: '$$item.coins',
+                  },
+                },
+              }
+            : '$coins',
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$coins' },
+          unmarkedCount: {
+            $sum: {
+              $cond: [{ $eq: [{ $ifNull: ['$kind', null] }, null] }, 1, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    if (!result) return { total: 0, unmarkedCount: 0 };
+
+    return {
+      total: Math.round(result.total * 1000) / 1000,
+      unmarkedCount: result.unmarkedCount,
+    };
   }
 
   async createMember(member: MemberData): Promise<IMember> {

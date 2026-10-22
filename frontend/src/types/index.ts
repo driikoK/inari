@@ -105,3 +105,8 @@ export interface MemberType {
   seasons: { season: string; year: number; coins: number }[];
   updatedAt: string;
 }
+
+export interface CoinsTotal {
+  total: number;
+  unmarkedCount: number;
+}

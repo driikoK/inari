@@ -15,6 +15,14 @@ export const convertSeasonEngToUkr = (season: string): string => {
   }
 };
 
+export const formatCoins = (value: number | string | undefined): string => {
+  const num = Number(value);
+
+  if (Number.isNaN(num) || num <= 0) return '0';
+
+  return num % 1 === 0 ? num.toString() : num.toFixed(3).toString();
+};
+
 export const MAL_LABEL = 'MAL';
 
 export const linkLabel = (link: string): string => {

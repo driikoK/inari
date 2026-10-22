@@ -7,10 +7,11 @@ import { GridActionsCellItem, GridActionsColDef, GridColDef, GridRowModel } from
 
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { RatingFilters } from './components/RatingFilters';
+import { CoinsTotalSummary } from './components/CoinsTotalSummary';
 import { MemberKindCell } from './components/MemberKindCell';
-import { useMembersStore, useRolesStore } from '@/stores';
+import { useMembersStore } from '@/stores';
 import { CustomTable, ConfirmTableChangeDialog, ConfirmDeleteDialog } from '@/components';
-import { convertSeasonEngToUkr } from '@/utils/convert';
+import { convertSeasonEngToUkr, formatCoins } from '@/utils/convert';
 import { MemberType } from '@/types';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
@@ -25,8 +26,12 @@ function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
 }
 
 const CookieRating: FunctionComponent = () => {
-  const getRoles = useRolesStore((state) => state.getRoles);
-  const { members, getMembers, appliedFilters, updateMember, deleteMember } = useMembersStore();
+  const members = useMembersStore((state) => state.members);
+  const appliedFilters = useMembersStore((state) => state.appliedFilters);
+  const getMembers = useMembersStore((state) => state.getMembers);
+  const resetFilters = useMembersStore((state) => state.resetFilters);
+  const updateMember = useMembersStore((state) => state.updateMember);
+  const deleteMember = useMembersStore((state) => state.deleteMember);
   const { hasAccess } = usePermissions();
 
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
@@ -37,8 +42,9 @@ const CookieRating: FunctionComponent = () => {
   const sortedMembers = [...members].sort((a, b) => b.coins - a.coins);
 
   useEffect(() => {
-    getRoles();
     getMembers();
+
+    return resetFilters;
   }, []);
 
   const isYearAndSeasonApplied = !!appliedFilters['year'] && !!appliedFilters['season'];
@@ -70,13 +76,7 @@ const CookieRating: FunctionComponent = () => {
     {
       field: 'coins',
       headerName: 'Крихти',
-      valueFormatter: (value: number | string) => {
-        const num = Number(value);
-
-        if (isNaN(num) || num <= 0) return '0';
-
-        return num % 1 === 0 ? num.toString() : num.toFixed(3).toString();
-      },
+      valueFormatter: (value: number | string) => formatCoins(value),
       flex: 0.3,
       editable: hasAccess(SUBJECTS.COOKIES_RATINGS_EDIT) && !isYearAndSeasonApplied ? true : false,
     },
@@ -200,6 +200,8 @@ const CookieRating: FunctionComponent = () => {
       </TitleWrapper>
 
       <RatingFilters />
+
+      {hasAccess(SUBJECTS.VIEW_COINS_TOTAL) && <CoinsTotalSummary />}
 
       <Box
         sx={{
