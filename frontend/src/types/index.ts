@@ -110,3 +110,9 @@ export interface CoinsTotal {
   total: number;
   unmarkedCount: number;
 }
+
+export interface MyCoins {
+  nickname: string | null;
+  coins: number;
+  currentSeason: { season: string; year: number; coins: number };
+}

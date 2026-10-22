@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import axios from '@/api';
-import { CoinsTotal, MemberKind, MemberType } from '@/types';
+import { CoinsTotal, MemberKind, MemberType, MyCoins } from '@/types';
 import { isObjEmpty, isObjValuesExist } from '@/utils/objects';
 import { ensure, notifyFailure } from '@/utils/request';
 
@@ -41,6 +41,7 @@ interface Actions {
   deleteMember: (id: string) => Promise<void>;
   getCoinsTotal: (params: CoinsTotalParams) => Promise<void>;
   clearCoinsTotal: () => void;
+  getMyCoins: () => Promise<MyCoins>;
 }
 
 let latestCoinsTotalRequest = 0;
@@ -159,6 +160,8 @@ const useMembersStore = create<State & Actions>((set, get) => ({
 
     set({ coinsTotal: null, coinsTotalParams: null, isCoinsTotalLoading: false });
   },
+
+  getMyCoins: async () => ensure(await axios.get<MyCoins>('/members/me')).data,
 }));
 
 export default useMembersStore;

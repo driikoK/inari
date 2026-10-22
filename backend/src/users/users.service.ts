@@ -8,13 +8,19 @@ import {
 import bcrypt from 'bcrypt';
 import { isValidObjectId, Model } from 'mongoose';
 
+import { MembersService } from '../members/members.service.js';
+import { MEMBER_KIND } from '../shared/index.js';
 import { CreateUserDto, IUser } from './interfaces/user.interface.js';
 import { ROLE } from './enums/index.js';
 import { UpdateUserData } from './data/update-user.data.js';
+import { UpdateUserNicknameData } from './data/update-user-nickname.data.js';
+
+const DUPLICATE_KEY = 11000;
 
 @Injectable()
 export class UsersService {
   @Inject('USER_MODEL') private readonly userModel: Model<IUser>;
+  @Inject(MembersService) private readonly membersService: MembersService;
 
   async findOneByUsername(
     username: string,
@@ -59,7 +65,9 @@ export class UsersService {
   }
 
   async findAll(): Promise<IUser[] | []> {
-    return this.userModel.find({}, { username: 1, role: 1, _id: 1 }).exec();
+    return this.userModel
+      .find({}, { username: 1, role: 1, nickname: 1, _id: 1 })
+      .exec();
   }
 
   async create({
@@ -125,6 +133,81 @@ export class UsersService {
     );
 
     return updatedUser;
+  }
+
+  async setNickname(
+    id: string,
+    { nickname, create }: UpdateUserNicknameData,
+  ): Promise<Omit<IUser, 'password'>> {
+    if (!isValidObjectId(id)) {
+      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.userModel.findById(id).exec();
+
+    if (!user) {
+      throw new NotFoundException('Юзера не знайдено');
+    }
+
+    if (user.username === 'root') {
+      throw new HttpException('Не можна редагувати юзера', HttpStatus.CONFLICT);
+    }
+
+    if (!nickname) return this.saveNickname(id, null);
+
+    const member = await this.membersService.findByNickname(nickname);
+
+    if (member?.deletedAt) {
+      throw new HttpException(
+        'Цей нікнейм приховано, оберіть інший',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    if (!member && !create) {
+      throw new NotFoundException('Нікнейм не знайдено');
+    }
+
+    const taken = await this.userModel.exists({ nickname, _id: { $ne: id } });
+
+    if (taken) {
+      throw new HttpException(
+        'Цей нікнейм вже прив’язано до іншого акаунта',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    if (!member) {
+      await this.membersService.createMember({
+        nickname,
+        types: [],
+        kind: MEMBER_KIND.TEAM,
+      });
+    }
+
+    return this.saveNickname(id, nickname);
+  }
+
+  private async saveNickname(
+    id: string,
+    nickname: string | null,
+  ): Promise<Omit<IUser, 'password'>> {
+    try {
+      return await this.userModel.findByIdAndUpdate(
+        id,
+        nickname ? { $set: { nickname } } : { $unset: { nickname: 1 } },
+        { new: true, select: '-password -__v' },
+      );
+    } catch (error) {
+      if ((error as { code?: number }).code === DUPLICATE_KEY) {
+        throw new HttpException(
+          'Цей нікнейм вже прив’язано до іншого акаунта',
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      throw error;
+    }
   }
 
   async delete(id: string, currentUserId: string): Promise<string> {

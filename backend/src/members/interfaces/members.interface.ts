@@ -1,4 +1,4 @@
-import type { MEMBER_KIND } from '../../shared/index.js';
+import type { MEMBER_KIND, SEASON } from '../../shared/index.js';
 
 export interface IMember extends Document {
   nickname: string;
@@ -12,4 +12,10 @@ export interface IMember extends Document {
 export interface CoinsTotal {
   total: number;
   unmarkedCount: number;
+}
+
+export interface MyCoins {
+  nickname: string | null;
+  coins: number;
+  currentSeason: { season: SEASON; year: number; coins: number };
 }

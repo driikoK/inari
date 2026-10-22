@@ -16,7 +16,8 @@ import { CoinsTotalFilterData } from './data/coins-total.data.js';
 import { CreateMemberData } from './data/create-member.data.js';
 import { MemberFilterData } from './data/filter-members.data.js';
 import { AdminGuard } from '../auth/admin.guard.js';
-import { AuthGuard } from '../auth/auth.guard.js';
+import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
+import type { ValidatedUser } from '../users/interfaces/user.interface.js';
 import { UpdateMemberData } from './data/update-member.data.js';
 import { UpdateMemberKindData } from './data/update-member-kind.data.js';
 
@@ -40,6 +41,12 @@ export class MembersController {
     @Query({ schema: CoinsTotalFilterData }) filter: CoinsTotalFilterData,
   ) {
     return this.membersService.getCoinsTotal(filter);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard)
+  async getMyCoins(@CurrentUser() user: ValidatedUser) {
+    return this.membersService.getCoinsOf(user.nickname);
   }
 
   @Post()

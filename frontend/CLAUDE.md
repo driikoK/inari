@@ -98,6 +98,12 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 - The Rating page has a `Тип` column (`MemberKindCell`): a select for admins (`EDIT_MEMBER_KIND`), plain text for everyone else. It saves through `updateMemberKind`, never through `updateMember`, because a season-filtered row holds the season's coins and would overwrite the total.
 - In the track form a row's «Гість» box follows the kind of its nickname, whether the nickname was picked or prefilled from the previous episode (an effect in `FormField`'s `InputFields`, keyed on the nickname and its kind). The box stays editable until the nickname changes, and `isGuest` is still sent per track line.
 
+### Linking an account to a nickname
+
+- Settings (`pages/Settings/`) has the columns «Нікнейм в системі» (the login) and «Нікнейм в команді». The second is `TeamNicknameCell`: an Autocomplete over `membersDictionary` that links an existing nickname, shows one held by another account as «— зайнято» and disabled, offers «Створити «X»» for an unknown name (sent with `create: true`, then members are refetched) and unlinks with the clear button. It saves through `setUserNickname` in `useAuthStore`, which refetches the user list.
+- The Autocomplete stops `keydown` from bubbling (`onKeyDown` with `stopPropagation`). Without it the DataGrid treats Space as a navigation key and swallows it, so a name with a space cannot be typed. Do the same for any input you put in `renderCell`.
+- The Profile (`pages/Profile/components/CoinsBalance`) reads `GET /members/me` through `getMyCoins`, which returns the answer instead of storing it, so a second login never sees the previous account's balance. It shows the linked nickname with the total and the current season's coins, or a hint when no nickname is linked.
+
 ### Rating coins total
 
 - `CoinsTotalSummary` (`pages/CookieRating/components/`) sits above the Rating table and is shown only with `SUBJECTS.VIEW_COINS_TOTAL` (admins). The number comes from `GET /members/coins-total` through `getCoinsTotal` in `useMembersStore`, never from the rows of the table, because the sum ignores the kind and nickname filters and only follows the season. The page calls `resetFilters` when it unmounts: `RatingFilters` keeps its selections in local state, so without it a returning admin would still find the last season in `appliedFilters`.

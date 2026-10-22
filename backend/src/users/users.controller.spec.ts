@@ -1,6 +1,8 @@
 import { ForbiddenException } from '@nestjs/common';
 import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
+import { AdminGuard } from '../auth/admin.guard.js';
+import { AuthGuard } from '../auth/auth.guard.js';
 import { PollsService } from '../polls/polls.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { ROLE } from './enums/index.js';
@@ -70,6 +72,26 @@ describe('UsersController', () => {
         controller.update('someone-else', { email: 'x@mail.co' }, member),
       ).toThrow(ForbiddenException);
       expect(usersService.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setNickname', () => {
+    it('is for admins only', () => {
+      expect(
+        Reflect.getMetadata(
+          '__guards__',
+          UsersController.prototype.setNickname,
+        ),
+      ).toEqual([AuthGuard, AdminGuard]);
+    });
+
+    it('hands the choice to the service', async () => {
+      await controller.setNickname('m1', { nickname: 'Dixy', create: true });
+
+      expect(usersService.setNickname).toHaveBeenCalledWith('m1', {
+        nickname: 'Dixy',
+        create: true,
+      });
     });
   });
 

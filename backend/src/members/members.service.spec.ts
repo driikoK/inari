@@ -156,6 +156,94 @@ describe('MembersService', () => {
     });
   });
 
+  describe('getCoinsOf', () => {
+    const member = (overrides: Partial<IMember> = {}) =>
+      ({
+        nickname: 'Dixy',
+        coins: 120.5,
+        seasons: [
+          { season: SEASON.WINTER, year: 2026, coins: 30 },
+          { season: SEASON.SPRING, year: 2026, coins: 90.5 },
+        ],
+        ...overrides,
+      }) as IMember;
+
+    const found = (value: IMember | null) =>
+      model.findOne.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(value),
+      } as any);
+
+    it('answers the total and the coins of the season the day falls in', async () => {
+      found(member());
+
+      await expect(service.getCoinsOf('Dixy', '2026-05-10')).resolves.toEqual({
+        nickname: 'Dixy',
+        coins: 120.5,
+        currentSeason: { season: SEASON.SPRING, year: 2026, coins: 90.5 },
+      });
+      expect(model.findOne).toHaveBeenCalledWith({
+        nickname: 'Dixy',
+        deletedAt: null,
+      });
+    });
+
+    it('answers zero for a season the nickname has not worked in', async () => {
+      found(member());
+
+      const { currentSeason } = await service.getCoinsOf('Dixy', '2026-08-01');
+
+      expect(currentSeason).toEqual({
+        season: SEASON.SUMMER,
+        year: 2026,
+        coins: 0,
+      });
+    });
+
+    it('treats a nickname without counters as empty and rounds float noise away', async () => {
+      found(member({ coins: 0.1 + 0.2, seasons: undefined }));
+
+      await expect(service.getCoinsOf('Dixy', '2026-05-10')).resolves.toEqual(
+        expect.objectContaining({
+          coins: 0.3,
+          currentSeason: expect.objectContaining({ coins: 0 }),
+        }),
+      );
+    });
+
+    it('answers an empty balance without a lookup when the account has no nickname', async () => {
+      await expect(
+        service.getCoinsOf(undefined, '2026-05-10'),
+      ).resolves.toEqual({
+        nickname: null,
+        coins: 0,
+        currentSeason: { season: SEASON.SPRING, year: 2026, coins: 0 },
+      });
+      expect(model.findOne).not.toHaveBeenCalled();
+    });
+
+    it('answers an empty balance when the nickname was hidden', async () => {
+      found(null);
+
+      const result = await service.getCoinsOf('Dixy', '2026-05-10');
+
+      expect(result.nickname).toBeNull();
+      expect(result.coins).toBe(0);
+    });
+  });
+
+  describe('findByNickname', () => {
+    it('also finds a hidden nickname, the caller decides what to do with it', async () => {
+      const hidden = { nickname: 'Dixy', deletedAt: new Date() };
+      model.findOne.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(hidden),
+      } as any);
+
+      await expect(service.findByNickname('Dixy')).resolves.toBe(hidden);
+
+      expect(model.findOne).toHaveBeenCalledWith({ nickname: 'Dixy' });
+    });
+  });
+
   describe('createMember', () => {
     it('restores a nickname that was removed earlier and keeps its coins', async () => {
       const restored = { nickname: 'Dixy', coins: 42 };

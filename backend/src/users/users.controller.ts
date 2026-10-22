@@ -16,6 +16,7 @@ import { ROLE } from './enums/index.js';
 import type { ValidatedUser } from './interfaces/user.interface.js';
 import { UsersService } from './users.service.js';
 import { UpdateUserData } from './data/update-user.data.js';
+import { UpdateUserNicknameData } from './data/update-user-nickname.data.js';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Users')
@@ -57,6 +58,15 @@ export class UsersController {
     }
 
     return this.userService.update(id, updateUserData);
+  }
+
+  @Put(':id/nickname')
+  @UseGuards(AuthGuard, AdminGuard)
+  setNickname(
+    @Param('id') id: string,
+    @Body({ schema: UpdateUserNicknameData }) data: UpdateUserNicknameData,
+  ) {
+    return this.userService.setNickname(id, data);
   }
 
   @Delete(':id')

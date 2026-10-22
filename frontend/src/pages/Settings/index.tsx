@@ -8,8 +8,11 @@ import { Box, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import { ConfirmDeleteDialog, CustomTable } from '@/components';
 import { usePermissions } from '@/hooks';
 import useAuthStore, { User } from '@/stores/useAuthStore';
+import { useMembersStore } from '@/stores';
 import { userRoleOptions } from '@/utils/constants';
+import { notifyFailure } from '@/utils/request';
 import { ROLE, SUBJECTS } from '@/context/casl';
+import { TeamNicknameCell } from './components/TeamNicknameCell';
 import styles from './Settings.module.scss';
 
 const ROLE_COLOR: Record<string, string> = {
@@ -83,12 +86,17 @@ const RoleCell: FC<RoleCellProps> = ({ userId, currentRole, isSelf, onUpdate, on
 
 const Settings = () => {
   const { getAllUsers, allUsers, updateUser, deleteUser, user } = useAuthStore();
+  const membersDictionary = useMembersStore((state) => state.membersDictionary);
+  const getMembers = useMembersStore((state) => state.getMembers);
   const { hasAccess } = usePermissions();
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   useEffect(() => {
     getAllUsers();
-  }, []);
+    getMembers().catch(notifyFailure);
+  }, [getAllUsers, getMembers]);
+
+  const linkedNicknames = new Set(allUsers.flatMap((u) => (u.nickname ? [u.nickname] : [])));
 
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
@@ -127,8 +135,22 @@ const Settings = () => {
   const columns: GridColDef<(typeof rows)[number]>[] = [
     {
       field: 'username',
-      headerName: 'Нікнейм',
+      headerName: 'Нікнейм в системі',
+      width: 240,
+    },
+    {
+      field: 'nickname',
+      headerName: 'Нікнейм в команді',
       width: 300,
+      sortable: false,
+      renderCell: (params) => (
+        <TeamNicknameCell
+          userId={params.row._id}
+          nickname={params.row.nickname}
+          members={membersDictionary}
+          linkedNicknames={linkedNicknames}
+        />
+      ),
     },
     {
       field: 'role',
@@ -151,7 +173,9 @@ const Settings = () => {
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Налаштування юзерів</div>
-        <div className={styles.subtitle}>Управляй ролями учасників</div>
+        <div className={styles.subtitle}>
+          Управляй ролями учасників та їхніми нікнеймами в команді
+        </div>
       </div>
 
       <CustomTable rows={rows} columns={columns} />

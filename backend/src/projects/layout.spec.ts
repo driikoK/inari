@@ -6,6 +6,7 @@ import { PROJECT_MARK } from './enums/index.js';
 import type { Project } from './interfaces/index.js';
 import {
   buildLayout,
+  seasonOfDay,
   seasonOrdinal,
   seasonStartDay,
   todayInKyiv,
@@ -54,6 +55,17 @@ describe('seasonOrdinal', () => {
 
   it('runs straight over the turn of the year', () => {
     expect(seasonOrdinal('2028-01-01')).toBe(seasonOrdinal('2027-12-31') + 1);
+  });
+});
+
+describe('seasonOfDay', () => {
+  it.each([
+    ['2027-01-01', SEASON.WINTER, 2027],
+    ['2027-05-10', SEASON.SPRING, 2027],
+    ['2027-09-30', SEASON.SUMMER, 2027],
+    ['2027-12-31', SEASON.FALL, 2027],
+  ])('puts %s in %s %i', (day, season, year) => {
+    expect(seasonOfDay(day)).toEqual({ season, year });
   });
 });
 

@@ -25,6 +25,8 @@ const seasonOfOrdinal = (ordinal: number) => ({
   year: Math.floor(ordinal / SEASONS.length),
 });
 
+export const seasonOfDay = (day: string) => seasonOfOrdinal(seasonOrdinal(day));
+
 export const seasonStartDay = (ordinal: number): string => {
   const firstMonth = (ordinal % SEASONS.length) * MONTHS_IN_SEASON + 1;
 

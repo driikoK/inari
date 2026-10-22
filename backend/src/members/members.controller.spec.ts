@@ -15,4 +15,10 @@ describe('MembersController', () => {
       ]);
     },
   );
+
+  it('getMyCoins is for any logged-in user, as it only answers their own nickname', () => {
+    expect(guardsOf(MembersController.prototype.getMyCoins)).toEqual([
+      AuthGuard,
+    ]);
+  });
 });

@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import axios from '@/api';
 import { ROLE } from '@/context/casl';
+import { ensure } from '@/utils/request';
 
 export type User = {
   username: string;
   role: ROLE;
   _id: string;
   email?: string;
+  nickname?: string;
 };
 
 interface State {
@@ -22,12 +24,13 @@ interface Actions {
   getCurrentUser: () => Promise<void>;
   getAllUsers: () => Promise<void>;
   updateUser: (id: string, role: ROLE, email?: string) => Promise<void>;
+  setUserNickname: (id: string, nickname: string | null, create?: boolean) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
 }
 
-const useAuthStore = create<State & Actions>((set) => ({
+const useAuthStore = create<State & Actions>((set, get) => ({
   isLoggedIn: localStorage.getItem('token') ? true : false,
   user: null,
   allUsers: [],
@@ -86,6 +89,12 @@ const useAuthStore = create<State & Actions>((set) => ({
     } catch (error) {
       throw error;
     }
+  },
+
+  setUserNickname: async (id, nickname, create = false) => {
+    ensure(await axios.put(`/users/${id}/nickname`, { nickname, create }));
+
+    await get().getAllUsers();
   },
 
   deleteUser: async (id: string) => {

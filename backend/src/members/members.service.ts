@@ -6,12 +6,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { isValidObjectId, Model } from 'mongoose';
-import { CoinsTotal, IMember } from './interfaces/members.interface.js';
+import {
+  CoinsTotal,
+  IMember,
+  MyCoins,
+} from './interfaces/members.interface.js';
+import { seasonOfDay, todayInKyiv } from '../projects/layout.js';
 import { MemberData } from './data/member.data.js';
 import { MEMBER_KIND, MEMBER_ROLE } from '../shared/index.js';
 import { CoinsTotalFilterData } from './data/coins-total.data.js';
 import { MemberFilterData, UNMARKED_KIND } from './data/filter-members.data.js';
 import { UpdateMemberData } from './data/update-member.data.js';
+
+const roundCoins = (coins = 0) => Math.round(coins * 1000) / 1000;
 
 @Injectable()
 export class MembersService {
@@ -180,6 +187,29 @@ export class MembersService {
     }
 
     return member;
+  }
+
+  async findByNickname(nickname: string): Promise<IMember | null> {
+    return this.memberModel.findOne({ nickname }).exec();
+  }
+
+  async getCoinsOf(
+    nickname: string | undefined,
+    today = todayInKyiv(),
+  ): Promise<MyCoins> {
+    const { season, year } = seasonOfDay(today);
+    const member = nickname
+      ? await this.memberModel.findOne({ nickname, deletedAt: null }).exec()
+      : null;
+    const current = member?.seasons?.find(
+      (item) => item.season === season && item.year === year,
+    );
+
+    return {
+      nickname: member?.nickname ?? null,
+      coins: roundCoins(member?.coins),
+      currentSeason: { season, year, coins: roundCoins(current?.coins) },
+    };
   }
 
   async findMemberById(id: string) {

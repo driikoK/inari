@@ -6,6 +6,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { useAuthStore } from '@/stores';
 import { userRoleOptions } from '@/utils/constants';
 import { ROLE } from '@/context/casl';
+import { CoinsBalance } from './components/CoinsBalance';
 import styles from './Profile.module.scss';
 
 const ROLE_COLOR: Record<string, string> = {
@@ -82,6 +83,8 @@ const Profile = () => {
             </Button>
           </div>
         </section>
+
+        <CoinsBalance />
       </article>
     </main>
   );
