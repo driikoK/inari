@@ -1,13 +1,32 @@
 import { create } from 'zustand';
 import axios from '@/api';
-import type { AUDIT_KIND, AUDIT_UNIT, INCOME_SOURCE } from '@/types';
+import type {
+  AUDIT_KIND,
+  AUDIT_UNIT,
+  ENTRY_TYPE,
+  EXPENSE_KIND,
+  EXPENSE_SECTION,
+  INCOME_SOURCE,
+  SUPPORT_DIRECTION,
+} from '@/types';
 import { ensure } from '@/utils/request';
+
+export interface SourceLine {
+  source: INCOME_SOURCE;
+  kop: number;
+}
+
+export interface ExpenseLine {
+  category: 'crumbs' | 'orders' | SUPPORT_DIRECTION;
+  kop: number;
+}
 
 export interface BudgetSeasonSummary {
   season: string;
   year: number;
   isCurrent: boolean;
   incomeKop: number;
+  transfersKop: number;
   supportKop: number;
   ordersKop: number;
   payoutsKop: number;
@@ -16,6 +35,37 @@ export interface BudgetSeasonSummary {
   coefficient: number | null;
   treatsKop: number;
   lisodariKop: number;
+  sources: SourceLine[];
+  expenses: ExpenseLine[];
+}
+
+export interface SupportLine {
+  direction: SUPPORT_DIRECTION;
+  allocatedKop: number;
+  spentKop: number;
+  balanceKop: number;
+}
+
+export interface TitleLine {
+  key: string;
+  title: string;
+  projectId?: string;
+  receivedKop: number;
+  spentKop: number;
+  balanceKop: number;
+}
+
+export interface TreatLine {
+  key: string;
+  title: string;
+  projectId?: string;
+  kop: number;
+}
+
+export interface LisodarLine {
+  key: string;
+  name: string;
+  kop: number;
 }
 
 export interface BudgetSummary {
@@ -26,21 +76,52 @@ export interface BudgetSummary {
   ordersKop: number;
   treatsKop: number;
   lisodariKop: number;
+  supportAllocatedKop: number;
+  supportSpentKop: number;
+  ordersReceivedKop: number;
+  ordersSpentKop: number;
+  support: SupportLine[];
+  orders: TitleLine[];
+  treats: TreatLine[];
+  lisodari: LisodarLine[];
 }
 
-export interface BudgetEntry {
+interface EntryBase {
   _id: string;
-  source: INCOME_SOURCE;
   amountKop: number;
   date: string;
   season: string;
   year: number;
-  projectId?: string;
-  title?: string;
-  nickname?: string;
   createdBy: string;
   updatedBy?: string;
 }
+
+export interface IncomeEntry extends EntryBase {
+  type: ENTRY_TYPE.INCOME;
+  source: INCOME_SOURCE;
+  projectId?: string;
+  title?: string;
+  nickname?: string;
+}
+
+export interface AllocationEntry extends EntryBase {
+  type: ENTRY_TYPE.ALLOCATION;
+  direction: SUPPORT_DIRECTION;
+}
+
+export interface ExpenseEntry extends EntryBase {
+  type: ENTRY_TYPE.EXPENSE;
+  kind: EXPENSE_KIND;
+  section: EXPENSE_SECTION;
+  direction?: SUPPORT_DIRECTION;
+  projectId?: string;
+  title?: string;
+  nickname: string;
+  requisite?: string;
+  comment?: string;
+}
+
+export type BudgetEntry = IncomeEntry | AllocationEntry | ExpenseEntry;
 
 export interface Paged<T> {
   data: T[];
@@ -54,6 +135,7 @@ export interface EntriesParams {
   perPage: number;
   season?: string;
   year?: number;
+  type?: ENTRY_TYPE;
 }
 
 export interface IncomeLinePayload {
@@ -73,7 +155,51 @@ export interface IncomesPayload {
 
 export type IncomePayload = Omit<IncomesPayload, 'lines'> & IncomeLinePayload;
 
-export interface AuditSnapshot {
+export interface ExpenseLinePayload {
+  kind: EXPENSE_KIND;
+  amountKop: number;
+  section: EXPENSE_SECTION;
+  direction: SUPPORT_DIRECTION | null;
+  projectId: string | null;
+  title: string | null;
+  nickname: string;
+  requisite: string | null;
+}
+
+export interface ExpensesPayload {
+  date: string;
+  comment: string | null;
+  lines: ExpenseLinePayload[];
+}
+
+export type ExpensePayload = Omit<ExpensesPayload, 'lines'> & ExpenseLinePayload;
+
+export interface SupportPayload {
+  date: string;
+  season: string;
+  year: number;
+  targets: { direction: SUPPORT_DIRECTION; targetKop: number }[];
+}
+
+export interface SupportMove {
+  direction: SUPPORT_DIRECTION;
+  nowKop: number;
+  targetKop: number;
+  deltaKop: number;
+}
+
+// What the server says new support budgets would do, before they are saved
+export interface SupportPreview {
+  moves: SupportMove[];
+  takenKop: number;
+  jarKop: number;
+  jarAfterKop: number;
+  problem: string | null;
+}
+
+// Records audited before the other kinds existed have no type: they are incomes
+export interface IncomeSnapshot {
+  type?: ENTRY_TYPE.INCOME;
   source: INCOME_SOURCE;
   amountKop: number;
   date: string;
@@ -83,6 +209,33 @@ export interface AuditSnapshot {
   title?: string;
   nickname?: string;
 }
+
+export interface AllocationSnapshot {
+  type: ENTRY_TYPE.ALLOCATION;
+  direction: SUPPORT_DIRECTION;
+  amountKop: number;
+  date: string;
+  season: string;
+  year: number;
+}
+
+export interface ExpenseSnapshot {
+  type: ENTRY_TYPE.EXPENSE;
+  kind: EXPENSE_KIND;
+  section: EXPENSE_SECTION;
+  direction?: SUPPORT_DIRECTION;
+  amountKop: number;
+  date: string;
+  season: string;
+  year: number;
+  projectId?: string;
+  title?: string;
+  nickname: string;
+  requisite?: string;
+  comment?: string;
+}
+
+export type AuditSnapshot = IncomeSnapshot | AllocationSnapshot | ExpenseSnapshot;
 
 export interface TrackSnapshot {
   type: 'track';
@@ -170,6 +323,10 @@ interface Actions {
   getAudit: (params: AuditParams) => Promise<void>;
   createIncomes: (payload: IncomesPayload) => Promise<void>;
   updateEntry: (id: string, payload: IncomePayload) => Promise<void>;
+  createExpenses: (payload: ExpensesPayload) => Promise<void>;
+  updateExpense: (id: string, payload: ExpensePayload) => Promise<void>;
+  updateSupport: (payload: SupportPayload) => Promise<void>;
+  previewSupport: (payload: SupportPayload) => Promise<SupportPreview>;
   deleteEntry: (id: string) => Promise<void>;
   clearEntries: () => void;
   clearAudit: () => void;
@@ -252,6 +409,16 @@ const useBudgetStore = create<State & Actions>((set, get) => {
     createIncomes: (payload) => change(() => axios.post(`${defaultPath}/incomes`, payload)),
 
     updateEntry: (id, payload) => change(() => axios.put(`${defaultPath}/entries/${id}`, payload)),
+
+    createExpenses: (payload) => change(() => axios.post(`${defaultPath}/expenses`, payload)),
+
+    updateExpense: (id, payload) =>
+      change(() => axios.put(`${defaultPath}/expenses/${id}`, payload)),
+
+    updateSupport: (payload) => change(() => axios.put(`${defaultPath}/support`, payload)),
+
+    previewSupport: async (payload) =>
+      ensure(await axios.post<SupportPreview>(`${defaultPath}/support/preview`, payload)).data,
 
     deleteEntry: (id) => change(() => axios.delete(`${defaultPath}/entries/${id}`)),
 

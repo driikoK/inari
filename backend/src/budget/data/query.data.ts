@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { SEASON } from '../../shared/index.js';
-import { AUDIT_KIND } from '../enums/index.js';
+import { AUDIT_KIND, ENTRY_TYPE } from '../enums/index.js';
 
 const seasonTogether = {
   check: (value: { season?: SEASON; year?: number }) =>
@@ -24,7 +24,11 @@ const seasonFilter = {
 };
 
 export const EntriesQueryData = z
-  .object({ ...paging(25, 100), ...seasonFilter })
+  .object({
+    ...paging(25, 100),
+    ...seasonFilter,
+    type: z.enum(ENTRY_TYPE).optional(),
+  })
   .refine(seasonTogether.check, seasonTogether.options);
 
 export const AuditQueryData = z

@@ -8,13 +8,25 @@ import styles from './cards.module.scss';
 
 interface SeasonJarCardProps {
   summary: BudgetSeasonSummary;
+  onClick: () => void;
 }
 
-export const SeasonJarCard: FC<SeasonJarCardProps> = ({ summary }) => {
+export const SeasonJarCard: FC<SeasonJarCardProps> = ({ summary, onClick }) => {
   const { season, year, isCurrent } = summary;
 
   return (
-    <div className={`${styles.card} ${isCurrent ? styles.cardCurrent : ''}`}>
+    <div
+      className={`${styles.card} ${styles.clickable} ${isCurrent ? styles.cardCurrent : ''}`}
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <div className={styles.head}>
         <div className={styles.title}>Сезонна банка печива</div>
         <span className={`${styles.tag} ${isCurrent ? styles.tagCurrent : ''}`}>
@@ -30,6 +42,12 @@ export const SeasonJarCard: FC<SeasonJarCardProps> = ({ summary }) => {
           <span>Надходження</span>
           <span>{formatKop(summary.incomeKop)}</span>
         </div>
+        {summary.transfersKop > 0 && (
+          <div className={styles.row}>
+            <span>Перекази на розвиток</span>
+            <span>{formatSignedKop(summary.transfersKop)}</span>
+          </div>
+        )}
         <div className={styles.row}>
           <span>Печивко підтримки</span>
           <span>{formatSignedKop(-summary.supportKop)}</span>
@@ -48,7 +66,10 @@ export const SeasonJarCard: FC<SeasonJarCardProps> = ({ summary }) => {
         </div>
       </div>
 
-      <div className={styles.coefficient} title="(надходження − підтримка − замовлення) ÷ крихти">
+      <div
+        className={styles.coefficient}
+        title="(надходження + перекази на розвиток − підтримка − замовлення) ÷ крихти"
+      >
         Коефіцієнт виводу: {formatCoefficient(summary.coefficient)}
       </div>
     </div>

@@ -2,6 +2,32 @@ import { SEASON } from '../../shared/index.js';
 
 export enum ENTRY_TYPE {
   INCOME = 'income',
+  ALLOCATION = 'allocation',
+  EXPENSE = 'expense',
+}
+
+export enum SUPPORT_DIRECTION {
+  COVERS = 'covers',
+  PROMOTION = 'promotion',
+  ADS = 'ads',
+  SITE = 'site',
+  SERVER = 'server',
+  BOTS = 'bots',
+  TRAINING = 'training',
+  EQUIPMENT = 'equipment',
+  HOLIDAY = 'holiday',
+  OTHER = 'other',
+}
+
+export enum EXPENSE_KIND {
+  CARD = 'card',
+  DONATION = 'donation',
+  DEVELOPMENT = 'development',
+}
+
+export enum EXPENSE_SECTION {
+  SUPPORT = 'support',
+  ORDERS = 'orders',
 }
 
 export enum INCOME_SOURCE {
@@ -16,6 +42,7 @@ export enum INCOME_SOURCE {
 export enum SIDE_KIND {
   JAR = 'jar',
   ORDERS = 'orders',
+  SUPPORT = 'support',
   TREATS = 'treats',
   LISODARI = 'lisodari',
   CRUMBS = 'crumbs',
@@ -30,6 +57,11 @@ export enum AUDIT_KIND {
   INCOME_CREATED = 'income.created',
   INCOME_UPDATED = 'income.updated',
   INCOME_DELETED = 'income.deleted',
+  SUPPORT_UPDATED = 'support.updated',
+  ALLOCATION_DELETED = 'allocation.deleted',
+  EXPENSE_CREATED = 'expense.created',
+  EXPENSE_UPDATED = 'expense.updated',
+  EXPENSE_DELETED = 'expense.deleted',
   TRACK_CREATED = 'track.created',
   TRACK_UPDATED = 'track.updated',
   TRACK_DELETED = 'track.deleted',
@@ -51,6 +83,25 @@ export const SOURCE_LABEL: Record<INCOME_SOURCE, string> = {
   [INCOME_SOURCE.PROJECT_JAR]: 'Банка проєкту',
   [INCOME_SOURCE.ORDER]: 'Замовлення',
   [INCOME_SOURCE.LISODAR]: 'Лисодар',
+};
+
+export const DIRECTION_LABEL: Record<SUPPORT_DIRECTION, string> = {
+  [SUPPORT_DIRECTION.COVERS]: 'Кавери',
+  [SUPPORT_DIRECTION.PROMOTION]: 'Команда просування',
+  [SUPPORT_DIRECTION.ADS]: 'Реклама',
+  [SUPPORT_DIRECTION.SITE]: 'Сайт',
+  [SUPPORT_DIRECTION.SERVER]: 'Сервер для роздачі',
+  [SUPPORT_DIRECTION.BOTS]: 'Командні боти',
+  [SUPPORT_DIRECTION.TRAINING]: 'Навчання',
+  [SUPPORT_DIRECTION.EQUIPMENT]: 'Техніка',
+  [SUPPORT_DIRECTION.HOLIDAY]: 'Святкові ласощі',
+  [SUPPORT_DIRECTION.OTHER]: 'Інше',
+};
+
+export const KIND_LABEL: Record<EXPENSE_KIND, string> = {
+  [EXPENSE_KIND.CARD]: 'На карту',
+  [EXPENSE_KIND.DONATION]: 'Донат',
+  [EXPENSE_KIND.DEVELOPMENT]: 'На розвиток команди',
 };
 
 export const SEASON_LABEL: Record<SEASON, string> = {

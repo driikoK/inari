@@ -1,17 +1,6 @@
 import { z } from 'zod';
-import { SEASON } from '../../shared/index.js';
-import {
-  INCOME_SOURCE,
-  MAX_AMOUNT_KOP,
-  MIN_BUDGET_DAY,
-} from '../enums/index.js';
-
-const day = z.iso
-  .date({ error: 'Вкажіть коректну дату' })
-  .refine((value) => value >= MIN_BUDGET_DAY, {
-    error: 'Дата не може бути раніше 2000 року',
-    when: ({ issues }) => issues.length === 0,
-  });
+import { INCOME_SOURCE, MAX_AMOUNT_KOP } from '../enums/index.js';
+import { period } from './period.data.js';
 
 const optionalText = (max: number) =>
   z.string().trim().max(max, `Максимум ${max} символів`).nullish();
@@ -34,15 +23,6 @@ const orderNeedsTitle = {
     title?: string | null;
   }) => line.source !== INCOME_SOURCE.ORDER || !!line.projectId || !!line.title,
   options: { error: 'Вкажіть назву тайтлу замовлення', path: ['title'] },
-};
-
-const period = {
-  date: day,
-  season: z.enum(SEASON, { error: 'Оберіть сезон' }),
-  year: z
-    .int('Вкажіть рік')
-    .min(2000, 'Рік не може бути раніше 2000')
-    .max(2100, 'Забагато'),
 };
 
 const line = z

@@ -24,6 +24,17 @@
   border-color: var(--accent);
 }
 
+.clickable {
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+  }
+}
+
 .head {
   display: flex;
   align-items: center;

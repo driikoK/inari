@@ -15,7 +15,11 @@ import { PollsService } from '../polls/polls.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { proposalSeasons } from './datas/proposals.data.js';
 import { projectSeeds } from './datas/projects.data.js';
-import { budgetSeeds } from './datas/budget.data.js';
+import {
+  budgetSeeds,
+  expenseSeeds,
+  supportSeeds,
+} from './datas/budget.data.js';
 import { BudgetService } from '../budget/budget.service.js';
 import { SYSTEM_ACTOR } from '../budget/enums/index.js';
 import { ProjectsService } from '../projects/projects.service.js';
@@ -230,13 +234,23 @@ export class SeedCommand {
       return;
     }
 
-    const operations = budgetSeeds(todayInKyiv());
+    const today = todayInKyiv();
+    const incomes = budgetSeeds(today);
+    const expenses = expenseSeeds(today);
 
-    for (const incomes of operations) {
-      await this.budgetService.createIncomes(incomes, SYSTEM_ACTOR);
+    for (const operation of incomes) {
+      await this.budgetService.createIncomes(operation, SYSTEM_ACTOR);
     }
 
-    console.log(`seed:budget - added ${operations.length} operations`);
+    await this.budgetService.updateSupport(supportSeeds(today), SYSTEM_ACTOR);
+
+    for (const operation of expenses) {
+      await this.budgetService.createExpenses(operation, SYSTEM_ACTOR);
+    }
+
+    console.log(
+      `seed:budget - added ${incomes.length} income operations, the support budgets and ${expenses.length} payouts`,
+    );
   }
 
   async votes() {

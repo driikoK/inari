@@ -15,6 +15,7 @@ const Header: FunctionComponent = () => {
   const { hasAccess } = usePermissions();
 
   const isAdmin = hasAccess(SUBJECTS.PERMISSION_EDIT);
+  const canManageBudget = hasAccess(SUBJECTS.MANAGE_BUDGET);
 
   const { isLoggedIn, logout } = useAuthStore();
 
@@ -32,6 +33,7 @@ const Header: FunctionComponent = () => {
     { title: 'Пропозиції', link: '/proposals' },
     { title: 'Проєкти', link: '/projects' },
     { title: 'Печивко', link: '/budget' },
+    canManageBudget ? { title: 'Видатки', link: '/budget/expenses' } : null,
     isShowPoll ? { title: 'Голосування', link: '/vote' } : null,
     isShowResults ? { title: 'Результати', link: '/result' } : null,
     isAdmin ? { title: 'Налаштування', link: '/settings' } : null,

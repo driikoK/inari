@@ -10,8 +10,17 @@ import { ConfirmDeleteDialog, CustomTable } from '@/components';
 import { formatDay } from '@/pages/Projects/const/options';
 import { seasonLabel } from '@/pages/Proposals/const/options';
 import useBudgetStore, { type BudgetEntry, type EntriesParams } from '@/stores/useBudgetStore';
+import { ENTRY_TYPE } from '@/types';
 import { notifyFailure } from '@/utils/request';
-import { formatKop, recentSeasons, seasonKey, sourceLabel } from '../const/options';
+import {
+  entryDetails,
+  entryKindLabel,
+  entryTypeOptions,
+  formatEntryAmount,
+  recentSeasons,
+  seasonKey,
+} from '../const/options';
+import { ExpenseEditDialog } from './ExpenseEditDialog';
 import { IncomeFormDialog } from './IncomeFormDialog';
 
 interface EntriesTabProps {
@@ -19,6 +28,28 @@ interface EntriesTabProps {
 }
 
 const ALL_SEASONS = 'all';
+const ALL_TYPES = 'all';
+
+const DELETE_TEXT: Record<ENTRY_TYPE, { title: string; message: string; done: string }> = {
+  [ENTRY_TYPE.INCOME]: {
+    title: 'Видалити надходження?',
+    message:
+      'Надходження зникне із суми й журналу, але в аудиті лишиться запис про видалення. Цю дію не можна скасувати.',
+    done: 'Надходження видалено',
+  },
+  [ENTRY_TYPE.ALLOCATION]: {
+    title: 'Видалити виділення?',
+    message:
+      'Гроші повернуться з напрямку в банку сезону, а в аудиті лишиться запис про видалення. Цю дію не можна скасувати.',
+    done: 'Виділення видалено',
+  },
+  [ENTRY_TYPE.EXPENSE]: {
+    title: 'Видалити частування?',
+    message:
+      'Гроші повернуться в розділ бюджету, з якого їх виплатили, а в аудиті лишиться запис про видалення. Цю дію не можна скасувати.',
+    done: 'Частування видалено',
+  },
+};
 
 export const EntriesTab: FC<EntriesTabProps> = ({ today }) => {
   const entries = useBudgetStore((state) => state.entries);
@@ -48,12 +79,24 @@ export const EntriesTab: FC<EntriesTabProps> = ({ today }) => {
   const handleSeasonFilter = (value: string) => {
     const picked = seasons.find(({ season, year }) => seasonKey(season, year) === value);
 
-    setParams(({ perPage }) => ({
+    setParams(({ perPage, type }) => ({
       page: 1,
       perPage,
+      ...(type && { type }),
       ...(picked && { season: picked.season, year: picked.year }),
     }));
   };
+
+  const handleTypeFilter = (value: string) => {
+    setParams(({ perPage, season, year }) => ({
+      page: 1,
+      perPage,
+      ...(season && year && { season, year }),
+      ...(value !== ALL_TYPES && { type: value as ENTRY_TYPE }),
+    }));
+  };
+
+  const deleteText = DELETE_TEXT[entryToDelete?.type ?? ENTRY_TYPE.INCOME];
 
   const handleDelete = async () => {
     if (!entryToDelete || isDeleting) return;
@@ -62,7 +105,7 @@ export const EntriesTab: FC<EntriesTabProps> = ({ today }) => {
 
     try {
       await deleteEntry(entryToDelete._id);
-      toast.success('Надходження видалено');
+      toast.success(deleteText.done);
     } catch (error) {
       notifyFailure(error);
     } finally {
@@ -75,52 +118,56 @@ export const EntriesTab: FC<EntriesTabProps> = ({ today }) => {
     {
       field: 'date',
       headerName: 'Дата',
-      width: 120,
+      width: 110,
       valueFormatter: (value: string) => formatDay(value),
     },
     {
       field: 'season',
       headerName: 'Сезон',
-      width: 130,
+      width: 110,
       sortable: false,
       valueGetter: (_, row) => seasonLabel(row.season, row.year),
     },
     {
-      field: 'source',
-      headerName: 'Джерело',
-      width: 160,
+      field: 'kind',
+      headerName: 'Запис',
+      width: 200,
       sortable: false,
-      valueGetter: (_, row) => sourceLabel(row.source),
+      valueGetter: (_, row) => entryKindLabel(row),
     },
     {
       field: 'amountKop',
       headerName: 'Сума',
-      width: 140,
+      width: 130,
       sortable: false,
-      valueFormatter: (value: number) => formatKop(value),
+      valueGetter: (_, row) => formatEntryAmount(row),
     },
     {
       field: 'details',
-      headerName: 'Тайтл / ім’я',
+      headerName: 'Тайтл / ім’я / напрямок',
       flex: 1,
       minWidth: 180,
       sortable: false,
-      valueGetter: (_, row) => row.title ?? row.nickname ?? '—',
+      valueGetter: (_, row) => entryDetails(row),
     },
-    { field: 'createdBy', headerName: 'Додав', width: 140, sortable: false },
+    { field: 'createdBy', headerName: 'Додав', width: 100, sortable: false },
     {
       field: 'actions',
       type: 'actions',
       headerName: 'Дії',
-      width: 110,
+      width: 90,
       getActions: ({ row }) => [
-        <GridActionsCellItem
-          key="edit"
-          icon={<EditIcon />}
-          label="Редагувати"
-          onClick={() => setEntryToEdit(row)}
-          color="inherit"
-        />,
+        ...(row.type === ENTRY_TYPE.ALLOCATION
+          ? []
+          : [
+              <GridActionsCellItem
+                key="edit"
+                icon={<EditIcon />}
+                label="Редагувати"
+                onClick={() => setEntryToEdit(row)}
+                color="inherit"
+              />,
+            ]),
         <GridActionsCellItem
           key="delete"
           icon={<DeleteIcon />}
@@ -134,21 +181,39 @@ export const EntriesTab: FC<EntriesTabProps> = ({ today }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <TextField
-        select
-        size="small"
-        label="Сезон"
-        value={filterValue}
-        onChange={(event) => handleSeasonFilter(event.target.value)}
-        sx={{ width: 200 }}
-      >
-        <MenuItem value={ALL_SEASONS}>Усі сезони</MenuItem>
-        {seasons.map(({ season, year }) => (
-          <MenuItem key={seasonKey(season, year)} value={seasonKey(season, year)}>
-            {seasonLabel(season, year)}
-          </MenuItem>
-        ))}
-      </TextField>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+        <TextField
+          select
+          size="small"
+          label="Сезон"
+          value={filterValue}
+          onChange={(event) => handleSeasonFilter(event.target.value)}
+          sx={{ width: 200 }}
+        >
+          <MenuItem value={ALL_SEASONS}>Усі сезони</MenuItem>
+          {seasons.map(({ season, year }) => (
+            <MenuItem key={seasonKey(season, year)} value={seasonKey(season, year)}>
+              {seasonLabel(season, year)}
+            </MenuItem>
+          ))}
+        </TextField>
+
+        <TextField
+          select
+          size="small"
+          label="Тип запису"
+          value={params.type ?? ALL_TYPES}
+          onChange={(event) => handleTypeFilter(event.target.value)}
+          sx={{ width: 240 }}
+        >
+          <MenuItem value={ALL_TYPES}>Усі записи</MenuItem>
+          {entryTypeOptions.map(({ value, label }) => (
+            <MenuItem key={value} value={value}>
+              {label}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Box>
 
       <CustomTable
         rows={(entries?.data ?? []).map((entry) => ({ ...entry, id: entry._id }))}
@@ -163,15 +228,19 @@ export const EntriesTab: FC<EntriesTabProps> = ({ today }) => {
         disableColumnSorting
       />
 
-      {entryToEdit && (
+      {entryToEdit?.type === ENTRY_TYPE.INCOME && (
         <IncomeFormDialog open entry={entryToEdit} onClose={() => setEntryToEdit(null)} />
+      )}
+
+      {entryToEdit?.type === ENTRY_TYPE.EXPENSE && (
+        <ExpenseEditDialog entry={entryToEdit} onClose={() => setEntryToEdit(null)} />
       )}
 
       <ConfirmDeleteDialog
         open={!!entryToDelete}
         isLoading={isDeleting}
-        title="Видалити надходження?"
-        message="Надходження зникне із суми й журналу, але в аудиті лишиться запис про видалення. Цю дію не можна скасувати."
+        title={deleteText.title}
+        message={deleteText.message}
         onConfirm={handleDelete}
         onCancel={() => setEntryToDelete(null)}
       />

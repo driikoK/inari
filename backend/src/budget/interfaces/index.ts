@@ -5,50 +5,113 @@ import type {
   AUDIT_KIND,
   AUDIT_UNIT,
   ENTRY_TYPE,
+  EXPENSE_KIND,
+  EXPENSE_SECTION,
   INCOME_SOURCE,
   SIDE_KIND,
+  SUPPORT_DIRECTION,
 } from '../enums/index.js';
 
-export interface BudgetEntry {
+interface EntryBase {
   _id: Types.ObjectId | string;
-  type: ENTRY_TYPE;
-  source: INCOME_SOURCE;
   amountKop: number;
   date: string;
   season: SEASON;
   year: number;
-  projectId?: string;
-  title?: string;
-  nickname?: string;
   createdBy: string;
   updatedBy?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export type EntrySnapshot = Pick<
-  BudgetEntry,
-  | 'source'
-  | 'amountKop'
-  | 'date'
-  | 'season'
-  | 'year'
-  | 'projectId'
-  | 'title'
-  | 'nickname'
->;
+export interface IncomeEntry extends EntryBase {
+  type: ENTRY_TYPE.INCOME;
+  source: INCOME_SOURCE;
+  projectId?: string;
+  title?: string;
+  nickname?: string;
+}
 
-export type EntryFacts = Omit<EntrySnapshot, 'date'>;
+// The amount is signed: a negative one takes money back from a direction
+export interface AllocationEntry extends EntryBase {
+  type: ENTRY_TYPE.ALLOCATION;
+  direction: SUPPORT_DIRECTION;
+}
 
-// Entries that share every field the sums depend on, with how many there are.
-// A plain entry counts as one.
-export type EntryGroup = EntryFacts & { count?: number };
+export interface ExpenseEntry extends EntryBase {
+  type: ENTRY_TYPE.EXPENSE;
+  kind: EXPENSE_KIND;
+  section: EXPENSE_SECTION;
+  direction?: SUPPORT_DIRECTION;
+  projectId?: string;
+  title?: string;
+  nickname: string;
+  requisite?: string;
+  comment?: string;
+}
 
+export type BudgetEntry = IncomeEntry | AllocationEntry | ExpenseEntry;
+
+// What a record is worth to the sums, without its identity, its date or who made it
+export type EntryFacts =
+  | Pick<
+      IncomeEntry,
+      | 'type'
+      | 'source'
+      | 'amountKop'
+      | 'season'
+      | 'year'
+      | 'projectId'
+      | 'title'
+      | 'nickname'
+    >
+  | Pick<
+      AllocationEntry,
+      'type' | 'direction' | 'amountKop' | 'season' | 'year'
+    >
+  | Pick<
+      ExpenseEntry,
+      | 'type'
+      | 'kind'
+      | 'section'
+      | 'direction'
+      | 'amountKop'
+      | 'season'
+      | 'year'
+      | 'projectId'
+      | 'title'
+      | 'nickname'
+    >;
+
+export type EntrySnapshot = EntryFacts & {
+  date: string;
+  requisite?: string;
+  comment?: string;
+};
+
+// Entries that share every field the sums depend on, with how many there are
+// and the latest date among them. A plain entry counts as one.
+export type EntryGroup = EntryFacts & { count?: number; lastDate?: string };
+
+// A jar belongs to a season, which is not always the season of the record
 export interface Effect {
   kind: SIDE_KIND;
   key: string;
   label: string;
   deltaKop: number;
+  season?: SEASON;
+  year?: number;
+}
+
+export interface SourceLine {
+  source: INCOME_SOURCE;
+  kop: number;
+}
+
+// A category of the top of expenses: the crumbs paid out, the orders, or a direction
+export interface ExpenseLine {
+  category: 'crumbs' | 'orders' | SUPPORT_DIRECTION;
+  kop: number;
 }
 
 export interface SeasonSummary {
@@ -56,6 +119,7 @@ export interface SeasonSummary {
   year: number;
   isCurrent: boolean;
   incomeKop: number;
+  transfersKop: number;
   supportKop: number;
   ordersKop: number;
   payoutsKop: number;
@@ -64,6 +128,53 @@ export interface SeasonSummary {
   coefficient: number | null;
   treatsKop: number;
   lisodariKop: number;
+  sources: SourceLine[];
+  expenses: ExpenseLine[];
+}
+
+export interface SupportLine {
+  direction: SUPPORT_DIRECTION;
+  allocatedKop: number;
+  spentKop: number;
+  balanceKop: number;
+}
+
+// What a new set of budgets would do, without writing anything
+export interface SupportMove {
+  direction: SUPPORT_DIRECTION;
+  nowKop: number;
+  targetKop: number;
+  deltaKop: number;
+}
+
+export interface SupportPreview {
+  moves: SupportMove[];
+  takenKop: number;
+  jarKop: number;
+  jarAfterKop: number;
+  problem: string | null;
+}
+
+export interface TitleLine {
+  key: string;
+  title: string;
+  projectId?: string;
+  receivedKop: number;
+  spentKop: number;
+  balanceKop: number;
+}
+
+export interface TreatLine {
+  key: string;
+  title: string;
+  projectId?: string;
+  kop: number;
+}
+
+export interface LisodarLine {
+  key: string;
+  name: string;
+  kop: number;
 }
 
 export interface BudgetSummary {
@@ -74,6 +185,14 @@ export interface BudgetSummary {
   ordersKop: number;
   treatsKop: number;
   lisodariKop: number;
+  supportAllocatedKop: number;
+  supportSpentKop: number;
+  ordersReceivedKop: number;
+  ordersSpentKop: number;
+  support: SupportLine[];
+  orders: TitleLine[];
+  treats: TreatLine[];
+  lisodari: LisodarLine[];
 }
 
 export interface TrackSnapshot {

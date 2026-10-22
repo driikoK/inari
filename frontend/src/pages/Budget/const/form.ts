@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { MIN_DAY, todayDay } from '@/pages/Projects/const/options';
 import type {
-  BudgetEntry,
+  IncomeEntry,
   IncomeLinePayload,
   IncomePayload,
   IncomesPayload,
@@ -60,23 +60,28 @@ const lineSchema = z
     }
   });
 
+// The date, the season and the year, which the incomes and the support budgets share
+export const periodShape = {
+  date: z
+    .string({ error: REQUIRED_MESSAGE })
+    .min(1, REQUIRED_MESSAGE)
+    .refine((value) => value >= MIN_DAY, {
+      error: 'Дата не може бути раніше 2000 року',
+      when: ({ issues }) => issues.length === 0,
+    })
+    .refine((value) => value <= todayDay(), {
+      error: 'Дата не може бути в майбутньому',
+      when: ({ issues }) => issues.length === 0,
+    }),
+  season: z
+    .string({ error: REQUIRED_MESSAGE })
+    .refine((value) => seasonOptions.some((option) => option.value === value), REQUIRED_MESSAGE),
+  year: z.string({ error: REQUIRED_MESSAGE }).min(1, REQUIRED_MESSAGE),
+};
+
 export const createIncomeFormSchema = (): z.ZodType<IncomeFormValues, IncomeFormValues> =>
   z.object({
-    date: z
-      .string({ error: REQUIRED_MESSAGE })
-      .min(1, REQUIRED_MESSAGE)
-      .refine((value) => value >= MIN_DAY, {
-        error: 'Дата не може бути раніше 2000 року',
-        when: ({ issues }) => issues.length === 0,
-      })
-      .refine((value) => value <= todayDay(), {
-        error: 'Дата не може бути в майбутньому',
-        when: ({ issues }) => issues.length === 0,
-      }),
-    season: z
-      .string({ error: REQUIRED_MESSAGE })
-      .refine((value) => seasonOptions.some((option) => option.value === value), REQUIRED_MESSAGE),
-    year: z.string({ error: REQUIRED_MESSAGE }).min(1, REQUIRED_MESSAGE),
+    ...periodShape,
     lines: z.array(lineSchema).min(1),
   });
 
@@ -95,7 +100,7 @@ export const newFormValues = (): IncomeFormValues => {
   return { date, season, year: String(year), lines: [emptyLine()] };
 };
 
-export const toFormValues = (entry: BudgetEntry): IncomeFormValues => ({
+export const toFormValues = (entry: IncomeEntry): IncomeFormValues => ({
   date: entry.date,
   season: entry.season,
   year: String(entry.year),

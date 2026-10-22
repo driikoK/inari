@@ -37,6 +37,10 @@ describe('BudgetController', () => {
     'entries',
     'createIncomes',
     'updateEntry',
+    'createExpenses',
+    'updateExpense',
+    'updateSupport',
+    'previewSupport',
     'deleteEntry',
     'audit',
   ] as const)('%s is for admins only', (handler) => {
@@ -53,6 +57,12 @@ describe('BudgetController', () => {
     await controller.createIncomes({ ...period, lines: [line] }, admin);
     await controller.updateEntry('e1', { ...period, ...line }, admin);
     await controller.deleteEntry('e1', admin);
+    await controller.createExpenses(
+      { date: period.date, lines: [] } as any,
+      admin,
+    );
+    await controller.updateExpense('e1', {} as any, admin);
+    await controller.updateSupport({} as any, admin);
 
     expect(budgetService.createIncomes).toHaveBeenCalledWith(
       expect.anything(),
@@ -64,6 +74,27 @@ describe('BudgetController', () => {
       'boss',
     );
     expect(budgetService.deleteEntry).toHaveBeenCalledWith('e1', 'boss');
+    expect(budgetService.createExpenses).toHaveBeenCalledWith(
+      expect.anything(),
+      'boss',
+    );
+    expect(budgetService.updateExpense).toHaveBeenCalledWith(
+      'e1',
+      expect.anything(),
+      'boss',
+    );
+    expect(budgetService.updateSupport).toHaveBeenCalledWith(
+      expect.anything(),
+      'boss',
+    );
+  });
+
+  it('previews the support budgets without a username, as it writes nothing', async () => {
+    const data = { targets: [] } as any;
+
+    await controller.previewSupport(data);
+
+    expect(budgetService.previewSupport).toHaveBeenCalledWith(data);
   });
 
   it('reads the audit from the audit service', async () => {

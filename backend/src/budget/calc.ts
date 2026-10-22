@@ -1,34 +1,28 @@
-import { seasonOfOrdinal, seasonOrdinal } from '../projects/layout.js';
 import type { SEASON } from '../shared/index.js';
-import type { SeasonCoins } from '../tracks/interfaces/track.interface.js';
 import {
+  DIRECTION_LABEL,
+  ENTRY_TYPE,
+  EXPENSE_KIND,
+  EXPENSE_SECTION,
   INCOME_SOURCE,
+  KIND_LABEL,
   ORDER_GENERAL_PERCENT,
   SEASON_LABEL,
   SIDE_KIND,
   SOURCE_LABEL,
+  type SUPPORT_DIRECTION,
 } from './enums/index.js';
 import type {
   BudgetEntry,
-  BudgetSummary,
   Effect,
-  EntryFacts,
   EntryGroup,
   EntrySnapshot,
-  SeasonSummary,
 } from './interfaces/index.js';
 
-const NO_TITLE = 'Без назви';
-const NO_NAME = 'Без імені';
-
-const sum = <T>(items: T[], pick: (item: T) => number) =>
-  items.reduce((total, item) => total + pick(item), 0);
-
-const total = (groups: EntryGroup[], pick: (group: EntryGroup) => number) =>
-  sum(groups, (group) => pick(group) * (group.count ?? 1));
+export const NO_TITLE = 'Без назви';
+export const NO_NAME = 'Без імені';
 
 export const round3 = (value: number) => Math.round(value * 1000) / 1000;
-const round4 = (value: number) => Math.round(value * 10000) / 10000;
 
 export const splitOrder = (amountKop: number) => {
   const general = Math.floor((amountKop * ORDER_GENERAL_PERCENT + 50) / 100);
@@ -48,30 +42,57 @@ export const formatKop = (kop: number) =>
     maximumFractionDigits: 2,
   })} грн`;
 
-const titleKey = ({ projectId, title }: EntryFacts) =>
+type Titled = { projectId?: string; title?: string };
+
+export const titleKey = ({ projectId, title }: Titled) =>
   projectId ? `project:${projectId}` : `title:${normalizeName(title)}`;
 
-export const effectsOf = (entry: EntryFacts): Effect[] => {
+// A record from before there were other kinds has no type: it is an income
+export const typeOf = (entry: { type?: ENTRY_TYPE }) =>
+  entry.type ?? ENTRY_TYPE.INCOME;
+
+export const jarKey = (season: SEASON, year: number) => `jar:${year}-${season}`;
+
+const jarOf = (season: SEASON, year: number) => ({
+  kind: SIDE_KIND.JAR,
+  key: jarKey(season, year),
+  label: `Банка ${seasonLabel(season, year)}`,
+  season,
+  year,
+});
+
+const lisodarOf = (nickname: string | undefined, deltaKop: number): Effect => ({
+  kind: SIDE_KIND.LISODARI,
+  key: `lisodari:${normalizeName(nickname)}`,
+  label: `Лисодар: ${nickname || NO_NAME}`,
+  deltaKop,
+});
+
+const supportOf = (direction: SUPPORT_DIRECTION, deltaKop: number): Effect => ({
+  kind: SIDE_KIND.SUPPORT,
+  key: `support:${direction}`,
+  label: `Підтримка: ${DIRECTION_LABEL[direction]}`,
+  deltaKop,
+});
+
+const ordersOf = (titled: Titled, deltaKop: number): Effect => ({
+  kind: SIDE_KIND.ORDERS,
+  key: `orders:${titleKey(titled)}`,
+  label: `Тістечка: ${titled.title || NO_TITLE}`,
+  deltaKop,
+});
+
+const incomeEffects = (
+  entry: Extract<EntryGroup, { source: INCOME_SOURCE }>,
+): Effect[] => {
   const { source, amountKop, season, year, title, nickname } = entry;
-  const jar = {
-    kind: SIDE_KIND.JAR,
-    key: `jar:${year}-${season}`,
-    label: `Банка ${seasonLabel(season, year)}`,
-  };
+  const jar = jarOf(season, year);
 
   switch (source) {
     case INCOME_SOURCE.ORDER: {
       const { general, title: titleKop } = splitOrder(amountKop);
 
-      return [
-        { ...jar, deltaKop: general },
-        {
-          kind: SIDE_KIND.ORDERS,
-          key: `orders:${titleKey(entry)}`,
-          label: `Тістечка: ${title || NO_TITLE}`,
-          deltaKop: titleKop,
-        },
-      ];
+      return [{ ...jar, deltaKop: general }, ordersOf(entry, titleKop)];
     }
     case INCOME_SOURCE.PROJECT_JAR:
       return [
@@ -84,17 +105,47 @@ export const effectsOf = (entry: EntryFacts): Effect[] => {
         },
       ];
     case INCOME_SOURCE.LISODAR:
-      return [
-        { ...jar, deltaKop: amountKop },
-        {
-          kind: SIDE_KIND.LISODARI,
-          key: `lisodari:${normalizeName(nickname)}`,
-          label: `Лисодар: ${nickname || NO_NAME}`,
-          deltaKop: amountKop,
-        },
-      ];
+      return [{ ...jar, deltaKop: amountKop }, lisodarOf(nickname, amountKop)];
     default:
       return [{ ...jar, deltaKop: amountKop }];
+  }
+};
+
+// Every record moves money between the sides it names. The jars, the title
+// budgets and the directions hold all the money of the team, together they are
+// the confectionery. The treats and the lisodari only show where part of it
+// came from.
+export const effectsOf = (entry: EntryGroup): Effect[] => {
+  switch (entry.type) {
+    case ENTRY_TYPE.ALLOCATION:
+      return [
+        {
+          ...jarOf(entry.season, entry.year),
+          deltaKop: -entry.amountKop,
+        },
+        supportOf(entry.direction, entry.amountKop),
+      ];
+    case ENTRY_TYPE.EXPENSE: {
+      const { amountKop, kind, section, direction } = entry;
+      const from =
+        section === EXPENSE_SECTION.SUPPORT && direction
+          ? supportOf(direction, -amountKop)
+          : ordersOf(entry, -amountKop);
+
+      // Money given to the development of the team stays in the team: it
+      // lands in the jar of the season as a gift with a name
+      if (kind === EXPENSE_KIND.DEVELOPMENT) {
+        return [
+          from,
+          { ...jarOf(entry.season, entry.year), deltaKop: amountKop },
+          lisodarOf(entry.nickname, amountKop),
+        ];
+      }
+
+      return [from];
+    }
+    default:
+      return incomeEffects(entry);
   }
 };
 
@@ -137,122 +188,116 @@ export const balancesOf = (entries: EntryGroup[]) => {
   return balances;
 };
 
-export const snapshotOf = ({
-  source,
-  amountKop,
-  date,
-  season,
-  year,
-  projectId,
-  title,
-  nickname,
-}: BudgetEntry): EntrySnapshot => ({
-  source,
-  amountKop,
-  date,
-  season,
-  year,
-  ...(projectId && { projectId }),
-  ...(title && { title }),
-  ...(nickname && { nickname }),
-});
+export interface Overdraft {
+  label: string;
+  haveKop: number;
+  needKop: number;
+}
 
-export const describeEntry = ({
-  source,
-  amountKop,
-  season,
-  year,
-  title,
-  nickname,
-}: EntrySnapshot) =>
-  [
-    `«${SOURCE_LABEL[source]}» ${formatKop(amountKop)}`,
-    title && `тайтл «${title}»`,
-    nickname && `від ${nickname}`,
-    `(${seasonLabel(season, year)})`,
-  ]
-    .filter(Boolean)
-    .join(' ');
+// Nothing may go below zero. Only a side that gives money away in this very
+// operation is blamed, so a side that was already negative can still be fixed.
+export const findOverdraft = (
+  balances: Map<string, number>,
+  effects: Effect[],
+): Overdraft | null => {
+  const net = new Map<string, { label: string; kop: number }>();
 
-const summarizeSeason = (
-  entries: EntryGroup[],
-  crumbs: SeasonCoins[],
-  { season, year }: { season: SEASON; year: number },
-  isCurrent: boolean,
-): SeasonSummary => {
-  const inSeason = entries.filter(
-    (entry) => entry.season === season && entry.year === year,
-  );
-  const of = (source: INCOME_SOURCE) =>
-    inSeason.filter((entry) => entry.source === source);
+  for (const { key, label, deltaKop } of effects) {
+    net.set(key, { label, kop: (net.get(key)?.kop ?? 0) + deltaKop });
+  }
 
-  const incomeKop = total(inSeason, ({ amountKop }) => amountKop);
-  const ordersKop = total(
-    of(INCOME_SOURCE.ORDER),
-    ({ amountKop }) => splitOrder(amountKop).title,
-  );
-  const supportKop = 0;
-  const payoutsKop = 0;
-  const jarBeforePayoutsKop = incomeKop - supportKop - ordersKop;
-  const earned = sum(
-    crumbs.filter((item) => item.season === season && item.year === year),
-    ({ coins }) => coins,
-  );
+  for (const [key, { label, kop }] of net) {
+    const haveKop = balances.get(key) ?? 0;
 
-  return {
-    season,
-    year,
-    isCurrent,
-    incomeKop,
-    supportKop,
-    ordersKop,
-    payoutsKop,
-    jarKop: jarBeforePayoutsKop - payoutsKop,
-    crumbs: round3(earned),
-    coefficient:
-      earned > 0
-        ? Math.max(0, round4(jarBeforePayoutsKop / 100 / earned))
-        : null,
-    treatsKop: total(
-      of(INCOME_SOURCE.PROJECT_JAR),
-      ({ amountKop }) => amountKop,
-    ),
-    lisodariKop: total(of(INCOME_SOURCE.LISODAR), ({ amountKop }) => amountKop),
-  };
+    if (kop < 0 && haveKop + kop < 0) {
+      return { label, haveKop, needKop: -kop };
+    }
+  }
+
+  return null;
 };
 
-export const summarize = (
-  entries: EntryGroup[],
-  crumbs: SeasonCoins[],
-  today: string,
-): BudgetSummary => {
-  const current = seasonOrdinal(today);
-  const bySource = (source: INCOME_SOURCE) =>
-    entries.filter((entry) => entry.source === source);
+export const overdraftMessage = ({ label, haveKop, needKop }: Overdraft) =>
+  `Недостатньо коштів у «${label}»: є ${formatKop(Math.max(haveKop, 0))}, потрібно ${formatKop(needKop)}`;
 
-  return {
-    today,
-    seasons: [current - 1, current].map((ordinal) =>
-      summarizeSeason(
-        entries,
-        crumbs,
-        seasonOfOrdinal(ordinal),
-        ordinal === current,
-      ),
-    ),
-    confectioneryKop: total(entries, ({ amountKop }) => amountKop),
-    supportKop: 0,
-    ordersKop: total(
-      bySource(INCOME_SOURCE.ORDER),
-      ({ amountKop }) => splitOrder(amountKop).title,
-    ),
-    treatsKop: total(
-      bySource(INCOME_SOURCE.PROJECT_JAR),
-      ({ amountKop }) => amountKop,
-    ),
-    lisodariKop: total(
-      bySource(INCOME_SOURCE.LISODAR),
-      ({ amountKop }) => amountKop,
-    ),
-  };
+export const snapshotOf = (entry: BudgetEntry): EntrySnapshot => {
+  const { amountKop, date, season, year } = entry;
+
+  switch (entry.type) {
+    case ENTRY_TYPE.ALLOCATION:
+      return {
+        type: entry.type,
+        direction: entry.direction,
+        amountKop,
+        date,
+        season,
+        year,
+      };
+    case ENTRY_TYPE.EXPENSE:
+      return {
+        type: entry.type,
+        kind: entry.kind,
+        section: entry.section,
+        ...(entry.direction && { direction: entry.direction }),
+        amountKop,
+        date,
+        season,
+        year,
+        ...(entry.projectId && { projectId: entry.projectId }),
+        ...(entry.title && { title: entry.title }),
+        nickname: entry.nickname,
+        ...(entry.requisite && { requisite: entry.requisite }),
+        ...(entry.comment && { comment: entry.comment }),
+      };
+    default:
+      return {
+        type: ENTRY_TYPE.INCOME,
+        source: entry.source,
+        amountKop,
+        date,
+        season,
+        year,
+        ...(entry.projectId && { projectId: entry.projectId }),
+        ...(entry.title && { title: entry.title }),
+        ...(entry.nickname && { nickname: entry.nickname }),
+      };
+  }
+};
+
+export const describeEntry = (entry: EntrySnapshot) => {
+  const period = `(${seasonLabel(entry.season, entry.year)})`;
+
+  switch (entry.type) {
+    case ENTRY_TYPE.ALLOCATION:
+      return [
+        entry.amountKop < 0 ? '«Повернення»' : '«Виділення»',
+        `${DIRECTION_LABEL[entry.direction]}:`,
+        formatKop(Math.abs(entry.amountKop)),
+        period,
+      ].join(' ');
+    case ENTRY_TYPE.EXPENSE: {
+      const section =
+        entry.section === EXPENSE_SECTION.SUPPORT && entry.direction
+          ? `Печивко підтримки → ${DIRECTION_LABEL[entry.direction]}`
+          : `Тістечка замовлень → ${entry.title || NO_TITLE}`;
+
+      return [
+        `«${KIND_LABEL[entry.kind]}» ${formatKop(entry.amountKop)}`,
+        section,
+        entry.nickname && `для ${entry.nickname}`,
+        period,
+      ]
+        .filter(Boolean)
+        .join(' ');
+    }
+    default:
+      return [
+        `«${SOURCE_LABEL[entry.source]}» ${formatKop(entry.amountKop)}`,
+        entry.title && `тайтл «${entry.title}»`,
+        entry.nickname && `від ${entry.nickname}`,
+        period,
+      ]
+        .filter(Boolean)
+        .join(' ');
+  }
 };

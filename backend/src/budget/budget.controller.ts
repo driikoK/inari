@@ -17,9 +17,12 @@ import { BudgetAuditService } from './budget-audit.service.js';
 import { BudgetService } from './budget.service.js';
 import {
   AuditQueryData,
+  CreateExpensesData,
   CreateIncomesData,
   EntriesQueryData,
+  UpdateExpenseData,
   UpdateIncomeData,
+  UpdateSupportData,
 } from './data/index.js';
 
 @ApiTags('Budget')
@@ -63,6 +66,47 @@ export class BudgetController {
     @CurrentUser() user: ValidatedUser,
   ) {
     return this.budgetService.updateEntry(id, data, user.username);
+  }
+
+  @Post('expenses')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({
+    summary: 'Pay out of the budget: card, donation, development',
+  })
+  createExpenses(
+    @Body({ schema: CreateExpensesData }) data: CreateExpensesData,
+    @CurrentUser() user: ValidatedUser,
+  ) {
+    return this.budgetService.createExpenses(data, user.username);
+  }
+
+  @Put('expenses/:id')
+  @UseGuards(AuthGuard, AdminGuard)
+  updateExpense(
+    @Param('id') id: string,
+    @Body({ schema: UpdateExpenseData }) data: UpdateExpenseData,
+    @CurrentUser() user: ValidatedUser,
+  ) {
+    return this.budgetService.updateExpense(id, data, user.username);
+  }
+
+  @Post('support/preview')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({
+    summary: 'What new support budgets would take out of a season jar',
+  })
+  previewSupport(@Body({ schema: UpdateSupportData }) data: UpdateSupportData) {
+    return this.budgetService.previewSupport(data);
+  }
+
+  @Put('support')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Set the budget of the support directions' })
+  updateSupport(
+    @Body({ schema: UpdateSupportData }) data: UpdateSupportData,
+    @CurrentUser() user: ValidatedUser,
+  ) {
+    return this.budgetService.updateSupport(data, user.username);
   }
 
   @Delete('entries/:id')

@@ -94,10 +94,45 @@ export enum INCOME_SOURCE {
   LISODAR = 'lisodar',
 }
 
+export enum ENTRY_TYPE {
+  INCOME = 'income',
+  ALLOCATION = 'allocation',
+  EXPENSE = 'expense',
+}
+
+export enum SUPPORT_DIRECTION {
+  COVERS = 'covers',
+  PROMOTION = 'promotion',
+  ADS = 'ads',
+  SITE = 'site',
+  SERVER = 'server',
+  BOTS = 'bots',
+  TRAINING = 'training',
+  EQUIPMENT = 'equipment',
+  HOLIDAY = 'holiday',
+  OTHER = 'other',
+}
+
+export enum EXPENSE_KIND {
+  CARD = 'card',
+  DONATION = 'donation',
+  DEVELOPMENT = 'development',
+}
+
+export enum EXPENSE_SECTION {
+  SUPPORT = 'support',
+  ORDERS = 'orders',
+}
+
 export enum AUDIT_KIND {
   INCOME_CREATED = 'income.created',
   INCOME_UPDATED = 'income.updated',
   INCOME_DELETED = 'income.deleted',
+  SUPPORT_UPDATED = 'support.updated',
+  ALLOCATION_DELETED = 'allocation.deleted',
+  EXPENSE_CREATED = 'expense.created',
+  EXPENSE_UPDATED = 'expense.updated',
+  EXPENSE_DELETED = 'expense.deleted',
   TRACK_CREATED = 'track.created',
   TRACK_UPDATED = 'track.updated',
   TRACK_DELETED = 'track.deleted',

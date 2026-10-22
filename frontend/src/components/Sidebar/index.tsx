@@ -15,6 +15,7 @@ import {
   LightbulbOutlined,
   FolderSpecialOutlined,
   SavingsOutlined,
+  PaymentsOutlined,
   AutoGraphOutlined,
   SettingsOutlined,
   Person2Outlined,
@@ -41,6 +42,7 @@ const Sidebar: FC = () => {
 
   const collapsed = useMediaQuery(SIDEBAR_BREAKPOINT);
   const isAdmin = hasAccess(SUBJECTS.PERMISSION_EDIT);
+  const canManageBudget = hasAccess(SUBJECTS.MANAGE_BUDGET);
   const isShowPoll = process.env.VITE_FEATURE_POLL === 'true';
   const isShowResults =
     hasAccess(SUBJECTS.SHOW_RESULTS) || process.env.VITE_FEATURE_RESULTS === 'true';
@@ -94,6 +96,16 @@ const Sidebar: FC = () => {
             label: 'Печивко',
             icon: <SavingsOutlined />,
           },
+          ...(canManageBudget
+            ? [
+                {
+                  id: 'expenses',
+                  path: '/budget/expenses',
+                  label: 'Видатки',
+                  icon: <PaymentsOutlined />,
+                },
+              ]
+            : []),
         ]
       : []),
     ...(isShowPoll

@@ -4,16 +4,28 @@ import {
   describeEntry,
   diffEffects,
   effectsOf,
+  findOverdraft,
   formatKop,
   negate,
   normalizeName,
+  snapshotOf,
   splitOrder,
-  summarize,
 } from './calc.js';
-import { ENTRY_TYPE, INCOME_SOURCE, SIDE_KIND } from './enums/index.js';
-import type { BudgetEntry } from './interfaces/index.js';
+import {
+  ENTRY_TYPE,
+  EXPENSE_KIND,
+  EXPENSE_SECTION,
+  INCOME_SOURCE,
+  SIDE_KIND,
+  SUPPORT_DIRECTION,
+} from './enums/index.js';
+import type {
+  AllocationEntry,
+  ExpenseEntry,
+  IncomeEntry,
+} from './interfaces/index.js';
 
-const entry = (extra: Partial<BudgetEntry> = {}): BudgetEntry => ({
+const entry = (extra: Partial<IncomeEntry> = {}): IncomeEntry => ({
   _id: '1',
   type: ENTRY_TYPE.INCOME,
   source: INCOME_SOURCE.TEAM_JAR,
@@ -78,6 +90,8 @@ describe('effectsOf', () => {
         key: 'jar:2027-spring',
         label: 'Банка Весна 2027',
         deltaKop: 100000,
+        season: SEASON.SPRING,
+        year: 2027,
       },
     ]);
   });
@@ -168,7 +182,7 @@ describe('effectsOf', () => {
 });
 
 describe('diffEffects', () => {
-  const diff = (before: Partial<BudgetEntry>, after: Partial<BudgetEntry>) =>
+  const diff = (before: Partial<IncomeEntry>, after: Partial<IncomeEntry>) =>
     diffEffects(effectsOf(entry(before)), effectsOf(entry(after)));
 
   it('answers the change of an amount as one row', () => {
@@ -259,97 +273,261 @@ describe('describeEntry', () => {
   });
 });
 
-describe('summarize', () => {
-  const entries = [
-    entry({ amountKop: 100000 }),
-    entry({ source: INCOME_SOURCE.ORDER, amountKop: 50000, title: 'Т' }),
-    entry({ source: INCOME_SOURCE.LISODAR, amountKop: 20000, nickname: 'Аня' }),
-    entry({ source: INCOME_SOURCE.PROJECT_JAR, amountKop: 30000, title: 'П' }),
-    entry({
-      amountKop: 10000,
-      season: SEASON.WINTER,
-      date: '2027-02-01',
-    }),
-  ];
-  const crumbs = [
-    { season: SEASON.SPRING, year: 2027, coins: 500 },
-    { season: SEASON.SPRING, year: 2027, coins: 275 },
-    { season: SEASON.WINTER, year: 2027, coins: 40 },
-    { season: SEASON.FALL, year: 2026, coins: 999 },
-  ];
+const allocation = (extra: Partial<AllocationEntry> = {}): AllocationEntry => ({
+  _id: 'a',
+  type: ENTRY_TYPE.ALLOCATION,
+  direction: SUPPORT_DIRECTION.SITE,
+  amountKop: 50000,
+  date: '2027-05-10',
+  season: SEASON.SPRING,
+  year: 2027,
+  createdBy: 'root',
+  ...extra,
+});
 
-  const [previous, current] = summarize(entries, crumbs, '2027-05-10').seasons;
+const expense = (extra: Partial<ExpenseEntry> = {}): ExpenseEntry => ({
+  _id: 'x',
+  type: ENTRY_TYPE.EXPENSE,
+  kind: EXPENSE_KIND.CARD,
+  section: EXPENSE_SECTION.SUPPORT,
+  direction: SUPPORT_DIRECTION.SITE,
+  amountKop: 10000,
+  nickname: 'Аня',
+  date: '2027-05-10',
+  season: SEASON.SPRING,
+  year: 2027,
+  createdBy: 'root',
+  ...extra,
+});
 
-  it('answers the previous and the current season, the current one flagged', () => {
-    expect([previous.season, previous.isCurrent]).toEqual([
-      SEASON.WINTER,
-      false,
+const moves = (entry: Parameters<typeof effectsOf>[0]) =>
+  effectsOf(entry).map(({ key, deltaKop }) => [key, deltaKop]);
+
+describe('effectsOf allocations', () => {
+  it('takes the money out of the jar of the season and into the direction', () => {
+    expect(moves(allocation())).toEqual([
+      ['jar:2027-spring', -50000],
+      ['support:site', 50000],
     ]);
-    expect([current.season, current.isCurrent]).toEqual([SEASON.SPRING, true]);
   });
 
-  it('takes the previous season across the turn of the year', () => {
-    const [before] = summarize([], [], '2027-02-01').seasons;
-
-    expect([before.season, before.year]).toEqual([SEASON.FALL, 2026]);
+  it('turns around for a negative one, which gives money back to the jar', () => {
+    expect(moves(allocation({ amountKop: -20000 }))).toEqual([
+      ['jar:2027-spring', 20000],
+      ['support:site', -20000],
+    ]);
   });
 
-  it('counts only the entries of the season, by the season they carry', () => {
-    expect(current.incomeKop).toBe(200000);
-    expect(previous.incomeKop).toBe(10000);
+  it('names the direction in Ukrainian', () => {
+    expect(effectsOf(allocation())[1].label).toBe('Підтримка: Сайт');
+  });
+});
+
+describe('effectsOf expenses', () => {
+  it('takes a payout from a direction and nothing else, the money leaves the team', () => {
+    expect(moves(expense())).toEqual([['support:site', -10000]]);
+    expect(moves(expense({ kind: EXPENSE_KIND.DONATION }))).toEqual([
+      ['support:site', -10000],
+    ]);
   });
 
-  it('takes the title share of orders off the jar, a tenth of an order stays in it', () => {
-    expect(current.ordersKop).toBe(45000);
-    expect(current.jarKop).toBe(155000);
+  it('takes a payout from the budget of a title, a project by its id', () => {
+    expect(
+      moves(
+        expense({
+          section: EXPENSE_SECTION.ORDERS,
+          direction: undefined,
+          title: ' Вітробой ',
+        }),
+      ),
+    ).toEqual([['orders:title:вітробой', -10000]]);
+    expect(
+      moves(
+        expense({
+          section: EXPENSE_SECTION.ORDERS,
+          direction: undefined,
+          projectId: 'p1',
+          title: 'Старе',
+        }),
+      ),
+    ).toEqual([['orders:project:p1', -10000]]);
   });
 
-  it('divides what is left by the crumbs the team earned in the season', () => {
-    expect(current.crumbs).toBe(775);
-    expect(current.coefficient).toBe(2);
-    expect(previous.coefficient).toBe(2.5);
+  it('moves what is left to the development of the team into the jar of the season and the lisodari', () => {
+    expect(
+      moves(expense({ kind: EXPENSE_KIND.DEVELOPMENT, nickname: ' Аня ' })),
+    ).toEqual([
+      ['support:site', -10000],
+      ['jar:2027-spring', 10000],
+      ['lisodari:аня', 10000],
+    ]);
   });
 
-  it('has no coefficient for a season without crumbs', () => {
-    const [empty] = summarize(entries, [], '2027-05-10').seasons;
-
-    expect(empty.crumbs).toBe(0);
-    expect(empty.coefficient).toBeNull();
-  });
-
-  it('shows treats and lisodari as slices of the season', () => {
-    expect(current.treatsKop).toBe(30000);
-    expect(current.lisodariKop).toBe(20000);
-    expect(previous.treatsKop).toBe(0);
-  });
-
-  it('gives the same answer for entries counted in groups', () => {
-    const grouped = [
-      { ...entry({ amountKop: 100000 }), count: 1 },
-      {
-        ...entry({ source: INCOME_SOURCE.ORDER, amountKop: 25000, title: 'Т' }),
-        count: 2,
-      },
-    ];
-    const single = [
-      entry({ amountKop: 100000 }),
-      entry({ source: INCOME_SOURCE.ORDER, amountKop: 25000, title: 'Т' }),
-      entry({ source: INCOME_SOURCE.ORDER, amountKop: 25000, title: 'Т' }),
-    ];
-
-    expect(summarize(grouped, crumbs, '2027-05-10')).toEqual(
-      summarize(single, crumbs, '2027-05-10'),
+  it('keeps the money of the team the same when it only moves', () => {
+    const effects = effectsOf(
+      expense({ kind: EXPENSE_KIND.DEVELOPMENT, amountKop: 7777 }),
     );
+    const inTeam = effects
+      .filter(({ kind }) => kind !== SIDE_KIND.LISODARI)
+      .reduce((sum, { deltaKop }) => sum + deltaKop, 0);
+
+    expect(inTeam).toBe(0);
+  });
+});
+
+describe('balancesOf with every kind', () => {
+  it('adds incomes, allocations and expenses into the balance of each side', () => {
+    const balances = balancesOf([
+      entry({ amountKop: 400000 }),
+      allocation({ amountKop: 100000 }),
+      expense({ amountKop: 25000 }),
+    ]);
+
+    expect(balances.get('jar:2027-spring')).toBe(300000);
+    expect(balances.get('support:site')).toBe(75000);
+  });
+});
+
+describe('findOverdraft', () => {
+  const balances = new Map([
+    ['jar:2027-spring', 10000],
+    ['support:site', 500],
+  ]);
+
+  it('finds nothing when every side has enough', () => {
+    expect(
+      findOverdraft(balances, effectsOf(allocation({ amountKop: 10000 }))),
+    ).toBeNull();
   });
 
-  it('totals the whole confectionery, the title budgets, the treats and the lisodari', () => {
-    expect(summarize(entries, crumbs, '2027-05-10')).toMatchObject({
-      today: '2027-05-10',
-      confectioneryKop: 210000,
-      ordersKop: 45000,
-      treatsKop: 30000,
-      lisodariKop: 20000,
-      supportKop: 0,
+  it('names the side that would go below zero, with what it has and what is needed', () => {
+    expect(
+      findOverdraft(balances, effectsOf(allocation({ amountKop: 10001 }))),
+    ).toEqual({
+      label: 'Банка Весна 2027',
+      haveKop: 10000,
+      needKop: 10001,
     });
+    expect(
+      findOverdraft(balances, effectsOf(expense({ amountKop: 501 }))),
+    ).toEqual({
+      label: 'Підтримка: Сайт',
+      haveKop: 500,
+      needKop: 501,
+    });
+  });
+
+  it('adds up what one operation takes from the same side', () => {
+    const twice = [
+      ...effectsOf(allocation({ amountKop: 6000 })),
+      ...effectsOf(allocation({ amountKop: 6000 })),
+    ];
+
+    expect(findOverdraft(balances, twice)?.needKop).toBe(12000);
+  });
+
+  it('lets an operation that gives and takes from a side in one go through', () => {
+    expect(
+      findOverdraft(
+        balances,
+        effectsOf(expense({ kind: EXPENSE_KIND.DEVELOPMENT, amountKop: 500 })),
+      ),
+    ).toBeNull();
+  });
+
+  it('does not blame a side that was already negative when it only gains', () => {
+    expect(
+      findOverdraft(
+        new Map([['jar:2027-spring', -100]]),
+        effectsOf(entry({ amountKop: 50 })),
+      ),
+    ).toBeNull();
+  });
+
+  it('knows a side that has no balance yet as zero', () => {
+    expect(
+      findOverdraft(new Map(), effectsOf(expense({ amountKop: 1 })))?.haveKop,
+    ).toBe(0);
+  });
+});
+
+describe('snapshotOf and describeEntry', () => {
+  it('keeps what an expense is, with its requisite and its comment', () => {
+    const snapshot = snapshotOf(
+      expense({ requisite: '•••• 1111', comment: 'Дякуємо' }),
+    );
+
+    expect(snapshot).toEqual({
+      type: ENTRY_TYPE.EXPENSE,
+      kind: EXPENSE_KIND.CARD,
+      section: EXPENSE_SECTION.SUPPORT,
+      direction: SUPPORT_DIRECTION.SITE,
+      amountKop: 10000,
+      date: '2027-05-10',
+      season: SEASON.SPRING,
+      year: 2027,
+      nickname: 'Аня',
+      requisite: '•••• 1111',
+      comment: 'Дякуємо',
+    });
+  });
+
+  it('keeps an allocation and an income without what does not belong to them', () => {
+    expect(snapshotOf(allocation())).toEqual({
+      type: ENTRY_TYPE.ALLOCATION,
+      direction: SUPPORT_DIRECTION.SITE,
+      amountKop: 50000,
+      date: '2027-05-10',
+      season: SEASON.SPRING,
+      year: 2027,
+    });
+    expect(snapshotOf(entry())).toEqual({
+      type: ENTRY_TYPE.INCOME,
+      source: INCOME_SOURCE.TEAM_JAR,
+      amountKop: 100000,
+      date: '2027-05-10',
+      season: SEASON.SPRING,
+      year: 2027,
+    });
+  });
+
+  it('says an allocation and a return in their own words', () => {
+    expect(describeEntry(snapshotOf(allocation()))).toContain(
+      '«Виділення» Сайт:',
+    );
+    expect(
+      describeEntry(snapshotOf(allocation({ amountKop: -100 }))),
+    ).toContain('«Повернення» Сайт: 1,00 грн');
+  });
+
+  it('says where an expense came from and who it is for', () => {
+    const text = describeEntry(snapshotOf(expense())).replace(/\s/g, ' ');
+
+    expect(text).toBe(
+      '«На карту» 100,00 грн Печивко підтримки → Сайт для Аня (Весна 2027)',
+    );
+    expect(
+      describeEntry(
+        snapshotOf(
+          expense({
+            kind: EXPENSE_KIND.DEVELOPMENT,
+            section: EXPENSE_SECTION.ORDERS,
+            direction: undefined,
+            title: 'Вітробой',
+          }),
+        ),
+      ),
+    ).toContain('«На розвиток команди»');
+    expect(
+      describeEntry(
+        snapshotOf(
+          expense({
+            section: EXPENSE_SECTION.ORDERS,
+            direction: undefined,
+            title: 'Вітробой',
+          }),
+        ),
+      ),
+    ).toContain('Тістечка замовлень → Вітробой');
   });
 });
