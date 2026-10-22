@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
@@ -7,23 +8,40 @@ import {
 } from '@nestjs/common';
 import { isValidObjectId, Model } from 'mongoose';
 import {
+  CoinsDelta,
   CoinsTotal,
   IMember,
   MyCoins,
 } from './interfaces/members.interface.js';
+import { seasonLabel } from '../budget/calc.js';
+import { CrumbAuditService } from '../budget/crumb-audit.service.js';
+import {
+  type CrumbsChange,
+  formatCrumbs,
+  memberSnapshot,
+} from '../budget/crumbs.js';
+import { AUDIT_KIND } from '../budget/enums/index.js';
 import { seasonOfDay, todayInKyiv } from '../projects/layout.js';
 import { MemberData } from './data/member.data.js';
-import { MEMBER_KIND, MEMBER_ROLE } from '../shared/index.js';
+import { MEMBER_KIND, MEMBER_ROLE, type SEASON } from '../shared/index.js';
 import { CoinsTotalFilterData } from './data/coins-total.data.js';
 import { MemberFilterData, UNMARKED_KIND } from './data/filter-members.data.js';
 import { UpdateMemberData } from './data/update-member.data.js';
 
 const roundCoins = (coins = 0) => Math.round(coins * 1000) / 1000;
 
+// Counters are floats with three digits, so "enough" tolerates the noise
+const COINS_EPSILON = 0.0005;
+
+const sameSeason =
+  (season: SEASON, year: number) => (item: { season: string; year: number }) =>
+    item.season === season && item.year === year;
+
 @Injectable()
 export class MembersService {
   constructor(
     @Inject('MEMBER_MODEL') private readonly memberModel: Model<IMember>,
+    private readonly crumbAudit: CrumbAuditService,
   ) {}
 
   async findAll(filter: MemberFilterData): Promise<IMember[]> {
@@ -113,7 +131,7 @@ export class MembersService {
     };
   }
 
-  async createMember(member: MemberData): Promise<IMember> {
+  async createMember(member: MemberData, actor: string): Promise<IMember> {
     const restored = await this.memberModel.findOneAndUpdate(
       { nickname: member.nickname, deletedAt: { $ne: null } },
       {
@@ -126,9 +144,42 @@ export class MembersService {
 
     if (restored) return restored;
 
-    if (member.coins === undefined) member.coins = 0;
+    const coins = member.coins ?? 0;
+    const created = await this.memberModel.create({
+      ...member,
+      coins,
+      crumbsAuditedAt: new Date(),
+    });
 
-    return this.memberModel.create(member);
+    if (coins > 0) {
+      const { season, year } = seasonOfDay(todayInKyiv());
+
+      await this.crumbAudit.record(
+        AUDIT_KIND.MEMBER_CREATED,
+        actor,
+        `Додано нікнейм ${member.nickname} з ${formatCrumbs(coins)} крихтами`,
+        [
+          {
+            change: {
+              nickname: member.nickname,
+              season,
+              year,
+              delta: coins,
+              coins,
+              seasonCoins: 0,
+            },
+            before: null,
+            after: memberSnapshot({
+              nickname: member.nickname,
+              coins,
+              seasons: [],
+            }),
+          },
+        ],
+      );
+    }
+
+    return created;
   }
 
   async deleteMember(id: string): Promise<boolean> {
@@ -166,13 +217,189 @@ export class MembersService {
     return member;
   }
 
-  async updateMember(member: UpdateMemberData) {
-    await this.memberModel.updateOne(
-      { nickname: member.nickname },
-      { ...member, coins: member.coins < 0 ? 0 : member.coins },
-    );
+  async updateMember(member: UpdateMemberData, actor: string) {
+    const { nickname, types, seasons } = member;
+    const coins = member.coins < 0 ? 0 : member.coins;
+    const { season, year } = seasonOfDay(todayInKyiv());
 
-    return this.findMember(member.nickname);
+    await this.claimOpening(nickname, actor, season, year);
+
+    const before = await this.memberModel
+      .findOneAndUpdate(
+        { nickname },
+        {
+          $set: { coins, ...(types && { types }), ...(seasons && { seasons }) },
+        },
+        { new: false },
+      )
+      .lean<IMember>();
+
+    if (!before) throw new HttpException('User not found', 406);
+
+    const after = memberSnapshot({
+      nickname,
+      coins,
+      seasons: seasons ?? before.seasons ?? [],
+    });
+    const was = memberSnapshot({
+      nickname,
+      coins: before.coins ?? 0,
+      seasons: before.seasons ?? [],
+    });
+
+    if (JSON.stringify(after) !== JSON.stringify(was)) {
+      const current = after.seasons.find(sameSeason(season, year));
+
+      await this.crumbAudit.record(
+        AUDIT_KIND.MEMBER_ADJUSTED,
+        actor,
+        `Змінено крихти ${nickname}: ${formatCrumbs(was.coins)} → ${formatCrumbs(after.coins)}`,
+        [
+          {
+            change: {
+              nickname,
+              season,
+              year,
+              delta: after.coins - was.coins,
+              coins: after.coins,
+              seasonCoins: current?.coins ?? 0,
+            },
+            before: was,
+            after,
+          },
+        ],
+      );
+    }
+
+    return this.findMember(nickname);
+  }
+
+  // Adds crumbs to the total and to one season in single atomic updates, so
+  // two requests at once can never overwrite each other. Both counters must
+  // stay non-negative unless the caller is undoing its own change.
+  async changeCoins(
+    nickname: string,
+    request: CoinsDelta,
+    { guard = true } = {},
+  ): Promise<CrumbsChange> {
+    const { season, year, delta, actor } = request;
+
+    await this.claimOpening(nickname, actor, season, year);
+
+    const need = delta < 0 && guard ? -delta - COINS_EPSILON : null;
+    let updated = await this.applyCoins(nickname, request, need);
+
+    // A season entry that appeared between the two steps makes the second
+    // one miss, so look once more
+    if (!updated && delta > 0) {
+      updated = await this.applyCoins(nickname, request, need);
+    }
+
+    if (!updated) return this.refuseCoins(nickname, season, year, delta);
+
+    return {
+      nickname,
+      season,
+      year,
+      delta,
+      coins: updated.coins,
+      seasonCoins: updated.seasons.find(sameSeason(season, year))?.coins ?? 0,
+    };
+  }
+
+  private async applyCoins(
+    nickname: string,
+    { season, year, delta, role }: CoinsDelta,
+    need: number | null,
+  ) {
+    const enough = need === null ? {} : { coins: { $gte: need } };
+    const types = role ? { $addToSet: { types: role } } : {};
+
+    const bumped = await this.memberModel
+      .findOneAndUpdate(
+        {
+          nickname,
+          ...enough,
+          seasons: { $elemMatch: { season, year, ...enough } },
+        },
+        { $inc: { coins: delta, 'seasons.$.coins': delta }, ...types },
+        { new: true },
+      )
+      .lean<IMember>();
+
+    if (bumped || delta < 0) return bumped;
+
+    return this.memberModel
+      .findOneAndUpdate(
+        { nickname, seasons: { $not: { $elemMatch: { season, year } } } },
+        {
+          $inc: { coins: delta },
+          $push: { seasons: { season, year, coins: delta } },
+          ...types,
+        },
+        { new: true },
+      )
+      .lean<IMember>();
+  }
+
+  private async refuseCoins(
+    nickname: string,
+    season: SEASON,
+    year: number,
+    delta: number,
+  ): Promise<never> {
+    const member = await this.memberModel.findOne({ nickname }).lean<IMember>();
+
+    if (!member) throw new HttpException('User not found', 406);
+
+    if (delta > 0) {
+      throw new ConflictException(
+        'Не вдалося змінити крихти, спробуйте ще раз',
+      );
+    }
+
+    const have = member.seasons?.find(sameSeason(season, year))?.coins ?? 0;
+
+    throw new ConflictException(
+      `Недостатньо крихт у «${nickname}» за сезон ${seasonLabel(season, year)}: є ${formatCrumbs(have)}, потрібно ${formatCrumbs(-delta)}`,
+    );
+  }
+
+  // The first change of a nickname after the audit began is also the one that
+  // writes its opening state. Whoever wins the claim writes it, whatever
+  // happens to the change itself.
+  private async claimOpening(
+    nickname: string,
+    actor: string,
+    season: SEASON,
+    year: number,
+  ) {
+    const claimed = await this.memberModel
+      .findOneAndUpdate(
+        { nickname, crumbsAuditedAt: null },
+        { $set: { crumbsAuditedAt: new Date() } },
+        { new: false },
+      )
+      .lean<IMember>();
+
+    if (!claimed) return;
+
+    try {
+      await this.crumbAudit.recordOpening(
+        actor,
+        nickname,
+        { coins: claimed.coins ?? 0, seasons: claimed.seasons ?? [] },
+        season,
+        year,
+      );
+    } catch (error) {
+      await this.memberModel.updateOne(
+        { nickname },
+        { $unset: { crumbsAuditedAt: 1 } },
+      );
+
+      throw error;
+    }
   }
 
   async findMember(nickname: string) {

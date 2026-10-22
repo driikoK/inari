@@ -15,6 +15,9 @@ import { PollsService } from '../polls/polls.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { proposalSeasons } from './datas/proposals.data.js';
 import { projectSeeds } from './datas/projects.data.js';
+import { budgetSeeds } from './datas/budget.data.js';
+import { BudgetService } from '../budget/budget.service.js';
+import { SYSTEM_ACTOR } from '../budget/enums/index.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { todayInKyiv } from '../projects/layout.js';
 import { CreateAnimeData, VoteData } from '../polls/data/index.js';
@@ -28,6 +31,7 @@ const ROOT_USERNAME = 'root';
 @Injectable()
 export class SeedCommand {
   constructor(
+    private readonly budgetService: BudgetService,
     private readonly usersService: UsersService,
     private readonly membersService: MembersService,
     private readonly pollsService: PollsService,
@@ -123,7 +127,7 @@ export class SeedCommand {
       if (existing.has(nickname.nickname)) continue;
 
       const nicknameTemplate = Object.assign(new MemberData(), nickname);
-      await this.membersService.createMember(nicknameTemplate);
+      await this.membersService.createMember(nicknameTemplate, SYSTEM_ACTOR);
       created++;
     }
 
@@ -215,6 +219,26 @@ export class SeedCommand {
     console.log(`seed:projects - created ${created} projects`);
   }
 
+  async budget() {
+    const { total } = await this.budgetService.findEntries({
+      page: 1,
+      perPage: 1,
+    });
+
+    if (total > 0) {
+      console.log('seed:budget - the journal is not empty, skipped');
+      return;
+    }
+
+    const operations = budgetSeeds(todayInKyiv());
+
+    for (const incomes of operations) {
+      await this.budgetService.createIncomes(incomes, SYSTEM_ACTOR);
+    }
+
+    console.log(`seed:budget - added ${operations.length} operations`);
+  }
+
   async votes() {
     const { ongoings } = await this.pollsService.findAll();
 
@@ -276,7 +300,10 @@ export class SeedCommand {
       });
       if (existing.length) continue;
 
-      await this.trackService.create(JSON.parse(JSON.stringify(track)));
+      await this.trackService.create(
+        JSON.parse(JSON.stringify(track)),
+        SYSTEM_ACTOR,
+      );
       created++;
     }
 
@@ -297,6 +324,7 @@ export class SeedCommand {
     await this.proposals();
     await this.projects();
     await this.tracks();
+    await this.budget();
   }
 
   async clear() {

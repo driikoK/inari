@@ -85,13 +85,18 @@ describe('UsersController', () => {
       ).toEqual([AuthGuard, AdminGuard]);
     });
 
-    it('hands the choice to the service', async () => {
-      await controller.setNickname('m1', { nickname: 'Dixy', create: true });
+    it('hands the choice to the service, with the admin who made it', async () => {
+      await controller.setNickname(
+        'm1',
+        { nickname: 'Dixy', create: true },
+        admin,
+      );
 
-      expect(usersService.setNickname).toHaveBeenCalledWith('m1', {
-        nickname: 'Dixy',
-        create: true,
-      });
+      expect(usersService.setNickname).toHaveBeenCalledWith(
+        'm1',
+        { nickname: 'Dixy', create: true },
+        admin.username,
+      );
     });
   });
 

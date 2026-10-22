@@ -85,6 +85,36 @@ export enum PROJECT_MARK {
   DEBT = 'debt',
 }
 
+export enum INCOME_SOURCE {
+  BMAC = 'bmac',
+  DONATELLO = 'donatello',
+  TEAM_JAR = 'teamJar',
+  PROJECT_JAR = 'projectJar',
+  ORDER = 'order',
+  LISODAR = 'lisodar',
+}
+
+export enum AUDIT_KIND {
+  INCOME_CREATED = 'income.created',
+  INCOME_UPDATED = 'income.updated',
+  INCOME_DELETED = 'income.deleted',
+  TRACK_CREATED = 'track.created',
+  TRACK_UPDATED = 'track.updated',
+  TRACK_DELETED = 'track.deleted',
+  MEMBER_CREATED = 'member.created',
+  MEMBER_ADJUSTED = 'member.adjusted',
+  CRUMBS_INITIAL = 'crumbs.initial',
+}
+
+export enum AUDIT_UNIT {
+  MONEY = 'money',
+  CRUMBS = 'crumbs',
+}
+
+export enum BUDGET_ERROR {
+  AUDIT_NOT_SAVED = 'AUDIT_NOT_SAVED',
+}
+
 export enum ROLES_ON_VOTE {
   DUB = 'dub',
   SUB = 'sub',

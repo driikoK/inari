@@ -36,6 +36,12 @@ export class ProjectsService {
     return { seasons: buildLayout(projects, todayInKyiv()) };
   }
 
+  async findName(id: string): Promise<string> {
+    const { ukrName } = await this.findProject(id);
+
+    return ukrName;
+  }
+
   async create({
     proposalId,
     endDate,

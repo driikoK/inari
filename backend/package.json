@@ -28,6 +28,7 @@
     "seed:proposals": "nest build && node dist/cli.js seed:proposals",
     "seed:projects": "nest build && node dist/cli.js seed:projects",
     "seed:tracks": "nest build && node dist/cli.js seed:tracks",
+    "seed:budget": "nest build && node dist/cli.js seed:budget",
     "seed:clear": "nest build && node dist/cli.js seed:clear",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",

@@ -51,7 +51,11 @@ describe('UsersService', () => {
     it('links a visible nickname to the account', async () => {
       membersService.findByNickname.mockResolvedValue(visible);
 
-      await service.setNickname(id, { nickname: 'Dixy', create: false });
+      await service.setNickname(
+        id,
+        { nickname: 'Dixy', create: false },
+        'boss',
+      );
 
       expect(model.exists).toHaveBeenCalledWith({
         nickname: 'Dixy',
@@ -66,7 +70,7 @@ describe('UsersService', () => {
     });
 
     it('unlinks the nickname when none is sent', async () => {
-      await service.setNickname(id, { nickname: null, create: false });
+      await service.setNickname(id, { nickname: null, create: false }, 'boss');
 
       expect(model.findByIdAndUpdate).toHaveBeenCalledWith(
         id,
@@ -81,7 +85,7 @@ describe('UsersService', () => {
       model.exists.mockResolvedValue({ _id: 'other' } as any);
 
       await expect(
-        service.setNickname(id, { nickname: 'Dixy', create: false }),
+        service.setNickname(id, { nickname: 'Dixy', create: false }, 'boss'),
       ).rejects.toMatchObject({ status: HttpStatus.CONFLICT });
       expect(model.findByIdAndUpdate).not.toHaveBeenCalled();
     });
@@ -90,7 +94,7 @@ describe('UsersService', () => {
       membersService.findByNickname.mockResolvedValue(hidden);
 
       await expect(
-        service.setNickname(id, { nickname: 'Dixy', create: true }),
+        service.setNickname(id, { nickname: 'Dixy', create: true }, 'boss'),
       ).rejects.toMatchObject({ status: HttpStatus.CONFLICT });
       expect(membersService.createMember).not.toHaveBeenCalled();
       expect(model.findByIdAndUpdate).not.toHaveBeenCalled();
@@ -100,7 +104,7 @@ describe('UsersService', () => {
       membersService.findByNickname.mockResolvedValue(null);
 
       await expect(
-        service.setNickname(id, { nickname: 'New', create: false }),
+        service.setNickname(id, { nickname: 'New', create: false }, 'boss'),
       ).rejects.toThrow('Нікнейм не знайдено');
       expect(membersService.createMember).not.toHaveBeenCalled();
     });
@@ -108,13 +112,12 @@ describe('UsersService', () => {
     it('creates an unknown nickname as a team member without roles, then links it', async () => {
       membersService.findByNickname.mockResolvedValue(null);
 
-      await service.setNickname(id, { nickname: 'New', create: true });
+      await service.setNickname(id, { nickname: 'New', create: true }, 'boss');
 
-      expect(membersService.createMember).toHaveBeenCalledWith({
-        nickname: 'New',
-        types: [],
-        kind: MEMBER_KIND.TEAM,
-      });
+      expect(membersService.createMember).toHaveBeenCalledWith(
+        { nickname: 'New', types: [], kind: MEMBER_KIND.TEAM },
+        'boss',
+      );
       expect(model.findByIdAndUpdate).toHaveBeenCalledWith(
         id,
         { $set: { nickname: 'New' } },
@@ -127,7 +130,7 @@ describe('UsersService', () => {
       model.exists.mockResolvedValue({ _id: 'other' } as any);
 
       await expect(
-        service.setNickname(id, { nickname: 'New', create: true }),
+        service.setNickname(id, { nickname: 'New', create: true }, 'boss'),
       ).rejects.toMatchObject({ status: HttpStatus.CONFLICT });
       expect(membersService.createMember).not.toHaveBeenCalled();
     });
@@ -137,7 +140,7 @@ describe('UsersService', () => {
       model.findByIdAndUpdate.mockRejectedValue({ code: 11000 });
 
       await expect(
-        service.setNickname(id, { nickname: 'Dixy', create: false }),
+        service.setNickname(id, { nickname: 'Dixy', create: false }, 'boss'),
       ).rejects.toMatchObject({ status: HttpStatus.CONFLICT });
     });
 
@@ -145,7 +148,7 @@ describe('UsersService', () => {
       found({ _id: id, username: 'root' });
 
       await expect(
-        service.setNickname(id, { nickname: 'Dixy', create: false }),
+        service.setNickname(id, { nickname: 'Dixy', create: false }, 'boss'),
       ).rejects.toMatchObject({ status: HttpStatus.CONFLICT });
       expect(model.findByIdAndUpdate).not.toHaveBeenCalled();
     });
@@ -154,13 +157,17 @@ describe('UsersService', () => {
       found(null);
 
       await expect(
-        service.setNickname(id, { nickname: 'Dixy', create: false }),
+        service.setNickname(id, { nickname: 'Dixy', create: false }, 'boss'),
       ).rejects.toThrow('Юзера не знайдено');
     });
 
     it('rejects an id that is not an ObjectId without touching the database', async () => {
       await expect(
-        service.setNickname('nope', { nickname: 'Dixy', create: false }),
+        service.setNickname(
+          'nope',
+          { nickname: 'Dixy', create: false },
+          'boss',
+        ),
       ).rejects.toThrow('Невірний id');
 
       expect(model.findById).not.toHaveBeenCalled();

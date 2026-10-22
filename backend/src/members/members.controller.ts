@@ -53,16 +53,18 @@ export class MembersController {
   @UseGuards(AuthGuard)
   async createMember(
     @Body({ schema: CreateMemberData }) member: CreateMemberData,
+    @CurrentUser() user: ValidatedUser,
   ) {
-    return this.membersService.createMember(member);
+    return this.membersService.createMember(member, user.username);
   }
 
   @Put()
   @UseGuards(AuthGuard)
   async updateMember(
     @Body({ schema: UpdateMemberData }) member: UpdateMemberData,
+    @CurrentUser() user: ValidatedUser,
   ) {
-    return this.membersService.updateMember(member);
+    return this.membersService.updateMember(member, user.username);
   }
 
   @Patch(':id/kind')

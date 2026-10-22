@@ -5,8 +5,18 @@ export interface IMember extends Document {
   types: string[];
   kind?: MEMBER_KIND;
   coins: number;
-  seasons: { season: string; year: number; coins: number }[];
+  seasons: { season: SEASON; year: number; coins: number }[];
   deletedAt?: Date;
+  // When the audit took over the counters, and wrote their opening state
+  crumbsAuditedAt?: Date;
+}
+
+export interface CoinsDelta {
+  season: SEASON;
+  year: number;
+  delta: number;
+  role?: string;
+  actor: string;
 }
 
 export interface CoinsTotal {

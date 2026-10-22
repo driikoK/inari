@@ -8,6 +8,7 @@ export const MemberSchema = new mongoose.Schema(
     coins: Number,
     seasons: [{ season: String, year: Number, coins: Number }],
     deletedAt: Date,
+    crumbsAuditedAt: Date,
   },
   { timestamps: true },
 );

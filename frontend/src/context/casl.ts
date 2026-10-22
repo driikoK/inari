@@ -18,6 +18,7 @@ export enum SUBJECTS {
   VIEW_COINS_TOTAL = 'view-coins-total',
   MANAGE_PROPOSALS = 'manage-proposals',
   MANAGE_PROJECTS = 'manage-projects',
+  MANAGE_BUDGET = 'manage-budget',
   SHOW_RESULTS = 'show-results',
   CLEAR_RESULTS = 'clear-results',
 }

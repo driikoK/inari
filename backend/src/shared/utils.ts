@@ -33,6 +33,9 @@ export function splitOptionals<K extends string>(
   return { set, unset };
 }
 
+export const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export function omit<T extends object, K extends keyof T>(
   obj: T,
   keys: K[],

@@ -104,6 +104,30 @@ describe('ProjectsService', () => {
     });
   });
 
+  describe('findName', () => {
+    it('answers the Ukrainian name of the project', async () => {
+      existing(project());
+
+      await expect(service.findName(String(projectId))).resolves.toBe(
+        'Вітробой',
+      );
+    });
+
+    it('answers 404 for a project that does not exist', async () => {
+      existing(null);
+
+      await expect(service.findName(String(projectId))).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('answers 400 for an id that is not an ObjectId', async () => {
+      await expect(service.findName('nope')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
   describe('create', () => {
     it('stores the project with trimmed nicknames and each role once', async () => {
       await service.create(

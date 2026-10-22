@@ -50,6 +50,10 @@ const commands: Record<string, Command> = {
     describe: 'create demo tracks (needs seed:root and seed:nicknames)',
     run: (seed) => seed.tracks(),
   },
+  'seed:budget': {
+    describe: 'add demo incomes over the last three seasons (journal empty)',
+    run: (seed) => seed.budget(),
+  },
   'seed:clear': {
     describe: 'clear lists',
     run: (seed) => seed.clear(),

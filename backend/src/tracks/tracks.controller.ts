@@ -14,7 +14,8 @@ import { TrackService } from './tracks.service.js';
 import { CreateTrackData } from './data/create-track.data.js';
 import { FilterTrackData } from './data/filter-track.data.js';
 import { UpdateTrackData } from './data/update-track.data.js';
-import { AuthGuard } from '../auth/auth.guard.js';
+import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
+import type { ValidatedUser } from '../users/interfaces/user.interface.js';
 import { LastTracksData } from './data/last-tracks.js';
 
 @ApiTags('Tracks')
@@ -33,8 +34,11 @@ export class TracksController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async addNewTrack(@Body({ schema: CreateTrackData }) track: CreateTrackData) {
-    return this.trackService.create(track);
+  async addNewTrack(
+    @Body({ schema: CreateTrackData }) track: CreateTrackData,
+    @CurrentUser() user: ValidatedUser,
+  ) {
+    return this.trackService.create(track, user.username);
   }
 
   @Put(':id')
@@ -42,14 +46,18 @@ export class TracksController {
   updateTrack(
     @Param('id') id: string,
     @Body({ schema: UpdateTrackData }) track: UpdateTrackData,
+    @CurrentUser() user: ValidatedUser,
   ) {
-    return this.trackService.update(id, track);
+    return this.trackService.update(id, track, user.username);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard)
-  async deleteTrack(@Param('id') id: string) {
-    return this.trackService.delete(id);
+  async deleteTrack(
+    @Param('id') id: string,
+    @CurrentUser() user: ValidatedUser,
+  ) {
+    return this.trackService.delete(id, user.username);
   }
 
   @Get('last')

@@ -8,6 +8,7 @@ const Vote = lazy(() => import('../pages/Vote'));
 const Result = lazy(() => import('../pages/Result'));
 const Proposals = lazy(() => import('../pages/Proposals'));
 const Projects = lazy(() => import('../pages/Projects'));
+const Budget = lazy(() => import('../pages/Budget'));
 const Sheet = lazy(() => import('../pages/Sheet'));
 const Cookie = lazy(() => import('../pages/Cookie'));
 const Home = lazy(() => import('../pages/Home'));
@@ -48,6 +49,10 @@ const useConditionalRoutes = () => {
         {
           path: 'projects',
           element: <Projects />,
+        },
+        {
+          path: 'budget',
+          element: <Budget />,
         },
         ...conditionalRoutes(
           hasAccess(SUBJECTS.SHOW_RESULTS) || process.env.VITE_FEATURE_RESULTS === 'true',

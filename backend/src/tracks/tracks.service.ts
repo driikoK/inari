@@ -1,8 +1,24 @@
 import { isValidObjectId, Model } from 'mongoose';
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 
+import { CrumbAuditService } from '../budget/crumb-audit.service.js';
+import {
+  type CrumbAuditItem,
+  type CrumbsChange,
+  describeTrack,
+  formatCrumbs,
+  formatSignedCrumbs,
+  trackSnapshot,
+} from '../budget/crumbs.js';
+import { AUDIT_KIND } from '../budget/enums/index.js';
 import { MembersService } from '../members/members.service.js';
-import { MEMBER_ROLE, pick } from '../shared/index.js';
+import { MEMBER_ROLE, pick, type SEASON } from '../shared/index.js';
 import { DictionariesService } from '../dictionaries/dictionaries.service.js';
 import { UsersService } from '../users/users.service.js';
 import { UpdateTrackData } from './data/update-track.data.js';
@@ -12,17 +28,21 @@ import {
   ITrack,
   ITracksWithPagination,
   Multipliers,
+  SeasonCoins,
 } from './interfaces/track.interface.js';
 import { MULTIPLIER } from './enums/types.enum.js';
 import { LastTracksData } from './data/last-tracks.js';
 
 @Injectable()
 export class TrackService {
+  private readonly logger = new Logger(TrackService.name);
+
   constructor(
     @Inject('TRACK_MODEL') private readonly trackModel: Model<ITrack>,
     private readonly membersService: MembersService,
     private readonly dictionariesService: DictionariesService,
     private readonly usersService: UsersService,
+    private readonly crumbAudit: CrumbAuditService,
   ) {}
 
   async findAll(filter: FilterTrackData): Promise<ITracksWithPagination> {
@@ -44,42 +64,72 @@ export class TrackService {
     };
   }
 
-  private updateMembersCoins = async (track: ITrack) => {
-    const member = await this.membersService.findMember(track.nickname);
+  // Puts back what a change took, when the track write that went with it failed
+  private async revert(change: CrumbsChange, actor: string) {
+    try {
+      await this.membersService.changeCoins(
+        change.nickname,
+        {
+          season: change.season,
+          year: change.year,
+          delta: -change.delta,
+          actor,
+        },
+        { guard: false },
+      );
+    } catch (error) {
+      this.logger.error(
+        `Не вдалося повернути крихти нікнейма ${change.nickname}`,
+        error,
+      );
+    }
+  }
 
-    const existedSeasonIndex = member.seasons.findIndex(
-      (season) => season.season === track.season && season.year === track.year,
+  private roleLabel(role: string) {
+    return (
+      this.membersService.getAllRoles().find(({ value }) => value === role)
+        ?.label ?? role
     );
+  }
 
-    member.seasons[existedSeasonIndex].coins -= track.coins;
-
-    const updatedMember = {
-      nickname: member.nickname,
-      coins: Number(member.coins) - Number(track.coins),
-      types: member.types,
-      seasons: member.seasons,
-    };
-
-    await this.membersService.updateMember(updatedMember);
-  };
-
-  async delete(id: string) {
+  private async findTrack(id: string): Promise<ITrack> {
     if (!isValidObjectId(id)) {
       throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
     }
 
-    const track = await this.trackModel.findById({
-      _id: id,
-    });
+    const track = await this.trackModel.findById(id);
 
     if (!track)
       throw new HttpException('Трек не існує', HttpStatus.BAD_REQUEST);
 
-    await this.updateMembersCoins(track);
+    return track;
+  }
 
-    await this.trackModel.deleteOne({
-      _id: id,
+  async delete(id: string, actor: string) {
+    const track = await this.findTrack(id);
+    const before = trackSnapshot(track);
+
+    const change = await this.membersService.changeCoins(track.nickname, {
+      season: track.season,
+      year: track.year,
+      delta: -track.coins,
+      actor,
     });
+
+    try {
+      await this.trackModel.deleteOne({ _id: id });
+    } catch (error) {
+      await this.revert(change, actor);
+
+      throw error;
+    }
+
+    await this.crumbAudit.record(
+      AUDIT_KIND.TRACK_DELETED,
+      actor,
+      `Видалено трек ${describeTrack(before, (role) => this.roleLabel(role))}`,
+      [{ change, entryId: id, before, after: null }],
+    );
   }
 
   private calculateAdditionalCoins = (
@@ -111,47 +161,51 @@ export class TrackService {
     return newTrack;
   }
 
-  async update(id: string, track: UpdateTrackData): Promise<ITrack> {
-    const trackToUpdate: ITrack = await this.trackModel.findOne({
-      _id: id,
-    });
+  async update(
+    id: string,
+    track: UpdateTrackData,
+    actor: string,
+  ): Promise<ITrack> {
+    const trackToUpdate = await this.findTrack(id);
+    const before = trackSnapshot(trackToUpdate);
 
     const updatedValues = this.getCoinsForTrack(trackToUpdate, track);
+    const delta = updatedValues.coins - trackToUpdate.coins;
 
-    const coinsChange = trackToUpdate.coins - updatedValues.coins;
+    const change =
+      delta === 0
+        ? null
+        : await this.membersService.changeCoins(trackToUpdate.nickname, {
+            season: trackToUpdate.season,
+            year: trackToUpdate.year,
+            delta,
+            actor,
+          });
 
-    const updatedTrack = await this.trackModel.findOneAndUpdate(
-      {
-        _id: id,
-      },
-      {
-        $set: updatedValues,
-      },
-      {
-        new: true,
-      },
-    );
+    let updatedTrack: ITrack;
 
-    const member = await this.membersService.findMember(updatedTrack.nickname);
+    try {
+      updatedTrack = await this.trackModel.findOneAndUpdate(
+        { _id: id },
+        { $set: updatedValues },
+        { new: true },
+      );
+    } catch (error) {
+      if (change) await this.revert(change, actor);
 
-    this.membersService.updateMember({
-      nickname: member.nickname,
-      coins: member.coins - coinsChange,
-      seasons: member.seasons.map((season) => {
-        if (
-          season.season === updatedTrack.season &&
-          season.year === updatedTrack.year
-        ) {
-          return {
-            season: season.season,
-            year: season.year,
-            coins: season.coins - coinsChange,
-          };
-        }
+      throw error;
+    }
 
-        return season;
-      }),
-    });
+    if (change) {
+      const after = trackSnapshot(updatedTrack);
+
+      await this.crumbAudit.record(
+        AUDIT_KIND.TRACK_UPDATED,
+        actor,
+        `Змінено трек «${after.nameTitle}» еп. ${after.currentEpisode}, ${after.nickname}: ${formatCrumbs(before.coins)} → ${formatCrumbs(after.coins)} крихт`,
+        [{ change, entryId: id, before, after }],
+      );
+    }
 
     return updatedTrack;
   }
@@ -180,7 +234,7 @@ export class TrackService {
       this.dictionariesService.getCoins()[track.titleType][role];
   }
 
-  async create(track: CreateTrackData): Promise<string> {
+  async create(track: CreateTrackData, actor: string): Promise<string> {
     const currentUser = await this.usersService.findOneByUsername(
       track.username,
     );
@@ -204,49 +258,99 @@ export class TrackService {
     if (track.isGiveTypesetterCoins)
       this.addAdditionalCoinsToTranslator(track, MEMBER_ROLE.TYPESETTER);
 
-    for (const member of track.membersInfo) {
-      const existedMember = await this.membersService.findMember(
-        member.nickname,
-      );
+    const year = Number(track.year);
+    const done: { id: string; item: CrumbAuditItem }[] = [];
 
-      const memberWithMultipliers = this.getCoinsWithMultipliers(track, member);
+    try {
+      for (const member of track.membersInfo) {
+        const memberWithMultipliers = this.getCoinsWithMultipliers(
+          track,
+          member,
+        );
 
-      await this.trackModel.create({
-        ...memberWithMultipliers,
-        ...track,
-        year: Number(track.year),
-      });
+        const created = await this.trackModel.create({
+          ...memberWithMultipliers,
+          ...track,
+          year,
+        });
+        const id = String(created._id);
 
-      const existedSeasonIndex = existedMember.seasons.findIndex(
-        (season) =>
-          season.season === track.season && season.year === track.year,
-      );
+        let change: CrumbsChange;
 
-      if (existedSeasonIndex !== -1) {
-        existedMember.seasons[existedSeasonIndex].coins +=
-          memberWithMultipliers.coins;
-      } else {
-        existedMember.seasons.push({
-          season: track.season,
-          year: track.year,
-          coins: memberWithMultipliers.coins,
+        try {
+          change = await this.membersService.changeCoins(member.nickname, {
+            season: track.season,
+            year,
+            delta: memberWithMultipliers.coins,
+            role: member.typeRole,
+            actor,
+          });
+        } catch (error) {
+          await this.trackModel.deleteOne({ _id: id });
+
+          throw error;
+        }
+
+        done.push({
+          id,
+          item: {
+            change,
+            entryId: id,
+            before: null,
+            after: trackSnapshot({
+              nickname: member.nickname,
+              nameTitle: track.nameTitle,
+              currentEpisode: track.currentEpisode,
+              typeRole: member.typeRole,
+              season: track.season,
+              year,
+              coins: memberWithMultipliers.coins,
+            }),
+          },
         });
       }
+    } catch (error) {
+      for (const { id, item } of done.reverse()) {
+        await this.revert(item.change, actor);
+        await this.trackModel.deleteOne({ _id: id });
+      }
 
-      const updatedMember = {
-        nickname: member.nickname,
-        coins:
-          Number(existedMember.coins) + Number(memberWithMultipliers.coins),
-        types: existedMember.types.includes(member.typeRole)
-          ? existedMember.types
-          : [...existedMember.types, member.typeRole],
-        seasons: existedMember.seasons,
-      };
-
-      await this.membersService.updateMember(updatedMember);
+      throw error;
     }
 
+    await this.crumbAudit.record(
+      AUDIT_KIND.TRACK_CREATED,
+      actor,
+      `Додано трек «${track.nameTitle}» еп. ${track.currentEpisode}: ${done
+        .map(
+          ({ item }) =>
+            `${item.change.nickname} ${formatSignedCrumbs(item.change.delta)}`,
+        )
+        .join(', ')}`,
+      done.map(({ item }) => item),
+    );
+
     return 'Success';
+  }
+
+  async getCoinsBySeason(): Promise<SeasonCoins[]> {
+    const groups = await this.trackModel.aggregate<{
+      _id: { season: SEASON; year: number };
+      coins: number;
+    }>([
+      {
+        $group: {
+          _id: { season: '$season', year: '$year' },
+          coins: { $sum: '$coins' },
+        },
+      },
+    ]);
+
+    return groups.map(({ _id, coins }) => ({
+      season: _id.season,
+      year: _id.year,
+      coins: Math.round(coins * 1000) / 1000,
+    }));
   }
 
   async getLastTracks(data: LastTracksData): Promise<ITrack[]> {

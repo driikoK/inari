@@ -14,6 +14,7 @@ import {
   LeaderboardOutlined,
   LightbulbOutlined,
   FolderSpecialOutlined,
+  SavingsOutlined,
   AutoGraphOutlined,
   SettingsOutlined,
   Person2Outlined,
@@ -86,6 +87,12 @@ const Sidebar: FC = () => {
             path: '/projects',
             label: 'Проєкти',
             icon: <FolderSpecialOutlined />,
+          },
+          {
+            id: 'budget',
+            path: '/budget',
+            label: 'Печивко',
+            icon: <SavingsOutlined />,
           },
         ]
       : []),

@@ -138,6 +138,7 @@ export class UsersService {
   async setNickname(
     id: string,
     { nickname, create }: UpdateUserNicknameData,
+    actor: string,
   ): Promise<Omit<IUser, 'password'>> {
     if (!isValidObjectId(id)) {
       throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
@@ -178,11 +179,10 @@ export class UsersService {
     }
 
     if (!member) {
-      await this.membersService.createMember({
-        nickname,
-        types: [],
-        kind: MEMBER_KIND.TEAM,
-      });
+      await this.membersService.createMember(
+        { nickname, types: [], kind: MEMBER_KIND.TEAM },
+        actor,
+      );
     }
 
     return this.saveNickname(id, nickname);

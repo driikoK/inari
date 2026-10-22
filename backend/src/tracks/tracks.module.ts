@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { BudgetAuditModule } from '../budget/budget-audit.module.js';
 import { DatabaseModule } from '../database/database.module.js';
 import { MembersService } from '../members/members.service.js';
 import { membersProviders } from '../members/members.provider.js';
@@ -11,7 +12,7 @@ import { tracksProviders } from './tracks.provider.js';
 import { usersProviders } from '../users/users.provider.js';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, BudgetAuditModule],
   controllers: [TracksController],
   providers: [
     TrackService,

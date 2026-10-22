@@ -65,8 +65,9 @@ export class UsersController {
   setNickname(
     @Param('id') id: string,
     @Body({ schema: UpdateUserNicknameData }) data: UpdateUserNicknameData,
+    @CurrentUser() currentUser: ValidatedUser,
   ) {
-    return this.userService.setNickname(id, data);
+    return this.userService.setNickname(id, data, currentUser.username);
   }
 
   @Delete(':id')

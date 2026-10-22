@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SeedCommand } from './seed.command.js';
+import { BudgetModule } from '../budget/budget.module.js';
 import { MembersModule } from '../members/members.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { PollsModule } from '../polls/polls.module.js';
@@ -10,6 +11,7 @@ import { TracksModule } from '../tracks/tracks.module.js';
 
 @Module({
   imports: [
+    BudgetModule,
     MembersModule,
     UsersModule,
     PollsModule,

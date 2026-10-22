@@ -19,6 +19,12 @@ export interface ITrack extends Multipliers {
   coins: number;
 }
 
+export interface SeasonCoins {
+  season: SEASON;
+  year: number;
+  coins: number;
+}
+
 export interface ITracksWithPagination {
   data: ITrack[];
   total: number;

@@ -20,7 +20,7 @@ export const seasonOrdinal = (day: string): number => {
   return year * SEASONS.length + Math.floor((month - 1) / MONTHS_IN_SEASON);
 };
 
-const seasonOfOrdinal = (ordinal: number) => ({
+export const seasonOfOrdinal = (ordinal: number) => ({
   season: SEASONS[ordinal % SEASONS.length],
   year: Math.floor(ordinal / SEASONS.length),
 });
@@ -31,6 +31,14 @@ export const seasonStartDay = (ordinal: number): string => {
   const firstMonth = (ordinal % SEASONS.length) * MONTHS_IN_SEASON + 1;
 
   return `${seasonOfOrdinal(ordinal).year}-${String(firstMonth).padStart(2, '0')}-01`;
+};
+
+export const shiftDays = (day: string, days: number): string => {
+  const shifted = new Date(`${day}T00:00:00Z`);
+
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+
+  return shifted.toISOString().slice(0, 10);
 };
 
 const markIn = (project: Project, ordinal: number): PROJECT_MARK => {

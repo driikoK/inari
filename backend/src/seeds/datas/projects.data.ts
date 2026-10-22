@@ -1,7 +1,11 @@
 import { PROPOSAL_FUNDING } from '../../proposals/enums/index.js';
 import { ANIME_TYPE, MEMBER_ROLE } from '../../shared/index.js';
 import type { ProjectParticipant } from '../../projects/interfaces/index.js';
-import { seasonOrdinal, seasonStartDay } from '../../projects/layout.js';
+import {
+  seasonOrdinal,
+  seasonStartDay,
+  shiftDays,
+} from '../../projects/layout.js';
 
 export interface SeedProject {
   ukrName: string;
@@ -18,13 +22,6 @@ export interface SeedProject {
   participants: ProjectParticipant[];
   finish?: { endDate: string; isInTime: boolean };
 }
-
-const shiftDays = (day: string, days: number) => {
-  const shifted = new Date(`${day}T00:00:00Z`);
-  shifted.setUTCDate(shifted.getUTCDate() + days);
-
-  return shifted.toISOString().slice(0, 10);
-};
 
 const seasonStart = (today: string, seasonsBack: number) =>
   seasonStartDay(seasonOrdinal(today) - seasonsBack);

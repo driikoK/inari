@@ -55,7 +55,7 @@ Defined in `src/router/index.tsx`. All routes are lazy-loaded. Two routes are co
 - `VITE_FEATURE_POLL === 'true'` → `/vote`
 - `hasAccess(SUBJECTS.SHOW_RESULTS) || VITE_FEATURE_RESULTS === 'true'` → `/result`
 
-`/proposals` and `/projects` are always on for logged-in users, each with a sidebar item and a header link. `/proposals` is meant to replace `/vote` and `/result`, which stay until a follow-up removes them. `/projects?project=<id>` selects the season of that project and opens its card (not for a member when the tile is greyed), then drops the parameter.
+`/proposals`, `/projects` and `/budget` are always on for logged-in users, each with a sidebar item and a header link. `/proposals` is meant to replace `/vote` and `/result`, which stay until a follow-up removes them. `/projects?project=<id>` selects the season of that project and opens its card (not for a member when the tile is greyed), then drops the parameter.
 
 ### State (Zustand)
 
@@ -126,6 +126,16 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 - `ProjectFormDialog` loads the members first and mounts `ProjectForm` only after they are in, so a proposal's paws can be matched to nicknames (case-insensitive) when the form opens. An unmatched paw becomes an empty row that says «З пропозиції: …» and blocks saving until a nickname is picked or the row is removed. Rows carry a client-only `key`, which `toProjectPayload` drops.
 - The create form has a «Вже завершено» checkbox, for backfilling old titles, that reveals the end date and «Завершено вчасно». The edit form shows them only for a project that is already finished, and for a running one they come from the `FinishProjectDialog`. `isFinished` is a form value, not an argument of the schema factory.
 - The card reuses `ParticipantsByRole` from the Proposals page, mapping `nickname` to `userName`. Both read the roles from `useRolesStore`.
+
+### Budget page
+
+- `src/pages/Budget/` (`/budget`, sidebar and header «Печивко») is open to every logged-in user and shows the season jars (the current and the previous season) and the totals. An admin (`SUBJECTS.MANAGE_BUDGET`) also gets the button «Внести надходження» and the tabs «Журнал» and «Аудит». A member sees no tabs and no button.
+- The server sends money in kopiykas and the browser only formats it (`formatKop` in `const/options.ts`). A form takes hryvnias as text («1500», «1 500,50») and `parseUah` turns it into kopiykas. Nothing about jars, coefficients or balances is computed in the browser.
+- `IncomeFormDialog` adds several incomes with one date and season. The season is prefilled from the date until the admin picks one by hand, after which the date stops overriding it. The year select runs from 2000 (the oldest date the server takes) to next year, so a prefilled year is never missing from it. Editing opens the same dialog for one record. If the server answers `AUDIT_NOT_SAVED` (`BUDGET_ERROR`, `isAuditNotSaved`) the record is already saved, so the dialog closes instead of waiting for a second submit. An order needs a title, a project jar may have one, a lisodar may have a name. `TitleField` takes a project from `useProjectsStore` or free text, `NicknameField` a nickname from `useMembersStore` or free text.
+- Every mutation in `useBudgetStore` refetches the summary, the journal page and the audit page that are open, even when it fails, because the server saves a record before it writes the audit and a failed request may still have changed the numbers.
+- An audit row is money (`deltaKop`) or crumbs (`deltaCrumbs`, plus the balance of the season), told apart by `unit`; `AuditOperationCard` renders both, and `describeSnapshot` takes the snapshot of an income, a track or a nickname. `AuditTab` loads the role labels (`useRolesStore`) for the details. The journal and the audit clear their data and stop refetching when their tab is left (`clearEntries`, `clearAudit`), so a mutation refreshes only what is on screen.
+- A coefficient of `0` is real (crumbs were earned and the jar is empty) and is shown as «0,00 грн»; only `null` (no crumbs) is shown as a dash. Never test it with a truthiness check.
+- When a script or a test reads the page text, remember that the card titles are upper-cased by CSS and `innerText` returns them that way.
 
 ### API Layer
 

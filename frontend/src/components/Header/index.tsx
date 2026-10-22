@@ -31,6 +31,7 @@ const Header: FunctionComponent = () => {
     { title: 'Крихти', link: '/cookie' },
     { title: 'Пропозиції', link: '/proposals' },
     { title: 'Проєкти', link: '/projects' },
+    { title: 'Печивко', link: '/budget' },
     isShowPoll ? { title: 'Голосування', link: '/vote' } : null,
     isShowResults ? { title: 'Результати', link: '/result' } : null,
     isAdmin ? { title: 'Налаштування', link: '/settings' } : null,

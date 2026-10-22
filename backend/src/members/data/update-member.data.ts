@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { SEASON } from '../../shared/index.js';
 
 // Loose: the frontend sends seasons back exactly as the database returned them (with `_id`)
 const MemberSeason = z.looseObject({
-  season: z.string(),
+  season: z.enum(SEASON),
   year: z.number(),
   coins: z.number(),
 });

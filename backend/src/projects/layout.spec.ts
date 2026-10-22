@@ -9,6 +9,7 @@ import {
   seasonOfDay,
   seasonOrdinal,
   seasonStartDay,
+  shiftDays,
   todayInKyiv,
 } from './layout.js';
 
@@ -81,6 +82,18 @@ describe('seasonStartDay', () => {
 
   it('steps back over the turn of the year', () => {
     expect(seasonStartDay(seasonOrdinal('2027-02-01') - 1)).toBe('2026-10-01');
+  });
+});
+
+describe('shiftDays', () => {
+  it.each([
+    ['2027-05-10', 10, '2027-05-20'],
+    ['2027-05-10', -10, '2027-04-30'],
+    ['2027-12-31', 1, '2028-01-01'],
+    ['2028-02-28', 1, '2028-02-29'],
+    ['2027-05-10', 0, '2027-05-10'],
+  ])('moves %s by %i days to %s', (day, days, shifted) => {
+    expect(shiftDays(day, days)).toBe(shifted);
   });
 });
 
