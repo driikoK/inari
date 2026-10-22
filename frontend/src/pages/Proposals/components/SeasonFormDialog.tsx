@@ -7,8 +7,9 @@ import { ErrorMessage } from '@hookform/error-message';
 import { Box, Button, MenuItem, TextField } from '@mui/material';
 
 import { CustomDialog, ErrorText, H6 } from '@/components';
-import useProposalsStore, { notifyFailure } from '@/stores/useProposalsStore';
+import useProposalsStore from '@/stores/useProposalsStore';
 import { seasonOptions } from '@/utils/constants';
+import { notifyFailure } from '@/utils/request';
 import { createSeasonFormSchema, type SeasonFormValues } from '../const/form';
 import { nextSeason, yearChoices } from '../const/options';
 

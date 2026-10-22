@@ -27,7 +27,8 @@ Use npm everywhere (Node 24, npm 11), never yarn. Do not commit `.env` files.
 - **Track** — one member's work on one episode in one role. It earns **coins** (the UI says «крихти»), which add up to the member's total and to a per-season total. Rates and multipliers (ongoing, priority, in time, guest) are in the backend's `DictionariesService` and `tracks/enums`.
 - **Rating** — members ordered by coins, optionally for one season.
 - **Poll** — the team votes on upcoming anime, choosing the roles they want. It is being replaced by **Proposals**. **Team animes** are the titles offered when recording tracks.
-- **Proposal** («Пропозиція») — a title offered for an upcoming season. Admins create seasons (a tab each), add titles and close or delete seasons. Members «докладають лапу»: they join a title with any of 8 roles, at most 3 titles per person per season. A closed season is read-only for members.
+- **Proposal** («Пропозиція») — a title offered for an upcoming season. Admins create seasons (a tab each), add titles and close or delete seasons. Members «докладають лапу»: they join a title with any role, at most 3 titles per person per season. A closed season is read-only for members.
+- **Project** («Проєкт») — a title the team is working on, started by a curator (the `director` role, or an admin), from scratch or from a proposal. It has a start date, a kind (онґоїнґ or стареча), a team of nicknames with roles, and a count of released episodes. Its season is the anime season of its start date. A project still running after that season is a **debt** («борг сезону»), unless it was finished with «завершено вчасно». «Завершено» fixes the end date and greys the tile until the end of that season.
 
 ## Shared tooling
 

@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { Chip, Stack } from '@mui/material';
 
 import type { Proposal } from '@/stores/useProposalsStore';
+import { PROPOSAL_FUNDING } from '@/types';
 
 const chipSx = (token: string) => ({
   color: `var(${token})`,
@@ -16,11 +17,15 @@ export const ProposalChips: FC<ProposalChipsProps> = ({ isOngoing, isSequel, fun
   <Stack direction="row" flexWrap="wrap" gap={0.75}>
     <Chip
       size="small"
-      label={isOngoing ? 'Онг сезону' : 'Стареча'}
+      label={isOngoing ? 'Онґоїнґ' : 'Стареча'}
       sx={chipSx(isOngoing ? '--accent' : '--text-muted')}
     />
-    {funding === 'patron' && <Chip size="small" label="Меценатський" sx={chipSx('--green')} />}
-    {funding === 'order' && <Chip size="small" label="Замовлення" sx={chipSx('--orange')} />}
+    {funding === PROPOSAL_FUNDING.PATRON && (
+      <Chip size="small" label="Меценатський" sx={chipSx('--green')} />
+    )}
+    {funding === PROPOSAL_FUNDING.ORDER && (
+      <Chip size="small" label="Замовлення" sx={chipSx('--orange')} />
+    )}
     {isSequel && <Chip size="small" label="Продовження" sx={chipSx('--teal')} />}
   </Stack>
 );

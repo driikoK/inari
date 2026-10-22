@@ -16,17 +16,15 @@ import {
 } from '@mui/material';
 
 import { CustomDialog, ErrorText, H6, P } from '@/components';
-import useProposalsStore, {
-  notifyFailure,
-  type Proposal,
-  type ProposalSeason,
-} from '@/stores/useProposalsStore';
+import useProposalsStore, { type Proposal, type ProposalSeason } from '@/stores/useProposalsStore';
+import { NO_FUNDING, TITLE_KIND } from '@/types';
+import { notifyFailure } from '@/utils/request';
 import {
   createProposalFormSchema,
   toProposalPayload,
   type ProposalFormValues,
 } from '../const/form';
-import { fundingOptions, seasonLabel } from '../const/options';
+import { fundingOptions, kindOptions, seasonLabel } from '../const/options';
 
 interface ProposalFormDialogProps {
   open: boolean;
@@ -45,8 +43,8 @@ const initialValues = (seasonId: string, proposal?: Proposal): ProposalFormValue
   link: proposal?.link ?? '',
   posterUrl: proposal?.posterUrl ?? '',
   note: proposal?.note ?? '',
-  isOngoing: proposal?.isOngoing === false ? 'old' : 'ongoing',
-  funding: proposal?.funding ?? 'none',
+  isOngoing: proposal?.isOngoing === false ? TITLE_KIND.OLD : TITLE_KIND.ONGOING,
+  funding: proposal?.funding ?? NO_FUNDING,
   isSequel: proposal?.isSequel ?? false,
 });
 
@@ -144,12 +142,11 @@ export const ProposalFormDialog: FC<ProposalFormDialogProps> = ({
                   value={field.value}
                   onChange={(_, next) => next && field.onChange(next)}
                 >
-                  <ToggleButton value="ongoing" sx={toggleSx}>
-                    Онг сезону
-                  </ToggleButton>
-                  <ToggleButton value="old" sx={toggleSx}>
-                    Стареча
-                  </ToggleButton>
+                  {kindOptions.map((option) => (
+                    <ToggleButton key={option.value} value={option.value} sx={toggleSx}>
+                      {option.label}
+                    </ToggleButton>
+                  ))}
                 </ToggleButtonGroup>
               )}
             />

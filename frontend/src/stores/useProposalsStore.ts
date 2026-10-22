@@ -1,22 +1,11 @@
-import toast from 'react-hot-toast';
 import { create } from 'zustand';
 import axios from '@/api';
-
-export type ProposalRole =
-  | 'sub'
-  | 'editor'
-  | 'typesetter'
-  | 'dubs'
-  | 'fixers'
-  | 'sound'
-  | 'releasers'
-  | 'director';
-
-export type ProposalFunding = 'patron' | 'order';
+import type { PROPOSAL_FUNDING } from '@/types';
+import { ensure } from '@/utils/request';
 
 export interface Participant {
   userName: string;
-  roles: ProposalRole[];
+  roles: string[];
 }
 
 export interface Proposal {
@@ -29,7 +18,8 @@ export interface Proposal {
   note?: string;
   isOngoing: boolean;
   isSequel: boolean;
-  funding?: ProposalFunding;
+  funding?: PROPOSAL_FUNDING;
+  projectId?: string;
   participants: Participant[];
 }
 
@@ -50,7 +40,7 @@ export interface ProposalPayload {
   note: string | null;
   isOngoing: boolean;
   isSequel: boolean;
-  funding: ProposalFunding | null;
+  funding: PROPOSAL_FUNDING | null;
 }
 
 interface State {
@@ -67,21 +57,9 @@ interface Actions {
   createProposal: (payload: ProposalPayload & { seasonId: string }) => Promise<void>;
   updateProposal: (id: string, payload: ProposalPayload) => Promise<void>;
   deleteProposal: (id: string) => Promise<void>;
-  join: (id: string, roles: ProposalRole[]) => Promise<void>;
-  setParticipantRoles: (id: string, userName: string, roles: ProposalRole[]) => Promise<void>;
+  join: (id: string, roles: string[]) => Promise<void>;
+  setParticipantRoles: (id: string, userName: string, roles: string[]) => Promise<void>;
 }
-
-// The Axios interceptor returns undefined for a request that got no response at all
-const ensure = <T>(response: T): NonNullable<T> => {
-  if (!response) throw new Error('Немає відповіді від сервера');
-
-  return response;
-};
-
-// Errors the server answered were already shown by the interceptor, only these are not
-export const notifyFailure = (error: unknown) => {
-  if (error instanceof Error) toast.error(error.message);
-};
 
 const useProposalsStore = create<State & Actions>((set) => {
   const refresh = async () => {

@@ -8,14 +8,16 @@ import { ConfirmDeleteDialog } from '@/components';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
 import { useAuthStore } from '@/stores';
+import useRolesStore from '@/stores/useRolesStore';
 import useProposalsStore, {
-  notifyFailure,
   type Participant,
   type Proposal,
   type ProposalSeason,
 } from '@/stores/useProposalsStore';
+import { notifyFailure } from '@/utils/request';
 import { seasonLabel } from './const/options';
 import { JoinDialog } from './components/JoinDialog';
+import { ProjectFormDialog } from '@/pages/Projects/components/ProjectFormDialog';
 import { ParticipantRolesDialog } from './components/ParticipantRolesDialog';
 import { ProposalCard } from './components/ProposalCard';
 import { ProposalFormDialog } from './components/ProposalFormDialog';
@@ -35,9 +37,11 @@ const Proposals: FC = () => {
     deleteSeason,
     deleteProposal,
   } = useProposalsStore();
+  const getRoles = useRolesStore((state) => state.getRoles);
   const username = useAuthStore((state) => state.user?.username);
   const { hasAccess } = usePermissions();
   const isAdmin = hasAccess(SUBJECTS.MANAGE_PROPOSALS);
+  const canLaunch = hasAccess(SUBJECTS.MANAGE_PROJECTS);
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [isSeasonFormOpen, setIsSeasonFormOpen] = useState(false);
@@ -45,6 +49,7 @@ const Proposals: FC = () => {
   const [proposalToEdit, setProposalToEdit] = useState<Proposal | null>(null);
   const [proposalToJoin, setProposalToJoin] = useState<Proposal | null>(null);
   const [proposalToDelete, setProposalToDelete] = useState<Proposal | null>(null);
+  const [proposalToLaunch, setProposalToLaunch] = useState<Proposal | null>(null);
   const [isSeasonDeleteOpen, setIsSeasonDeleteOpen] = useState(false);
   const [participantToEdit, setParticipantToEdit] = useState<{
     proposal: Proposal;
@@ -53,7 +58,8 @@ const Proposals: FC = () => {
 
   useEffect(() => {
     getProposals().catch(notifyFailure);
-  }, [getProposals]);
+    getRoles().catch(notifyFailure);
+  }, [getProposals, getRoles]);
 
   const current =
     seasons.find((season) => keyOf(season) === selectedKey) ??
@@ -183,9 +189,11 @@ const Proposals: FC = () => {
                   joinedCount={joinedCount}
                   maxPerPerson={maxPerPerson}
                   isAdmin={isAdmin}
+                  canLaunch={canLaunch}
                   onJoin={setProposalToJoin}
                   onEdit={setProposalToEdit}
                   onDelete={setProposalToDelete}
+                  onLaunch={setProposalToLaunch}
                   onEditParticipant={(target, participant) =>
                     setParticipantToEdit({ proposal: target, participant })
                   }
@@ -231,6 +239,14 @@ const Proposals: FC = () => {
           username={username}
           joinedCount={joinedCount}
           maxPerPerson={maxPerPerson}
+        />
+      )}
+
+      {proposalToLaunch && (
+        <ProjectFormDialog
+          open
+          onClose={() => setProposalToLaunch(null)}
+          proposal={proposalToLaunch}
         />
       )}
 

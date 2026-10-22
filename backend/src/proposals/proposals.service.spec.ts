@@ -565,4 +565,47 @@ describe('ProposalsService', () => {
       );
     });
   });
+
+  describe('launching as a project', () => {
+    const projectId = new Types.ObjectId();
+
+    it('records the project on a proposal that has none yet', async () => {
+      withProposal(proposal());
+      proposals.updateOne.mockResolvedValue({ modifiedCount: 1 } as any);
+
+      await service.markLaunched(String(proposalId), projectId);
+
+      expect(proposals.updateOne).toHaveBeenCalledWith(
+        { _id: proposalId, projectId: { $exists: false } },
+        { $set: { projectId } },
+      );
+    });
+
+    it('refuses a proposal that is already a project', async () => {
+      withProposal(proposal({ projectId: new Types.ObjectId() }));
+      proposals.updateOne.mockResolvedValue({ modifiedCount: 0 } as any);
+
+      await expect(
+        service.markLaunched(String(proposalId), projectId),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('answers 404 for a proposal that does not exist', async () => {
+      withProposal(null);
+
+      await expect(
+        service.markLaunched(String(proposalId), projectId),
+      ).rejects.toThrow(NotFoundException);
+      expect(proposals.updateOne).not.toHaveBeenCalled();
+    });
+
+    it('frees the proposal when its project is gone', async () => {
+      await service.clearLaunched(projectId);
+
+      expect(proposals.updateMany).toHaveBeenCalledWith(
+        { projectId },
+        { $unset: { projectId: '' } },
+      );
+    });
+  });
 });

@@ -15,6 +15,18 @@ export const convertSeasonEngToUkr = (season: string): string => {
   }
 };
 
+export const MAL_LABEL = 'MAL';
+
+export const linkLabel = (link: string): string => {
+  try {
+    const host = new URL(link).hostname.replace(/^www\./, '');
+
+    return host.includes('myanimelist') ? MAL_LABEL : host;
+  } catch {
+    return 'Посилання';
+  }
+};
+
 export const convertAnimeTypeEngToUkr = (type: ANIME_TYPE): string => {
   switch (type) {
     case ANIME_TYPE.SERIES:

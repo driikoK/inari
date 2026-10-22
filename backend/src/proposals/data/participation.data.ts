@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { PROPOSAL_ROLES } from '../enums/index.js';
+import { MEMBER_ROLE } from '../../shared/index.js';
 
 export const ParticipationData = z.object({
   roles: z
-    .array(z.enum(PROPOSAL_ROLES, { error: 'Invalid role' }))
-    .max(PROPOSAL_ROLES.length),
+    .array(z.enum(MEMBER_ROLE, { error: 'Невідома роль' }))
+    .max(Object.values(MEMBER_ROLE).length),
 });
 
 export type ParticipationData = z.infer<typeof ParticipationData>;

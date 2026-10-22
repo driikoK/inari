@@ -1,12 +1,11 @@
 import { z } from 'zod';
 
 import type { ProposalPayload } from '@/stores/useProposalsStore';
+import { type FundingChoice, NO_FUNDING, PROPOSAL_FUNDING, TITLE_KIND } from '@/types';
 import { seasonOptions } from '@/utils/constants';
+import { httpUrl, LINK_MESSAGE } from '@/utils/validation';
 
 const REQUIRED_MESSAGE = 'Обов’язкове поле';
-const LINK_MESSAGE = 'Введіть коректне посилання';
-
-const httpUrl = z.url({ protocol: /^https?$/, error: LINK_MESSAGE });
 
 export interface ProposalFormValues {
   seasonId: string;
@@ -15,8 +14,8 @@ export interface ProposalFormValues {
   link: string;
   posterUrl: string;
   note: string;
-  isOngoing: 'ongoing' | 'old';
-  funding: 'none' | 'patron' | 'order';
+  isOngoing: TITLE_KIND;
+  funding: FundingChoice;
   isSequel: boolean;
 }
 
@@ -36,8 +35,8 @@ export const createProposalFormSchema = (): z.ZodType<ProposalFormValues, Propos
       .trim()
       .refine((value) => value === '' || httpUrl.safeParse(value).success, LINK_MESSAGE),
     note: z.string().max(500, 'Максимум 500 символів'),
-    isOngoing: z.enum(['ongoing', 'old'], { error: REQUIRED_MESSAGE }),
-    funding: z.enum(['none', 'patron', 'order']),
+    isOngoing: z.enum(TITLE_KIND, { error: REQUIRED_MESSAGE }),
+    funding: z.enum([NO_FUNDING, PROPOSAL_FUNDING.PATRON, PROPOSAL_FUNDING.ORDER]),
     isSequel: z.boolean(),
   });
 
@@ -56,7 +55,7 @@ export const toProposalPayload = (values: ProposalFormValues): ProposalPayload =
   link: values.link,
   posterUrl: values.posterUrl || null,
   note: values.note.trim() || null,
-  isOngoing: values.isOngoing === 'ongoing',
+  isOngoing: values.isOngoing === TITLE_KIND.ONGOING,
   isSequel: values.isSequel,
-  funding: values.funding === 'none' ? null : values.funding,
+  funding: values.funding === NO_FUNDING ? null : values.funding,
 });

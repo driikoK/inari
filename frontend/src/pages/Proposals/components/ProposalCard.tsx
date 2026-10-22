@@ -1,13 +1,15 @@
 import { FC } from 'react';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import EditIcon from '@mui/icons-material/EditOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNewOutlined';
-import { Button, IconButton } from '@mui/material';
+import { Button, Chip, IconButton } from '@mui/material';
 
 import { Icon } from '@/components';
 import type { Participant, Proposal } from '@/stores/useProposalsStore';
+import { linkLabel, MAL_LABEL } from '@/utils/convert';
 import MalImg from '/mal.png';
 import { ParticipantsByRole } from './ParticipantsByRole';
 import { ProposalChips } from './ProposalChips';
@@ -20,21 +22,13 @@ interface ProposalCardProps {
   joinedCount: number;
   maxPerPerson: number;
   isAdmin: boolean;
+  canLaunch: boolean;
   onJoin: (proposal: Proposal) => void;
   onEdit: (proposal: Proposal) => void;
   onDelete: (proposal: Proposal) => void;
+  onLaunch: (proposal: Proposal) => void;
   onEditParticipant: (proposal: Proposal, participant: Participant) => void;
 }
-
-const linkLabel = (link: string) => {
-  try {
-    const host = new URL(link).hostname.replace(/^www\./, '');
-
-    return host.includes('myanimelist') ? 'MAL' : host;
-  } catch {
-    return 'Посилання';
-  }
-};
 
 export const ProposalCard: FC<ProposalCardProps> = ({
   proposal,
@@ -43,9 +37,11 @@ export const ProposalCard: FC<ProposalCardProps> = ({
   joinedCount,
   maxPerPerson,
   isAdmin,
+  canLaunch,
   onJoin,
   onEdit,
   onDelete,
+  onLaunch,
   onEditParticipant,
 }) => {
   const { ukrName, romajiName, link, posterUrl, note, participants } = proposal;
@@ -75,8 +71,20 @@ export const ProposalCard: FC<ProposalCardProps> = ({
         funding={proposal.funding}
       />
 
+      {proposal.projectId && (
+        <Chip
+          component={Link}
+          to={`/projects?project=${proposal.projectId}`}
+          clickable
+          size="small"
+          color="success"
+          label="Запущено"
+          sx={{ alignSelf: 'flex-start' }}
+        />
+      )}
+
       <a className={styles.link} href={link} target="_blank" rel="noreferrer">
-        {linkLabel(link) === 'MAL' ? (
+        {linkLabel(link) === MAL_LABEL ? (
           <Icon img={MalImg} width={20} height={20} />
         ) : (
           <OpenInNewIcon fontSize="small" />
@@ -102,6 +110,12 @@ export const ProposalCard: FC<ProposalCardProps> = ({
         >
           {label}
         </Button>
+
+        {canLaunch && !proposal.projectId && (
+          <Button variant="outlined" onClick={() => onLaunch(proposal)}>
+            Запустити проєкт
+          </Button>
+        )}
 
         <span className={styles.footerSpacer} />
 

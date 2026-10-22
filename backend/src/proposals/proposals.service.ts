@@ -6,14 +6,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { isValidObjectId, Model, Types } from 'mongoose';
-import { SEASON } from '../shared/index.js';
+import { type MEMBER_ROLE, SEASON, splitOptionals } from '../shared/index.js';
 import type {
   CreateProposalData,
   CreateSeasonData,
   UpdateProposalData,
 } from './data/index.js';
 import { MAX_PROPOSALS_PER_PERSON } from './enums/index.js';
-import type { ProposalRole } from './enums/index.js';
 import type {
   Proposal,
   ProposalSeason,
@@ -24,15 +23,8 @@ const SEASON_ORDER: string[] = Object.values(SEASON);
 
 const SEASON_CLOSED = 'Сезон закрито';
 const TITLE_EXISTS = 'Така пропозиція вже є в цьому сезоні';
+const ALREADY_LAUNCHED = 'Цю пропозицію вже запущено як проєкт';
 const LIMIT_REACHED = `Можна долучитися максимум до ${MAX_PROPOSALS_PER_PERSON} проєктів у сезоні`;
-
-const OPTIONAL_FIELDS = ['posterUrl', 'note', 'funding'] as const;
-
-type OptionalFields = {
-  posterUrl?: string | null;
-  note?: string | null;
-  funding?: string | null;
-};
 
 @Injectable()
 export class ProposalsService {
@@ -119,11 +111,12 @@ export class ProposalsService {
     await this.assertTitleFree(season._id, dto.ukrName);
 
     const { posterUrl, note, funding, seasonId: _seasonId, ...required } = dto;
+    const { set } = splitOptionals({ posterUrl, note, funding });
 
     return this.proposalModel.create({
       ...required,
       seasonId: season._id,
-      ...this.definedOptionals({ posterUrl, note, funding }),
+      ...set,
     });
   }
 
@@ -142,19 +135,13 @@ export class ProposalsService {
     await this.assertTitleFree(seasonId, dto.ukrName, proposal._id);
 
     const { posterUrl, note, funding, seasonId: _target, ...required } = dto;
-    const optionals = this.definedOptionals({ posterUrl, note, funding });
-    const unset = Object.fromEntries(
-      OPTIONAL_FIELDS.filter((field) => !(field in optionals)).map((field) => [
-        field,
-        '',
-      ]),
-    );
+    const { set, unset } = splitOptionals({ posterUrl, note, funding });
 
     return this.proposalModel
       .findByIdAndUpdate(
         proposal._id,
         {
-          $set: { ...required, seasonId, ...optionals },
+          $set: { ...required, seasonId, ...set },
           ...(Object.keys(unset).length && { $unset: unset }),
         },
         { new: true },
@@ -170,11 +157,7 @@ export class ProposalsService {
     return true;
   }
 
-  setParticipation(
-    userName: string,
-    proposalId: string,
-    roles: ProposalRole[],
-  ) {
+  setParticipation(userName: string, proposalId: string, roles: MEMBER_ROLE[]) {
     return this.serialize(userName, async () => {
       const proposal = await this.findProposal(proposalId);
       const season = await this.findSeason(String(proposal.seasonId));
@@ -199,7 +182,7 @@ export class ProposalsService {
   async setParticipantRoles(
     proposalId: string,
     userName: string,
-    roles: ProposalRole[],
+    roles: MEMBER_ROLE[],
   ) {
     const proposal = await this.findProposal(proposalId);
 
@@ -210,6 +193,23 @@ export class ProposalsService {
     await this.changeRoles(proposal._id, userName, [...new Set(roles)]);
 
     return this.findProposal(proposalId);
+  }
+
+  async markLaunched(id: string, projectId: Types.ObjectId): Promise<void> {
+    const proposal = await this.findProposal(id);
+    const { modifiedCount } = await this.proposalModel.updateOne(
+      { _id: proposal._id, projectId: { $exists: false } },
+      { $set: { projectId } },
+    );
+
+    if (!modifiedCount) throw new ConflictException(ALREADY_LAUNCHED);
+  }
+
+  clearLaunched(projectId: Types.ObjectId) {
+    return this.proposalModel.updateMany(
+      { projectId },
+      { $unset: { projectId: '' } },
+    );
   }
 
   async deleteParticipationsByUser(userName: string): Promise<void> {
@@ -248,7 +248,7 @@ export class ProposalsService {
   private async join(
     proposal: Proposal,
     userName: string,
-    roles: ProposalRole[],
+    roles: MEMBER_ROLE[],
   ) {
     const joinedBefore = await this.countJoined(proposal.seasonId, userName);
 
@@ -273,7 +273,7 @@ export class ProposalsService {
   private async changeRoles(
     proposalId: Types.ObjectId,
     userName: string,
-    roles: ProposalRole[],
+    roles: MEMBER_ROLE[],
   ) {
     if (!roles.length) {
       await this.pullParticipant(proposalId, userName);
@@ -313,14 +313,6 @@ export class ProposalsService {
     });
 
     if (duplicate) throw new ConflictException(TITLE_EXISTS);
-  }
-
-  private definedOptionals(fields: OptionalFields) {
-    return Object.fromEntries(
-      Object.entries(fields).filter(
-        ([, value]) => typeof value === 'string' && value.trim() !== '',
-      ),
-    );
   }
 
   private assertId(id: string) {

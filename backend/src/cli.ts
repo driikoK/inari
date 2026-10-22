@@ -42,6 +42,10 @@ const commands: Record<string, Command> = {
     describe: 'create demo seasons with proposals and participants',
     run: (seed) => seed.proposals(),
   },
+  'seed:projects': {
+    describe: 'create demo projects over the last three seasons',
+    run: (seed) => seed.projects(),
+  },
   'seed:tracks': {
     describe: 'create demo tracks (needs seed:root and seed:nicknames)',
     run: (seed) => seed.tracks(),

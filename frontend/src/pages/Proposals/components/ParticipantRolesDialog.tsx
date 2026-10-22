@@ -4,12 +4,8 @@ import toast from 'react-hot-toast';
 import { Button } from '@mui/material';
 
 import { CustomDialog, H6, P } from '@/components';
-import useProposalsStore, {
-  notifyFailure,
-  type Participant,
-  type Proposal,
-  type ProposalRole,
-} from '@/stores/useProposalsStore';
+import useProposalsStore, { type Participant, type Proposal } from '@/stores/useProposalsStore';
+import { notifyFailure } from '@/utils/request';
 import { RoleCheckboxes } from './RoleCheckboxes';
 
 interface ParticipantRolesDialogProps {
@@ -26,7 +22,7 @@ export const ParticipantRolesDialog: FC<ParticipantRolesDialogProps> = ({
   participant,
 }) => {
   const setParticipantRoles = useProposalsStore((state) => state.setParticipantRoles);
-  const [roles, setRoles] = useState<ProposalRole[]>(participant.roles);
+  const [roles, setRoles] = useState<string[]>(participant.roles);
   const [isSaving, setIsSaving] = useState(false);
 
   const isRemoving = roles.length === 0;

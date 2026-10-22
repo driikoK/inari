@@ -16,6 +16,7 @@ export const ProposalSchema = new mongoose.Schema(
     isOngoing: { type: Boolean, required: true },
     isSequel: { type: Boolean, default: false },
     funding: String,
+    projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'project' },
     participants: [
       {
         _id: false,

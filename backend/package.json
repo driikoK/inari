@@ -25,6 +25,8 @@
     "seed:anime": "nest build && node dist/cli.js seed:anime",
     "seed:team-animes": "nest build && node dist/cli.js seed:team-animes",
     "seed:votes": "nest build && node dist/cli.js seed:votes",
+    "seed:proposals": "nest build && node dist/cli.js seed:proposals",
+    "seed:projects": "nest build && node dist/cli.js seed:projects",
     "seed:tracks": "nest build && node dist/cli.js seed:tracks",
     "seed:clear": "nest build && node dist/cli.js seed:clear",
     "lint": "biome lint",

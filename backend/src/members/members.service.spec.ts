@@ -49,6 +49,26 @@ describe('MembersService', () => {
     });
   });
 
+  describe('getAllRoles', () => {
+    it('has a label for every member role and none twice, as the one list of roles the frontend uses', () => {
+      const roles = service.getAllRoles();
+
+      expect(roles.map(({ value }) => value).sort()).toEqual(
+        Object.values(MEMBER_ROLE).sort(),
+      );
+      expect(roles.every(({ label }) => label.trim() !== '')).toBe(true);
+    });
+
+    it('calls the fixer «Контроль якості», the sound role «Звукорежисер» and keeps the role breaker', () => {
+      const label = (role: MEMBER_ROLE) =>
+        service.getAllRoles().find(({ value }) => value === role)?.label;
+
+      expect(label(MEMBER_ROLE.FIXER)).toBe('Контроль якості');
+      expect(label(MEMBER_ROLE.SOUND)).toBe('Звукорежисер');
+      expect(label(MEMBER_ROLE.ROLE_BREAKER)).toBe('Розбивач ролей');
+    });
+  });
+
   describe('findAll by kind', () => {
     const sort = vi.fn().mockResolvedValue([]);
 

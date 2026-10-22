@@ -14,6 +14,9 @@ import { animeSeries } from './datas/anime.data.js';
 import { PollsService } from '../polls/polls.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { proposalSeasons } from './datas/proposals.data.js';
+import { projectSeeds } from './datas/projects.data.js';
+import { ProjectsService } from '../projects/projects.service.js';
+import { todayInKyiv } from '../projects/layout.js';
 import { CreateAnimeData, VoteData } from '../polls/data/index.js';
 import { ROLES_ON_VOTE } from '../polls/enums/index.js';
 import { TeamAnimesService } from '../team-animes/team-animes.service.js';
@@ -29,6 +32,7 @@ export class SeedCommand {
     private readonly membersService: MembersService,
     private readonly pollsService: PollsService,
     private readonly proposalsService: ProposalsService,
+    private readonly projectsService: ProjectsService,
     private readonly teamAnimesService: TeamAnimesService,
     private readonly trackService: TrackService,
     private readonly config: ConfigService<AppConfig, true>,
@@ -194,6 +198,23 @@ export class SeedCommand {
     console.log(`seed:proposals - created ${created} proposals`);
   }
 
+  async projects() {
+    const { seasons } = await this.projectsService.findAll();
+    const known = new Set(
+      seasons.flatMap(({ projects }) => projects.map(({ ukrName }) => ukrName)),
+    );
+    let created = 0;
+
+    for (const { finish, ...seed } of projectSeeds(todayInKyiv())) {
+      if (known.has(seed.ukrName)) continue;
+
+      await this.projectsService.create({ ...seed, ...finish });
+      created++;
+    }
+
+    console.log(`seed:projects - created ${created} projects`);
+  }
+
   async votes() {
     const { ongoings } = await this.pollsService.findAll();
 
@@ -274,6 +295,7 @@ export class SeedCommand {
     await this.teamAnimes();
     await this.votes();
     await this.proposals();
+    await this.projects();
     await this.tracks();
   }
 

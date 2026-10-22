@@ -1,9 +1,10 @@
 import type { Types } from 'mongoose';
-import type { PROPOSAL_FUNDING, ProposalRole } from '../enums/index.js';
+import type { MEMBER_ROLE } from '../../shared/index.js';
+import type { PROPOSAL_FUNDING } from '../enums/index.js';
 
 export interface Participant {
   userName: string;
-  roles: ProposalRole[];
+  roles: MEMBER_ROLE[];
 }
 
 export interface ProposalSeason {
@@ -24,6 +25,7 @@ export interface Proposal {
   isOngoing: boolean;
   isSequel: boolean;
   funding?: PROPOSAL_FUNDING;
+  projectId?: Types.ObjectId;
   participants: Participant[];
 }
 

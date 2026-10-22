@@ -17,6 +17,22 @@ export function pick<T extends object, K extends keyof T>(
   );
 }
 
+export function splitOptionals<K extends string>(
+  fields: Record<K, string | null | undefined>,
+) {
+  const set: Partial<Record<K, string>> = {};
+  const unset: Partial<Record<K, ''>> = {};
+
+  for (const key of Object.keys(fields) as K[]) {
+    const value = fields[key];
+
+    if (typeof value === 'string' && value.trim() !== '') set[key] = value;
+    else unset[key] = '';
+  }
+
+  return { set, unset };
+}
+
 export function omit<T extends object, K extends keyof T>(
   obj: T,
   keys: K[],

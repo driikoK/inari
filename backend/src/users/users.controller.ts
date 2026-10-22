@@ -67,8 +67,6 @@ export class UsersController {
   ): Promise<boolean> {
     const username = await this.userService.delete(id, currentUser._id);
 
-    // The account is already gone and cannot be deleted again, so one failing
-    // cleanup must not stop the other.
     const cleanups = await Promise.allSettled([
       this.pollsService.deleteVotesByUser(username),
       this.proposalsService.deleteParticipationsByUser(username),

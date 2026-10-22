@@ -1,22 +1,16 @@
-import type { ProposalRole } from '@/stores/useProposalsStore';
+import { NO_FUNDING, PROPOSAL_FUNDING, TITLE_KIND } from '@/types';
 import { seasonOptions } from '@/utils/constants';
 import { convertSeasonEngToUkr } from '@/utils/convert';
 
-export const proposalRoles: { value: ProposalRole; label: string }[] = [
-  { value: 'sub', label: 'Перекладач' },
-  { value: 'editor', label: 'Редактор' },
-  { value: 'typesetter', label: 'Тайпсеттер' },
-  { value: 'dubs', label: 'Дабер' },
-  { value: 'fixers', label: 'Контроль якості' },
-  { value: 'sound', label: 'Звукорежисер' },
-  { value: 'releasers', label: 'Релізер' },
-  { value: 'director', label: 'Куратор' },
-];
-
 export const fundingOptions = [
-  { value: 'none', label: 'Не вказано' },
-  { value: 'patron', label: 'Меценатський' },
-  { value: 'order', label: 'Замовлення' },
+  { value: NO_FUNDING, label: 'Не вказано' },
+  { value: PROPOSAL_FUNDING.PATRON, label: 'Меценатський' },
+  { value: PROPOSAL_FUNDING.ORDER, label: 'Замовлення' },
+] as const;
+
+export const kindOptions = [
+  { value: TITLE_KIND.ONGOING, label: 'Онґоїнґ' },
+  { value: TITLE_KIND.OLD, label: 'Стареча' },
 ] as const;
 
 export const seasonLabel = (season: string, year: number) =>

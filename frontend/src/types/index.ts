@@ -65,6 +65,26 @@ export enum ANIME_TYPE {
   TRAILER = 'trailer',
 }
 
+export enum PROPOSAL_FUNDING {
+  PATRON = 'patron',
+  ORDER = 'order',
+}
+
+export const NO_FUNDING = 'none';
+
+export type FundingChoice = typeof NO_FUNDING | PROPOSAL_FUNDING;
+
+export enum TITLE_KIND {
+  ONGOING = 'ongoing',
+  OLD = 'old',
+}
+
+export enum PROJECT_MARK {
+  ONGOING = 'ongoing',
+  OLD = 'old',
+  DEBT = 'debt',
+}
+
 export enum ROLES_ON_VOTE {
   DUB = 'dub',
   SUB = 'sub',

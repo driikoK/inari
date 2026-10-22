@@ -4,11 +4,8 @@ import toast from 'react-hot-toast';
 import { Button, TextField } from '@mui/material';
 
 import { CustomDialog, H6, P } from '@/components';
-import useProposalsStore, {
-  notifyFailure,
-  type Proposal,
-  type ProposalRole,
-} from '@/stores/useProposalsStore';
+import useProposalsStore, { type Proposal } from '@/stores/useProposalsStore';
+import { notifyFailure } from '@/utils/request';
 import { RoleCheckboxes } from './RoleCheckboxes';
 
 interface JoinDialogProps {
@@ -31,7 +28,7 @@ export const JoinDialog: FC<JoinDialogProps> = ({
   const join = useProposalsStore((state) => state.join);
 
   const current = proposal.participants.find((participant) => participant.userName === username);
-  const [roles, setRoles] = useState<ProposalRole[]>(current?.roles ?? []);
+  const [roles, setRoles] = useState<string[]>(current?.roles ?? []);
   const [isSaving, setIsSaving] = useState(false);
 
   const isWithdrawing = !!current && roles.length === 0;

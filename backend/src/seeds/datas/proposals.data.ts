@@ -1,12 +1,9 @@
 import { MEMBER_ROLE, SEASON } from '../../shared/index.js';
-import {
-  PROPOSAL_FUNDING,
-  type ProposalRole,
-} from '../../proposals/enums/index.js';
+import { PROPOSAL_FUNDING } from '../../proposals/enums/index.js';
 
 interface SeedParticipant {
   userName: string;
-  roles: ProposalRole[];
+  roles: MEMBER_ROLE[];
 }
 
 interface SeedProposal {

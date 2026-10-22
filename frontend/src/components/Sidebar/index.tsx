@@ -13,6 +13,7 @@ import {
   StarBorderOutlined,
   LeaderboardOutlined,
   LightbulbOutlined,
+  FolderSpecialOutlined,
   AutoGraphOutlined,
   SettingsOutlined,
   Person2Outlined,
@@ -79,6 +80,12 @@ const Sidebar: FC = () => {
             path: '/proposals',
             label: 'Пропозиції',
             icon: <LightbulbOutlined />,
+          },
+          {
+            id: 'projects',
+            path: '/projects',
+            label: 'Проєкти',
+            icon: <FolderSpecialOutlined />,
           },
         ]
       : []),

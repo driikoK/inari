@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from '@/api';
+import { ensure } from '@/utils/request';
 
 interface Role {
   value: string;
@@ -21,12 +22,9 @@ const useRolesStore = create<State & Actions>((set, get) => ({
     const { roles } = get();
     if (roles.length) return;
 
-    try {
-      const response = await axios.get(`/members/roles`);
-      set({ roles: response.data });
-    } catch (error) {
-      throw error;
-    }
+    const response = ensure(await axios.get('/members/roles'));
+
+    set({ roles: response.data });
   },
 }));
 

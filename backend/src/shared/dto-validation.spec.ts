@@ -15,6 +15,11 @@ import {
   SeasonStateData,
   UpdateProposalData,
 } from '../proposals/data/index.js';
+import {
+  CreateProjectData,
+  FinishProjectData,
+  UpdateProjectData,
+} from '../projects/data/index.js';
 import { CreateTrackData } from '../tracks/data/create-track.data.js';
 import { FilterTrackData } from '../tracks/data/filter-track.data.js';
 import { LastTracksData } from '../tracks/data/last-tracks.js';
@@ -245,7 +250,7 @@ describe('request DTO schemas', () => {
       ).toBe(false);
     });
 
-    it('takes only the eight roles, and an empty list means withdraw', () => {
+    it('takes every member role, the role breaker too, and an empty list means withdraw', () => {
       expect(ParticipationData.safeParse({ roles: [] }).success).toBe(true);
       expect(
         ParticipationData.safeParse({
@@ -258,12 +263,13 @@ describe('request DTO schemas', () => {
             'sound',
             'releasers',
             'director',
+            'roleBreaker',
           ],
         }).success,
       ).toBe(true);
-      expect(
-        ParticipationData.safeParse({ roles: ['roleBreaker'] }).success,
-      ).toBe(false);
+      expect(ParticipationData.safeParse({ roles: ['wizard'] }).success).toBe(
+        false,
+      );
     });
 
     it('closes and reopens with a plain boolean', () => {
@@ -271,6 +277,177 @@ describe('request DTO schemas', () => {
       expect(SeasonStateData.safeParse({ isClosed: 'yes' }).success).toBe(
         false,
       );
+    });
+  });
+
+  describe('projects', () => {
+    const projectBody = {
+      ukrName: 'Вітробой',
+      romajiName: 'Wind Breaker',
+      link: 'https://myanimelist.net/anime/54900',
+      titleType: 'series',
+      isOngoing: true,
+      isSequel: false,
+      startDate: '2027-04-02',
+      episodesReleased: 3,
+      participants: [{ nickname: 'Dixy', roles: ['sub', 'editor'] }],
+    };
+
+    it('accepts a project with only the required fields and no team yet', () => {
+      expect(
+        CreateProjectData.safeParse({ ...projectBody, participants: [] })
+          .success,
+      ).toBe(true);
+    });
+
+    it('accepts the optional fields, their nulls and the proposal it comes from', () => {
+      expect(
+        CreateProjectData.safeParse({
+          ...projectBody,
+          codeName: 'wind',
+          posterUrl: 'https://cdn.myanimelist.net/images/1.jpg',
+          funding: 'order',
+          proposalId: '61c0ccf11d7bf83d153d7c06',
+        }).success,
+      ).toBe(true);
+      expect(
+        CreateProjectData.safeParse({
+          ...projectBody,
+          codeName: null,
+          posterUrl: null,
+          funding: null,
+          proposalId: null,
+        }).success,
+      ).toBe(true);
+    });
+
+    it.each([
+      ['ukrName', ''],
+      ['romajiName', ' '],
+      ['link', 'not a link'],
+      ['posterUrl', 'ftp://example.com/x'],
+      ['titleType', 'movie'],
+      ['isOngoing', undefined],
+      ['funding', 'free'],
+      ['startDate', '02.04.2027'],
+      ['startDate', '2027-13-40'],
+      ['episodesReleased', -1],
+      ['episodesReleased', 1000],
+      ['episodesReleased', 2.5],
+      ['codeName', 'x'.repeat(101)],
+    ])('rejects %s = %o', (field, value) => {
+      expect(
+        CreateProjectData.safeParse({ ...projectBody, [field]: value }).success,
+      ).toBe(false);
+    });
+
+    it.each([
+      ['a participant without a role', [{ nickname: 'Dixy', roles: [] }]],
+      ['a role nobody has', [{ nickname: 'Dixy', roles: ['wizard'] }]],
+      ['a blank nickname', [{ nickname: ' ', roles: ['sub'] }]],
+      [
+        'the same nickname twice, whatever its case',
+        [
+          { nickname: 'Dixy', roles: ['sub'] },
+          { nickname: 'dixy', roles: ['dubs'] },
+        ],
+      ],
+    ])('rejects %s', (_, participants) => {
+      expect(
+        CreateProjectData.safeParse({ ...projectBody, participants }).success,
+      ).toBe(false);
+    });
+
+    it('lets a participant be a role breaker like in tracks', () => {
+      expect(
+        CreateProjectData.safeParse({
+          ...projectBody,
+          participants: [{ nickname: 'Dixy', roles: ['roleBreaker'] }],
+        }).success,
+      ).toBe(true);
+    });
+
+    it('refuses a date before 2000, a typo that would span thousands of seasons', () => {
+      expect(
+        CreateProjectData.safeParse({ ...projectBody, startDate: '0025-04-01' })
+          .success,
+      ).toBe(false);
+      expect(
+        CreateProjectData.safeParse({ ...projectBody, startDate: '1999-12-31' })
+          .success,
+      ).toBe(false);
+      expect(
+        CreateProjectData.safeParse({ ...projectBody, startDate: '2000-01-01' })
+          .success,
+      ).toBe(true);
+      expect(
+        UpdateProjectData.safeParse({ ...projectBody, endDate: '1999-12-31' })
+          .success,
+      ).toBe(false);
+      expect(
+        FinishProjectData.safeParse({ endDate: '1999-12-31', isInTime: false })
+          .success,
+      ).toBe(false);
+    });
+
+    it('says only that a malformed date is malformed, not also that it is too early', () => {
+      expect(
+        messagesOf(CreateProjectData, {
+          ...projectBody,
+          startDate: '02.04.2027',
+        }),
+      ).toEqual(['Вкажіть коректну дату']);
+      expect(
+        messagesOf(CreateProjectData, {
+          ...projectBody,
+          startDate: '0025-04-01',
+        }),
+      ).toEqual(['Дата не може бути раніше 2000 року']);
+    });
+
+    it('lets a new project come already finished, with an end date and the flag', () => {
+      expect(
+        CreateProjectData.safeParse({
+          ...projectBody,
+          endDate: '2027-05-01',
+          isInTime: true,
+        }).success,
+      ).toBe(true);
+      expect(
+        CreateProjectData.safeParse({
+          ...projectBody,
+          endDate: null,
+          isInTime: null,
+        }).success,
+      ).toBe(true);
+      expect(
+        CreateProjectData.safeParse({ ...projectBody, endDate: '1999-12-31' })
+          .success,
+      ).toBe(false);
+    });
+
+    it('lets an update carry the end date and the in-time flag', () => {
+      expect(
+        UpdateProjectData.safeParse({
+          ...projectBody,
+          endDate: '2027-05-01',
+          isInTime: true,
+        }).success,
+      ).toBe(true);
+      expect(UpdateProjectData.safeParse(projectBody).success).toBe(true);
+    });
+
+    it('needs a date and the flag to finish', () => {
+      expect(
+        FinishProjectData.safeParse({ endDate: '2027-05-01', isInTime: false })
+          .success,
+      ).toBe(true);
+      expect(FinishProjectData.safeParse({ isInTime: false }).success).toBe(
+        false,
+      );
+      expect(
+        FinishProjectData.safeParse({ endDate: '2027-05-01' }).success,
+      ).toBe(false);
     });
   });
 

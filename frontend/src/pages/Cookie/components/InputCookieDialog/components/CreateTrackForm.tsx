@@ -161,7 +161,7 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
         >
           <H6 sx={{ textAlign: 'center' }}>{titleName}</H6>
 
-          <FormField name={`${startNameForMemberField}.sound`} label="Звукореж" isDisabled />
+          <FormField name={`${startNameForMemberField}.sound`} label="Звукорежисер" isDisabled />
           <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
           <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
 
@@ -228,7 +228,7 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
           <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForFixers} крихт`}</Subtitle>
           <FormField
             name={`${startNameForMemberField}.fixers`}
-            label="Фіксери"
+            label="Контроль якості"
             isArray
             maxLength={2}
           />

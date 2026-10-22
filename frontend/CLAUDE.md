@@ -55,14 +55,14 @@ Defined in `src/router/index.tsx`. All routes are lazy-loaded. Two routes are co
 - `VITE_FEATURE_POLL === 'true'` → `/vote`
 - `hasAccess(SUBJECTS.SHOW_RESULTS) || VITE_FEATURE_RESULTS === 'true'` → `/result`
 
-`/proposals` is always on for logged-in users, with a sidebar item and a header link. It is meant to replace `/vote` and `/result`, which stay until a follow-up removes them.
+`/proposals` and `/projects` are always on for logged-in users, each with a sidebar item and a header link. `/proposals` is meant to replace `/vote` and `/result`, which stay until a follow-up removes them. `/projects?project=<id>` selects the season of that project and opens its card (not for a member when the tile is greyed), then drops the parameter.
 
 ### State (Zustand)
 
 All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`. Key stores:
 
 - `useAuthStore` — login/logout, current user, all users, update/delete user
-- `useProposalsStore` — seasons with their proposals. Every mutation refetches the list, so the page always shows what the server holds. Its `ensure()` turns a response-less Axios result into an error, and components call `notifyFailure(error)` in `catch`, because the interceptor only toasts errors the server answered
+- `useProposalsStore` and `useProjectsStore` — seasons with their proposals / the project layout. Every successful mutation refetches the list, so the page shows what the server holds. `ensure()` (in `utils/request.ts`) turns a response-less Axios result into an error, and components call `notifyFailure(error)` from there in `catch`, because the interceptor only toasts errors the server answered
 - `usePollStore` — voting state
 - `useAnimesStore` / `useTracksStore` — anime/episode data
 - `useCoinsStore` — coin values by anime type
@@ -73,7 +73,7 @@ Do not write `try { … } catch (e) { throw e }` in a store action, it only adds
 
 `src/context/casl.ts` defines the `SUBJECTS` enum (granular actions like `ADD_COOKIES`, `PERMISSION_EDIT`, `DELETE_USERS`, `DELETE_MEMBERS`) and the `ROLE` enum (`ADMIN`, `DIRECTOR`, `MEMBER`). `getPermissionsByRole(role)` maps roles to allowed subjects: admins get every subject automatically, directors and members have explicit lists. Use `usePermissions()` from `src/hooks/` to check access in components.
 
-This only hides UI. The backend decides what is allowed (see its `CLAUDE.md` for the admin-only routes), so a new subject here is not a security boundary. `EDIT_MEMBER_KIND` follows the same pattern as the delete subjects, admins only.
+This only hides UI. The backend decides what is allowed (see its `CLAUDE.md` for the admin-only routes), so a new subject here is not a security boundary. `EDIT_MEMBER_KIND` follows the same pattern as the delete subjects, admins only. `MANAGE_PROJECTS` is given to curators (`director`) as well as admins, and gates the project controls and the «Запустити проєкт» button on proposals.
 
 ### Forms and validation (Zod)
 
@@ -82,7 +82,9 @@ This only hides UI. The backend decides what is allowed (see its `CLAUDE.md` for
 - Zod strips keys that are not in the schema, so declare every field the form has. The poll form once lost its optional `note` this way.
 - Required fields use `z.string({ error: msg }).min(1, msg)`, which keeps the Ukrainian "Обов’язкове поле" style messages the UI shows through `ErrorMessage`.
 - A `.check()` chained after `.min()`/`.max()` is skipped when those fail, so put custom checks first. `z.number({ error })` replaces the message of every issue, give the range checks their own messages.
-- URL fields: `.trim().min(1).pipe(z.url({ protocol: /^https?$/ }))`, which reports "required" before "invalid link".
+- URL fields: `.trim().min(1).pipe(httpUrl)`, which reports "required" before "invalid link". `httpUrl` and `LINK_MESSAGE` live in `utils/validation.ts`.
+- Values the backend also defines are enums in `types/index.ts`, next to `ANIME_TYPE`: `PROPOSAL_FUNDING`, `TITLE_KIND` (the form value for онґоїнґ / стареча) and `PROJECT_MARK`, plus `NO_FUNDING` for the "not set" choice of a funding toggle. Compare and build with them (`funding === PROPOSAL_FUNDING.PATRON`, `z.enum(TITLE_KIND)`), never with a bare `'patron'`. Their labels live in `pages/Proposals/const/options.ts` (`fundingOptions`, `kindOptions`), shared with the Projects form. Roles are not an enum: the one list of roles with labels comes from `GET /members/roles` through `useRolesStore`, and a role is just a string. Every page or dialog that shows roles calls `getRoles()` (it is cached), as the Proposals page, the Projects page and `ProjectFormDialog` do.
+- A date a form shows as "today" must come from `todayDay()` in `pages/Projects/const/options.ts`, which uses Kyiv time like the backend, not from the browser's clock.
 - Errors on a field array element go on a path like `membersInfo.dubs.1.coins`, which is how `FormField` finds them.
 
 ### Deleting things
@@ -98,10 +100,20 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 
 ### Proposals page
 
-- `src/pages/Proposals/`: season tabs, a `ProposalCard` per title (participants grouped by role, all 8 roles listed, a dash for an empty one), `JoinDialog`, and admin-only dialogs for seasons, titles and participants. Admin controls are gated by `SUBJECTS.MANAGE_PROPOSALS`, which only hides UI.
+- `src/pages/Proposals/`: season tabs, a `ProposalCard` per title (participants grouped by role, every role of the list listed, a dash for an empty one), `JoinDialog`, and admin-only dialogs for seasons, titles and participants. Admin controls are gated by `SUBJECTS.MANAGE_PROPOSALS`, which only hides UI.
 - The tab is remembered as soon as it is resolved. Deriving "the first open season" on every render makes the page jump to another season when the current one is closed.
 - The quota «Ваша квота: n з 3» is only counted for display. The backend sends the limit (`maxPerPerson`) and refuses a join over it. A full member sees «Ліміт: n з n» on the other titles, and can still edit or withdraw where already joined.
 - A closed season shows «Сезон закрито» in place of the join button. Deleting a season is offered only when it is closed.
+- Curators (`MANAGE_PROJECTS`) get «Запустити проєкт» on a proposal that is not a project yet, which opens the project form pre-filled. A launched proposal shows a «Запущено» chip linking to `/projects?project=<id>` instead, and the proposals list is refetched after launching.
+
+### Projects page
+
+- `src/pages/Projects/`: season tabs (the server decides which seasons exist and flags the current one), a statistics row, a `ProjectTile` per project, and `ProjectCard` as a dialog. Curator-only: `ProjectFormDialog` (create, edit, and launch from a proposal), `FinishProjectDialog` and the delete confirmation, all gated by `SUBJECTS.MANAGE_PROJECTS`.
+- Nothing about seasons, debts or statistics is computed in the browser. Each project in a season arrives with its `mark` (`ongoing`, `old` or `debt`) for that season, and the page only displays it. A project appears under every season it was on the layout of.
+- On the current season's tab a finished tile is greyed, and disabled for a member. On a past tab nothing is greyed and every card opens.
+- `ProjectFormDialog` loads the members first and mounts `ProjectForm` only after they are in, so a proposal's paws can be matched to nicknames (case-insensitive) when the form opens. An unmatched paw becomes an empty row that says «З пропозиції: …» and blocks saving until a nickname is picked or the row is removed. Rows carry a client-only `key`, which `toProjectPayload` drops.
+- The create form has a «Вже завершено» checkbox, for backfilling old titles, that reveals the end date and «Завершено вчасно». The edit form shows them only for a project that is already finished, and for a running one they come from the `FinishProjectDialog`. `isFinished` is a form value, not an argument of the schema factory.
+- The card reuses `ParticipantsByRole` from the Proposals page, mapping `nickname` to `userName`. Both read the roles from `useRolesStore`.
 
 ### API Layer
 
