@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import type { SEASON } from '../shared/index.js';
 import { BudgetAuditService } from './budget-audit.service.js';
+import { formatCrumbs } from './calc.js';
 import {
   type CrumbAuditItem,
   type CrumbsOpening,
   crumbRow,
-  formatCrumbs,
   openingRow,
 } from './crumbs.js';
 import { AUDIT_KIND } from './enums/index.js';

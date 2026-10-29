@@ -174,6 +174,34 @@ describe('UsersService', () => {
     });
   });
 
+  describe('nicknamesOf', () => {
+    it('answers the nickname each account holds, and leaves out an account that is gone', async () => {
+      model.find.mockReturnValue({
+        lean: vi
+          .fn()
+          .mockResolvedValue([
+            { username: 'anya', nickname: 'Аня' },
+            { username: 'boris' },
+          ]),
+      } as any);
+
+      const holders = await service.nicknamesOf(['anya', 'boris', 'gone']);
+
+      expect(holders.get('anya')).toBe('Аня');
+      expect(holders.get('boris')).toBeUndefined();
+      expect(holders.has('gone')).toBe(false);
+      expect(model.find).toHaveBeenCalledWith(
+        { username: { $in: ['anya', 'boris', 'gone'] } },
+        { username: 1, nickname: 1 },
+      );
+    });
+
+    it('does not ask the database for nobody', async () => {
+      expect((await service.nicknamesOf([])).size).toBe(0);
+      expect(model.find).not.toHaveBeenCalled();
+    });
+  });
+
   describe('delete', () => {
     it('removes the account and returns its username', async () => {
       found({ _id: id, username: 'ghost' });

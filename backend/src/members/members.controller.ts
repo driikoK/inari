@@ -17,6 +17,7 @@ import { CreateMemberData } from './data/create-member.data.js';
 import { MemberFilterData } from './data/filter-members.data.js';
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
+import { CuratorGuard } from '../auth/curator.guard.js';
 import type { ValidatedUser } from '../users/interfaces/user.interface.js';
 import { UpdateMemberData } from './data/update-member.data.js';
 import { UpdateMemberKindData } from './data/update-member-kind.data.js';
@@ -50,7 +51,7 @@ export class MembersController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, CuratorGuard)
   async createMember(
     @Body({ schema: CreateMemberData }) member: CreateMemberData,
     @CurrentUser() user: ValidatedUser,
@@ -59,7 +60,7 @@ export class MembersController {
   }
 
   @Put()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   async updateMember(
     @Body({ schema: UpdateMemberData }) member: UpdateMemberData,
     @CurrentUser() user: ValidatedUser,

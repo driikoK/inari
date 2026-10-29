@@ -7,6 +7,7 @@ import type {
   CrumbSnapshot,
   ExpenseSnapshot,
   IncomeSnapshot,
+  WithdrawalPart,
 } from '@/stores/useBudgetStore';
 import {
   AUDIT_KIND,
@@ -15,6 +16,7 @@ import {
   EXPENSE_KIND,
   EXPENSE_SECTION,
   INCOME_SOURCE,
+  REQUEST_STATUS,
   SUPPORT_DIRECTION,
 } from '@/types';
 import { seasonOptions } from '@/utils/constants';
@@ -79,6 +81,7 @@ export const auditKindOptions: { value: AUDIT_KIND; label: string }[] = [
   { value: AUDIT_KIND.EXPENSE_CREATED, label: 'Частування додано' },
   { value: AUDIT_KIND.EXPENSE_UPDATED, label: 'Частування змінено' },
   { value: AUDIT_KIND.EXPENSE_DELETED, label: 'Частування видалено' },
+  { value: AUDIT_KIND.REQUEST_FULFILLED, label: 'Запит виконано' },
   { value: AUDIT_KIND.TRACK_CREATED, label: 'Трек додано' },
   { value: AUDIT_KIND.TRACK_UPDATED, label: 'Трек змінено' },
   { value: AUDIT_KIND.TRACK_DELETED, label: 'Трек видалено' },
@@ -102,6 +105,9 @@ const coefficientFormat = new Intl.NumberFormat('uk-UA', {
 
 export const formatKop = (kop: number) => `${kopFormat.format(kop / 100)} грн`;
 
+// The hryvnias a crumb of a season is worth
+export const formatRate = (coefficient: number) => `${coefficientFormat.format(coefficient)} грн`;
+
 export const formatSignedKop = (kop: number) => {
   if (kop === 0) return formatKop(0);
 
@@ -117,6 +123,13 @@ export const formatSignedCrumbs = (crumbs: number) => {
 
   return `${crumbs > 0 ? '+' : '−'}${formatCrumbs(Math.abs(crumbs))}`;
 };
+
+// How the crumbs of one season were or would be paid
+export const partText = ({ season, year, crumbs, coefficient, amountKop }: WithdrawalPart) =>
+  `${seasonLabel(season, year)}: ${formatCrumbs(crumbs)} × ${formatRate(coefficient)} = ${formatKop(amountKop)}`;
+
+export const requestDate = (value?: string) =>
+  value ? new Date(value).toLocaleDateString('uk-UA', { timeZone: 'Europe/Kyiv' }) : '—';
 
 // Zero is a real coefficient (crumbs earned, nothing in the jar yet), only null means no crumbs
 export const formatCoefficient = (coefficient: number | null) =>
@@ -149,6 +162,24 @@ export const recentSeasons = (today: string, count = 8) => {
 };
 
 export const seasonKey = (season: string, year: number) => `${season}-${year}`;
+
+// Crumbs are counted to three digits after the comma, never zero or less
+export const parseCrumbs = (text: string): number | null => {
+  const normalized = text.replace(/\s/g, '').replace(',', '.');
+
+  if (!/^\d+(\.\d{1,3})?$/.test(normalized)) return null;
+
+  const crumbs = Number(normalized);
+
+  return crumbs > 0 ? crumbs : null;
+};
+
+export const requestStatusLabel: Record<REQUEST_STATUS, string> = {
+  [REQUEST_STATUS.OPEN]: 'Очікує',
+  [REQUEST_STATUS.DONE]: 'Виконано',
+  [REQUEST_STATUS.REJECTED]: 'Відхилено',
+  [REQUEST_STATUS.CANCELLED]: 'Скасовано',
+};
 
 // Zero is allowed where it means "nothing left", like the budget of a direction
 export const parseUahOrZero = (text: string): number | null => {
@@ -200,6 +231,32 @@ const describeAllocation = ({ direction, amountKop, date, season, year }: Alloca
     formatDay(date),
   ].join(' · ');
 
+// Where the money of a payout came from
+const expenseSource = ({
+  section,
+  direction,
+  title,
+  crumbs,
+  crumbSeason,
+  crumbYear,
+}: Pick<
+  ExpenseSnapshot,
+  'section' | 'direction' | 'title' | 'crumbs' | 'crumbSeason' | 'crumbYear'
+>) => {
+  if (section === EXPENSE_SECTION.CRUMBS && crumbSeason && crumbYear !== undefined) {
+    return [
+      `Крихти: ${seasonLabel(crumbSeason, crumbYear)}`,
+      crumbs !== undefined && `${formatCrumbs(crumbs)} крихт`,
+    ]
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  return section === EXPENSE_SECTION.SUPPORT && direction
+    ? `Підтримка: ${directionLabel(direction)}`
+    : `Тістечка: ${title ?? 'Без назви'}`;
+};
+
 const describeExpense = ({
   kind,
   section,
@@ -210,13 +267,14 @@ const describeExpense = ({
   nickname,
   requisite,
   comment,
+  crumbs,
+  crumbSeason,
+  crumbYear,
 }: ExpenseSnapshot) =>
   [
     expenseKindLabel(kind),
     formatKop(amountKop),
-    section === EXPENSE_SECTION.SUPPORT && direction
-      ? `Підтримка: ${directionLabel(direction)}`
-      : `Тістечка: ${title ?? 'Без назви'}`,
+    expenseSource({ section, direction, title, crumbs, crumbSeason, crumbYear }),
     nickname && `для ${nickname}`,
     requisite,
     comment && `«${comment}»`,
@@ -307,9 +365,11 @@ export const entryDetails = (entry: BudgetEntry) => {
       return directionLabel(entry.direction);
     case ENTRY_TYPE.EXPENSE:
       return [
-        entry.section === EXPENSE_SECTION.SUPPORT && entry.direction
-          ? directionLabel(entry.direction)
-          : (entry.title ?? 'Без назви'),
+        entry.section === EXPENSE_SECTION.CRUMBS && entry.crumbSeason
+          ? `Крихти ${seasonLabel(entry.crumbSeason, entry.crumbYear ?? 0)}`
+          : entry.section === EXPENSE_SECTION.SUPPORT && entry.direction
+            ? directionLabel(entry.direction)
+            : (entry.title ?? 'Без назви'),
         entry.nickname,
       ].join(' → ');
     default:

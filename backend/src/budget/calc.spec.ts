@@ -1,11 +1,13 @@
 import { SEASON } from '../shared/index.js';
 import {
   balancesOf,
+  coefficientOf,
   describeEntry,
   diffEffects,
   effectsOf,
   findOverdraft,
   formatKop,
+  kopOfCrumbs,
   negate,
   normalizeName,
   snapshotOf,
@@ -61,6 +63,50 @@ describe('splitOrder', () => {
 
       expect(general + title).toBe(amount);
     }
+  });
+});
+
+describe('coefficientOf', () => {
+  it('is the jar in hryvnias over the crumbs, rounded down to four digits', () => {
+    expect(coefficientOf(300000, 775)).toBe(3.8709);
+    expect(coefficientOf(200000, 3)).toBe(666.6666);
+  });
+
+  it('is exact when it divides evenly', () => {
+    expect(coefficientOf(100000, 500)).toBe(2);
+    expect(coefficientOf(1234, 1)).toBe(12.34);
+    expect(coefficientOf(1, 0.001)).toBe(10);
+  });
+
+  it('is null when nothing was earned, and never negative', () => {
+    expect(coefficientOf(100000, 0)).toBeNull();
+    expect(coefficientOf(0, 10)).toBe(0);
+    expect(coefficientOf(-500, 10)).toBe(0);
+  });
+
+  it('never pays out more than the jar, whoever takes how much', () => {
+    for (const [jar, earned, takes] of [
+      [100000, 3, [1, 1, 1]],
+      [123456, 7.777, [2.5, 2.5, 2.777]],
+      [99999, 333.333, [111.111, 111.111, 111.111]],
+      [1, 0.7, [0.3, 0.4]],
+    ] as [number, number, number[]][]) {
+      const rate = coefficientOf(jar, earned) as number;
+      const paid = takes.reduce(
+        (total, crumbs) => total + kopOfCrumbs(crumbs, rate),
+        0,
+      );
+
+      expect(paid).toBeLessThanOrEqual(jar);
+    }
+  });
+});
+
+describe('kopOfCrumbs', () => {
+  it('is the crumbs times the coefficient, rounded down to a kopiyka', () => {
+    expect(kopOfCrumbs(450, 2.7433)).toBe(123448);
+    expect(kopOfCrumbs(1.5, 0.01)).toBe(1);
+    expect(kopOfCrumbs(0.3, 1)).toBe(30);
   });
 });
 
@@ -178,6 +224,77 @@ describe('effectsOf', () => {
       effectsOf(entry({ source: INCOME_SOURCE.LISODAR, nickname: 'АНЯ' }))[1]
         .key,
     ).toBe(lisodar.key);
+  });
+});
+
+describe('a payout of crumbs', () => {
+  const crumbsPayout = (extra: Partial<ExpenseEntry> = {}): ExpenseEntry => ({
+    _id: 'c1',
+    type: ENTRY_TYPE.EXPENSE,
+    kind: EXPENSE_KIND.CARD,
+    section: EXPENSE_SECTION.CRUMBS,
+    amountKop: 80000,
+    nickname: 'Аня',
+    crumbs: 40,
+    coefficient: 2,
+    crumbSeason: SEASON.WINTER,
+    crumbYear: 2027,
+    requisite: '•••• 1111',
+    date: '2027-05-10',
+    season: SEASON.SPRING,
+    year: 2027,
+    createdBy: 'root',
+    ...extra,
+  });
+
+  it('comes out of the jar of the season the crumbs were earned in, not of the season of its date', () => {
+    expect(effectsOf(snapshotOf(crumbsPayout()))).toEqual([
+      {
+        kind: SIDE_KIND.JAR,
+        key: 'jar:2027-winter',
+        label: 'Банка Зима 2027',
+        deltaKop: -80000,
+        season: SEASON.WINTER,
+        year: 2027,
+      },
+    ]);
+  });
+
+  it('as a gift to the team moves the money to the jar of the date and makes a lisodar', () => {
+    const effects = effectsOf(
+      snapshotOf(crumbsPayout({ kind: EXPENSE_KIND.DEVELOPMENT })),
+    );
+
+    expect(effects.map(({ key, deltaKop }) => [key, deltaKop])).toEqual([
+      ['jar:2027-winter', -80000],
+      ['jar:2027-spring', 80000],
+      ['lisodari:аня', 80000],
+    ]);
+  });
+
+  it('leaves the confectionery as it is when it is a gift, and lowers it when it is paid out', () => {
+    const total = (entry: ExpenseEntry) =>
+      [...balancesOf([snapshotOf(entry)])]
+        .filter(([key]) => key.startsWith('jar:'))
+        .reduce((sum, [, kop]) => sum + kop, 0);
+
+    expect(total(crumbsPayout())).toBe(-80000);
+    expect(total(crumbsPayout({ kind: EXPENSE_KIND.DEVELOPMENT }))).toBe(0);
+  });
+
+  it('is described with the season of the crumbs and how many there were', () => {
+    expect(describeEntry(snapshotOf(crumbsPayout())).replace(/\s/g, ' ')).toBe(
+      '«На карту» 800,00 грн Крихти Зима 2027, 40 крихт для Аня (Весна 2027)',
+    );
+  });
+
+  it('keeps the crumbs, the coefficient and the season in its snapshot', () => {
+    expect(snapshotOf(crumbsPayout())).toMatchObject({
+      crumbs: 40,
+      coefficient: 2,
+      crumbSeason: SEASON.WINTER,
+      crumbYear: 2027,
+    });
   });
 });
 

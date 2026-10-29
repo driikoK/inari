@@ -1,5 +1,5 @@
 import type { SEASON } from '../shared/index.js';
-import { normalizeName, round3 } from './calc.js';
+import { formatCrumbs, normalizeName, round3 } from './calc.js';
 import { AUDIT_UNIT, SIDE_KIND } from './enums/index.js';
 import type {
   CrumbAuditRow,
@@ -30,9 +30,6 @@ export interface CrumbAuditItem {
   before: CrumbSnapshot | null;
   after: CrumbSnapshot | null;
 }
-
-export const formatCrumbs = (value: number) =>
-  round3(value).toLocaleString('uk-UA', { maximumFractionDigits: 3 });
 
 export const formatSignedCrumbs = (value: number) =>
   `${value > 0 ? '+' : value < 0 ? '−' : ''}${formatCrumbs(Math.abs(value))}`;

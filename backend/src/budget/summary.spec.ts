@@ -11,7 +11,7 @@ import type {
   ExpenseEntry,
   IncomeEntry,
 } from './interfaces/index.js';
-import { summarize } from './summary.js';
+import { orderBudgets, summarize } from './summary.js';
 
 const entry = (extra: Partial<IncomeEntry> = {}): IncomeEntry => ({
   _id: '1',
@@ -167,7 +167,7 @@ describe('summarize with support budgets and expenses', () => {
 
     expect(now.supportKop).toBe(100000);
     expect(now.jarKop).toBe(300000);
-    expect(now.coefficient).toBe(round(300000 / 100 / 775));
+    expect(now.coefficient).toBe(3.8709);
     expect(summary.supportKop).toBe(100000);
     expect(summary.confectioneryKop).toBe(400000);
   });
@@ -215,6 +215,22 @@ describe('summarize with support budgets and expenses', () => {
         balanceKop: 70000,
       }),
     ]);
+  });
+
+  it('gives the budgets of the titles alone as they are in the summary', () => {
+    const records = [
+      entry({ source: INCOME_SOURCE.ORDER, amountKop: 100000, title: 'Т' }),
+      expense({
+        section: EXPENSE_SECTION.ORDERS,
+        direction: undefined,
+        title: ' т ',
+        amountKop: 20000,
+      }),
+    ];
+
+    expect(orderBudgets(records)).toEqual(
+      summarize(records, crumbs, '2027-05-20').orders,
+    );
   });
 
   it('leaves what is given to the development of the team in the team, as a gift of the season', () => {
@@ -431,6 +447,78 @@ describe('summarize with support budgets and expenses', () => {
     ]);
   });
 
+  describe('payouts of crumbs', () => {
+    const payout = (extra: Partial<ExpenseEntry> = {}): ExpenseEntry =>
+      expense({
+        _id: 'p',
+        section: EXPENSE_SECTION.CRUMBS,
+        direction: undefined,
+        amountKop: 80000,
+        crumbs: 40,
+        coefficient: 2,
+        crumbSeason: SEASON.WINTER,
+        crumbYear: 2027,
+        season: SEASON.SPRING,
+        year: 2027,
+        ...extra,
+      });
+    const winterJar = entry({
+      _id: 'w',
+      amountKop: 400000,
+      season: SEASON.WINTER,
+      date: '2027-02-01',
+    });
+    const [winter, spring] = run(winterJar, jar, payout()).seasons;
+
+    it('come out of the jar of the season of the crumbs, and show as payouts there', () => {
+      expect(winter.payoutsKop).toBe(80000);
+      expect(winter.jarKop).toBe(320000);
+      expect(spring.payoutsKop).toBe(0);
+      expect(spring.jarKop).toBe(400000);
+    });
+
+    it('never move the coefficient of that season', () => {
+      const without = run(winterJar, jar).seasons[0];
+
+      expect(winter.coefficient).toBe(without.coefficient);
+    });
+
+    it('lower the confectionery when paid to a card or a donation', () => {
+      expect(run(winterJar, jar, payout()).confectioneryKop).toBe(720000);
+    });
+
+    it('as a gift to the team keep the confectionery, lift the jar and the coefficient of the date, and make a lisodar', () => {
+      const gift = run(
+        winterJar,
+        jar,
+        payout({ kind: EXPENSE_KIND.DEVELOPMENT }),
+      );
+      const [giftWinter, giftSpring] = gift.seasons;
+
+      expect(gift.confectioneryKop).toBe(800000);
+      expect(giftWinter.jarKop).toBe(320000);
+      expect(giftSpring.transfersKop).toBe(80000);
+      expect(giftSpring.jarKop).toBe(480000);
+      expect(gift.lisodari).toEqual([{ key: 'аня', name: 'Аня', kop: 80000 }]);
+    });
+
+    it('show as «Крихти» in the top of the season of their date, a gift to the team does not', () => {
+      expect(spring.expenses).toEqual([{ category: 'crumbs', kop: 80000 }]);
+      expect(winter.expenses).toEqual([]);
+      expect(
+        run(winterJar, jar, payout({ kind: EXPENSE_KIND.DEVELOPMENT }))
+          .seasons[1].expenses,
+      ).toEqual([]);
+    });
+
+    it('do not touch the directions or the budgets of titles', () => {
+      const { support, orders } = run(winterJar, jar, payout());
+
+      expect(support.every(({ spentKop }) => spentKop === 0)).toBe(true);
+      expect(orders).toEqual([]);
+    });
+  });
+
   describe('the top of expenses', () => {
     const spend = (extra: Partial<ExpenseEntry>) =>
       expense({ _id: String(Math.random()), ...extra });
@@ -471,5 +559,3 @@ describe('summarize with support budgets and expenses', () => {
     });
   });
 });
-
-const round = (value: number) => Math.round(value * 10000) / 10000;

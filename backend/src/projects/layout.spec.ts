@@ -6,6 +6,7 @@ import { PROJECT_MARK } from './enums/index.js';
 import type { Project } from './interfaces/index.js';
 import {
   buildLayout,
+  ordinalOf,
   seasonOfDay,
   seasonOrdinal,
   seasonStartDay,
@@ -56,6 +57,19 @@ describe('seasonOrdinal', () => {
 
   it('runs straight over the turn of the year', () => {
     expect(seasonOrdinal('2028-01-01')).toBe(seasonOrdinal('2027-12-31') + 1);
+  });
+});
+
+describe('ordinalOf', () => {
+  it('is the ordinal of any day of that season', () => {
+    expect(ordinalOf(SEASON.WINTER, 2027)).toBe(seasonOrdinal('2027-02-10'));
+    expect(ordinalOf(SEASON.FALL, 2027)).toBe(seasonOrdinal('2027-12-31'));
+  });
+
+  it('puts the fall of a year just before the winter of the next', () => {
+    expect(ordinalOf(SEASON.WINTER, 2028)).toBe(
+      ordinalOf(SEASON.FALL, 2027) + 1,
+    );
   });
 });
 

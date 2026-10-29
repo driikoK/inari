@@ -13,13 +13,9 @@ import {
   IMember,
   MyCoins,
 } from './interfaces/members.interface.js';
-import { seasonLabel } from '../budget/calc.js';
+import { formatCrumbs, seasonLabel } from '../budget/calc.js';
 import { CrumbAuditService } from '../budget/crumb-audit.service.js';
-import {
-  type CrumbsChange,
-  formatCrumbs,
-  memberSnapshot,
-} from '../budget/crumbs.js';
+import { type CrumbsChange, memberSnapshot } from '../budget/crumbs.js';
 import { AUDIT_KIND } from '../budget/enums/index.js';
 import { seasonOfDay, todayInKyiv } from '../projects/layout.js';
 import { MemberData } from './data/member.data.js';
@@ -418,6 +414,14 @@ export class MembersService {
 
   async findByNickname(nickname: string): Promise<IMember | null> {
     return this.memberModel.findOne({ nickname }).exec();
+  }
+
+  async findVisibleByNicknames(nicknames: string[]): Promise<IMember[]> {
+    if (nicknames.length === 0) return [];
+
+    return this.memberModel
+      .find({ nickname: { $in: nicknames }, deletedAt: null })
+      .lean<IMember[]>();
   }
 
   async getCoinsOf(

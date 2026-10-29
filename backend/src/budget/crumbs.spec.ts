@@ -1,9 +1,9 @@
 import { SEASON } from '../shared/index.js';
+import { formatCrumbs } from './calc.js';
 import {
   crumbRow,
   crumbsKey,
   describeTrack,
-  formatCrumbs,
   formatSignedCrumbs,
   memberSnapshot,
   openingRow,

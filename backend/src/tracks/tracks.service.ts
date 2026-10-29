@@ -7,12 +7,12 @@ import {
   Logger,
 } from '@nestjs/common';
 
+import { formatCrumbs } from '../budget/calc.js';
 import { CrumbAuditService } from '../budget/crumb-audit.service.js';
 import {
   type CrumbAuditItem,
   type CrumbsChange,
   describeTrack,
-  formatCrumbs,
   formatSignedCrumbs,
   trackSnapshot,
 } from '../budget/crumbs.js';

@@ -28,6 +28,14 @@ export enum EXPENSE_KIND {
 export enum EXPENSE_SECTION {
   SUPPORT = 'support',
   ORDERS = 'orders',
+  CRUMBS = 'crumbs',
+}
+
+export enum REQUEST_STATUS {
+  OPEN = 'open',
+  DONE = 'done',
+  REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
 }
 
 export enum INCOME_SOURCE {
@@ -62,6 +70,7 @@ export enum AUDIT_KIND {
   EXPENSE_CREATED = 'expense.created',
   EXPENSE_UPDATED = 'expense.updated',
   EXPENSE_DELETED = 'expense.deleted',
+  REQUEST_FULFILLED = 'request.fulfilled',
   TRACK_CREATED = 'track.created',
   TRACK_UPDATED = 'track.updated',
   TRACK_DELETED = 'track.deleted',

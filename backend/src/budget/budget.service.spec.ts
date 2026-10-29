@@ -14,6 +14,7 @@ import { ProjectsService } from '../projects/projects.service.js';
 import { SEASON } from '../shared/index.js';
 import { TrackService } from '../tracks/tracks.service.js';
 import { BudgetAuditService } from './budget-audit.service.js';
+import { created } from './calc.js';
 import { BudgetService } from './budget.service.js';
 import {
   AUDIT_KIND,
@@ -211,6 +212,8 @@ describe('BudgetService', () => {
         'projectId',
         'title',
         'nickname',
+        'crumbSeason',
+        'crumbYear',
       ]);
       expect($group.lastDate).toEqual({ $max: '$date' });
     });
@@ -809,7 +812,9 @@ describe('BudgetService', () => {
     const card = {
       kind: EXPENSE_KIND.CARD,
       amountKop: 20000,
-      section: EXPENSE_SECTION.SUPPORT,
+      section: EXPENSE_SECTION.SUPPORT as
+        | EXPENSE_SECTION.SUPPORT
+        | EXPENSE_SECTION.ORDERS,
       direction: SUPPORT_DIRECTION.SITE,
       nickname: 'Аня',
       requisite: '4111 1111 1111 1111',
@@ -1399,6 +1404,131 @@ describe('BudgetService', () => {
         );
 
         expect(preview).toMatchObject({ moves: [], takenKop: 0 });
+      });
+    });
+
+    describe('payouts of crumbs', () => {
+      const crumbsPayout = (extra: Partial<ExpenseEntry> = {}): ExpenseEntry =>
+        expenseEntry({
+          section: EXPENSE_SECTION.CRUMBS,
+          direction: undefined,
+          amountKop: 80000,
+          crumbs: 40,
+          coefficient: 2,
+          crumbSeason: SEASON.WINTER,
+          crumbYear: 2027,
+          requestId: 'r1',
+          ...extra,
+        });
+      const winterJar = entry({
+        _id: new Types.ObjectId(),
+        amountKop: 100000,
+        season: SEASON.WINTER,
+      });
+
+      it('cannot be changed in the journal, as the crumbs have already left the nickname', async () => {
+        existing(crumbsPayout() as any);
+        everything([winterJar, crumbsPayout()]);
+
+        await expect(
+          service.updateExpense(
+            String(entryId),
+            {
+              kind: EXPENSE_KIND.CARD,
+              amountKop: 100,
+              section: EXPENSE_SECTION.CRUMBS,
+              nickname: 'Аня',
+              requisite: '•••• 1111',
+              date: '2027-05-10',
+            } as any,
+            'boss',
+          ),
+        ).rejects.toThrow(BadRequestException);
+        expect(entries.findByIdAndUpdate).not.toHaveBeenCalled();
+      });
+
+      it('cannot be removed from the journal either', async () => {
+        existing(crumbsPayout() as any);
+        everything([winterJar, crumbsPayout()]);
+
+        await expect(
+          service.deleteEntry(String(entryId), 'boss'),
+        ).rejects.toThrow(/крихти вже зняті/);
+        expect(entries.deleteOne).not.toHaveBeenCalled();
+      });
+
+      it('are refused by commit when the jar of their season holds less', async () => {
+        everything([winterJar]);
+
+        const persist = vi.fn();
+
+        await expect(
+          service.commit(
+            AUDIT_KIND.REQUEST_FULFILLED,
+            'boss',
+            'x',
+            [created(crumbsPayout({ amountKop: 100001 }))],
+            persist,
+          ),
+        ).rejects.toThrow(/Банка Зима 2027.*1\s?000,00 грн.*1\s?000,01 грн/);
+        expect(persist).not.toHaveBeenCalled();
+      });
+
+      it('are audited as the jar of the crumb season losing, whatever season the date is in', async () => {
+        everything([winterJar]);
+
+        await service.commit(
+          AUDIT_KIND.REQUEST_FULFILLED,
+          'boss',
+          'x',
+          [created(crumbsPayout())],
+          async () => 'saved',
+          {
+            extraRows: (head, saved) =>
+              [{ ...head, saved, unit: 'crumbs' }] as any,
+          },
+        );
+
+        const rows = audit.save.mock.calls[0][0] as any[];
+
+        expect(rows[0]).toMatchObject({
+          subjectKey: 'jar:2027-winter',
+          deltaKop: -80000,
+          balanceAfterKop: 20000,
+          season: SEASON.WINTER,
+          year: 2027,
+        });
+        expect(rows[1]).toMatchObject({ saved: 'saved', unit: 'crumbs' });
+      });
+
+      it('give the rates of the seasons from the journal and the tracks', async () => {
+        everything([winterJar, crumbsPayout()]);
+        tracks.getCoinsBySeason.mockResolvedValue([
+          { season: SEASON.WINTER, year: 2027, coins: 400 },
+          { season: SEASON.SPRING, year: 2027, coins: 100 },
+        ]);
+
+        expect(await service.seasonRates()).toEqual([
+          // the payout is not taken off before the rate: 1000 / 400
+          { season: SEASON.WINTER, year: 2027, coefficient: 2.5 },
+          { season: SEASON.SPRING, year: 2027, coefficient: 0 },
+        ]);
+      });
+
+      it('give the rates and the budgets of the titles from one read of the journal', async () => {
+        everything([winterJar, crumbsPayout()]);
+        tracks.getCoinsBySeason.mockResolvedValue([
+          { season: SEASON.WINTER, year: 2027, coins: 400 },
+        ]);
+
+        const { rates, orders } = await service.requestFacts();
+
+        expect(rates).toEqual([
+          { season: SEASON.WINTER, year: 2027, coefficient: 2.5 },
+        ]);
+        expect(orders).toEqual([]);
+        expect(entries.aggregate).toHaveBeenCalledTimes(1);
+        expect(tracks.getCoinsBySeason).toHaveBeenCalledTimes(1);
       });
     });
 

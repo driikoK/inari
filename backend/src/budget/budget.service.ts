@@ -13,6 +13,7 @@ import { BudgetAuditService } from './budget-audit.service.js';
 import { keepRequisite } from './card.js';
 import {
   balancesOf,
+  created,
   describeEntry,
   diffEffects,
   effectsOf,
@@ -47,6 +48,7 @@ import type {
   AllocationEntry,
   BudgetEntry,
   BudgetSummary,
+  Change,
   Effect,
   EntryFacts,
   EntryGroup,
@@ -56,10 +58,12 @@ import type {
   NewAuditRow,
   OperationHead,
   Paged,
+  SeasonRate,
   SupportMove,
   SupportPreview,
+  TitleLine,
 } from './interfaces/index.js';
-import { summarize } from './summary.js';
+import { orderBudgets, seasonRates, summarize } from './summary.js';
 
 type IncomeFields = Pick<IncomeEntry, 'source' | 'amountKop'> &
   Partial<Pick<IncomeEntry, 'projectId' | 'title' | 'nickname'>>;
@@ -77,20 +81,19 @@ type ExpenseFields = Pick<
 
 type Titled = { projectId?: string; title?: string };
 
+interface CommitOptions<R> {
+  // The balances the caller has just read, so they are not read twice
+  known?: Map<string, number>;
+  // Rows of the same operation that are not about money, such as the crumbs
+  // that came off a nickname
+  extraRows?: (head: OperationHead, saved: R) => NewAuditRow[];
+}
+
 // Where the name of a project comes from when it is no longer in Projects:
 // the record being edited, or the budget the money is already in
 interface NameSource {
   stored?: Titled;
   fromBudget?: boolean;
-}
-
-// One record that an operation creates, changes or removes, with what it does
-// to the sides of the budget
-interface Change {
-  entry: BudgetEntry;
-  before: EntrySnapshot | null;
-  after: EntrySnapshot | null;
-  effects: Effect[];
 }
 
 const INCOME_OPTIONAL = ['projectId', 'title', 'nickname'] as const;
@@ -104,13 +107,6 @@ const EXPENSE_OPTIONAL = [
 
 const usesTitle = (source: INCOME_SOURCE) =>
   source === INCOME_SOURCE.ORDER || source === INCOME_SOURCE.PROJECT_JAR;
-
-const created = (entry: BudgetEntry): Change => ({
-  entry,
-  before: null,
-  after: snapshotOf(entry),
-  effects: effectsOf(snapshotOf(entry)),
-});
 
 const DELETED: Record<ENTRY_TYPE, [AUDIT_KIND, string]> = {
   [ENTRY_TYPE.INCOME]: [AUDIT_KIND.INCOME_DELETED, 'надходження'],
@@ -167,6 +163,30 @@ export class BudgetService {
     ]);
 
     return summarize(entries, crumbs, todayInKyiv());
+  }
+
+  // The coefficient of every season that has crumbs
+  async seasonRates(): Promise<SeasonRate[]> {
+    const [entries, crumbs] = await Promise.all([
+      this.loadGroups(),
+      this.tracksService.getCoinsBySeason(),
+    ]);
+
+    return seasonRates(entries, crumbs);
+  }
+
+  // What a request is checked against, read once: the coefficient of every
+  // season and the budgets of the titles
+  async requestFacts(): Promise<{ rates: SeasonRate[]; orders: TitleLine[] }> {
+    const [entries, crumbs] = await Promise.all([
+      this.loadGroups(),
+      this.tracksService.getCoinsBySeason(),
+    ]);
+
+    return {
+      rates: seasonRates(entries, crumbs),
+      orders: orderBudgets(entries),
+    };
   }
 
   async findEntries({
@@ -308,6 +328,8 @@ export class BudgetService {
         ENTRY_TYPE.EXPENSE,
         date,
       );
+
+      this.assertNotCrumbPayout(existing);
       const { season, year } = seasonOfDay(date);
       const names = await this.projectNames(
         line.section === EXPENSE_SECTION.ORDERS && line.projectId
@@ -354,7 +376,7 @@ export class BudgetService {
           .join('; ')}`,
         entries.map(created),
         () => this.entryModel.insertMany(entries),
-        balances,
+        { known: balances },
       );
 
       return entries;
@@ -391,6 +413,9 @@ export class BudgetService {
   deleteEntry(id: string, actor: string): Promise<boolean> {
     return this.exclusive(async () => {
       const existing = await this.findEntry(id);
+
+      this.assertNotCrumbPayout(existing);
+
       const before = snapshotOf(existing);
       const [kind, what] = DELETED[typeOf(existing)];
 
@@ -413,7 +438,9 @@ export class BudgetService {
     });
   }
 
-  private exclusive<T>(job: () => Promise<T>): Promise<T> {
+  // A job that reads the balances and then spends them, run when the ones
+  // before it are done. Whatever writes money has to go through here.
+  exclusive<T>(job: () => Promise<T>): Promise<T> {
     const run = this.queue.then(job, job);
 
     this.queue = run.catch(() => undefined);
@@ -481,15 +508,15 @@ export class BudgetService {
   // The record is written first and the audit second, as there are no
   // transactions. Nothing may go below zero, so a change that would take more
   // than a side holds is refused before anything is written.
-  private async commit<R>(
+  async commit<R>(
     kind: AUDIT_KIND,
     actor: string,
     description: string,
     changes: Change[],
     persist: () => Promise<R>,
-    known?: Map<string, number>,
+    options: CommitOptions<R> = {},
   ): Promise<R> {
-    const balances = known ?? balancesOf(await this.loadGroups());
+    const balances = options.known ?? balancesOf(await this.loadGroups());
     const overdraft = findOverdraft(
       balances,
       changes.flatMap(({ effects }) => effects),
@@ -502,13 +529,35 @@ export class BudgetService {
     const saved = await persist();
     const operation = this.auditService.operation(kind, actor, description);
 
-    await this.auditService.save(
-      changes.flatMap(({ entry, before, after, effects }) =>
+    await this.auditService.save([
+      ...changes.flatMap(({ entry, before, after, effects }) =>
         this.rowsOf(operation, entry, before, after, effects, balances),
       ),
-    );
+      ...(options.extraRows?.(operation, saved) ?? []),
+    ]);
 
     return saved;
+  }
+
+  insertEntries(entries: BudgetEntry[]) {
+    return this.entryModel.insertMany(entries);
+  }
+
+  removeByRequest(requestId: string) {
+    return this.entryModel.deleteMany({ requestId });
+  }
+
+  // The money of a payout of crumbs is tied to the counters of a nickname,
+  // which a record of the journal cannot put back
+  private assertNotCrumbPayout(entry: BudgetEntry) {
+    if (
+      entry.type === ENTRY_TYPE.EXPENSE &&
+      entry.section === EXPENSE_SECTION.CRUMBS
+    ) {
+      throw new BadRequestException(
+        'Виплату за крихти не можна змінити чи видалити, бо крихти вже зняті з нікнейма',
+      );
+    }
   }
 
   private supportMoves(
@@ -696,6 +745,8 @@ export class BudgetService {
             projectId: '$projectId',
             title: '$title',
             nickname: '$nickname',
+            crumbSeason: '$crumbSeason',
+            crumbYear: '$crumbYear',
           },
           count: { $sum: 1 },
           lastDate: { $max: '$date' },

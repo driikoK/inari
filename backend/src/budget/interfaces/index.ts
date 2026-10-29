@@ -8,6 +8,7 @@ import type {
   EXPENSE_KIND,
   EXPENSE_SECTION,
   INCOME_SOURCE,
+  REQUEST_STATUS,
   SIDE_KIND,
   SUPPORT_DIRECTION,
 } from '../enums/index.js';
@@ -38,6 +39,8 @@ export interface AllocationEntry extends EntryBase {
   direction: SUPPORT_DIRECTION;
 }
 
+// A payout of crumbs is charged to the jar of the season the crumbs were earned in
+// (crumbSeason), while `season` is, as for every payout, the season of its date
 export interface ExpenseEntry extends EntryBase {
   type: ENTRY_TYPE.EXPENSE;
   kind: EXPENSE_KIND;
@@ -48,6 +51,11 @@ export interface ExpenseEntry extends EntryBase {
   nickname: string;
   requisite?: string;
   comment?: string;
+  crumbs?: number;
+  coefficient?: number;
+  crumbSeason?: SEASON;
+  crumbYear?: number;
+  requestId?: string;
 }
 
 export type BudgetEntry = IncomeEntry | AllocationEntry | ExpenseEntry;
@@ -81,17 +89,30 @@ export type EntryFacts =
       | 'projectId'
       | 'title'
       | 'nickname'
+      | 'crumbSeason'
+      | 'crumbYear'
     >;
 
 export type EntrySnapshot = EntryFacts & {
   date: string;
   requisite?: string;
   comment?: string;
+  crumbs?: number;
+  coefficient?: number;
 };
 
 // Entries that share every field the sums depend on, with how many there are
 // and the latest date among them. A plain entry counts as one.
 export type EntryGroup = EntryFacts & { count?: number; lastDate?: string };
+
+// One record that an operation creates, changes or removes, with what it does
+// to the sides of the budget
+export interface Change {
+  entry: BudgetEntry;
+  before: EntrySnapshot | null;
+  after: EntrySnapshot | null;
+  effects: Effect[];
+}
 
 // A jar belongs to a season, which is not always the season of the record
 export interface Effect {
@@ -101,6 +122,13 @@ export interface Effect {
   deltaKop: number;
   season?: SEASON;
   year?: number;
+}
+
+// The hryvnias a crumb of a season is worth, `null` while nothing was earned in it
+export interface SeasonRate {
+  season: SEASON;
+  year: number;
+  coefficient: number | null;
 }
 
 export interface SourceLine {
@@ -193,6 +221,102 @@ export interface BudgetSummary {
   orders: TitleLine[];
   treats: TreatLine[];
   lisodari: LisodarLine[];
+}
+
+// Crumbs of one season that are paid out, at the coefficient of that season
+export interface WithdrawalPart {
+  season: SEASON;
+  year: number;
+  crumbs: number;
+  coefficient: number;
+  amountKop: number;
+}
+
+export interface SeasonShare {
+  season: SEASON;
+  year: number;
+  crumbs: number;
+  coefficient: number;
+}
+
+// One line of a request: a card, a donation or a gift to the development of the
+// team. Crumbs come off the nickname unless the line is for an order, which is
+// paid in hryvnias out of the budget of a title.
+export interface WithdrawalRequest {
+  _id: Types.ObjectId | string;
+  status: REQUEST_STATUS;
+  username: string;
+  nickname: string;
+  groupId: string;
+  kind: EXPENSE_KIND;
+  isOrder: boolean;
+  crumbs?: number;
+  amountKop?: number;
+  projectId?: string;
+  title?: string;
+  requisite?: string;
+  comment?: string;
+  closedAt?: Date;
+  closedBy?: string;
+  closedDay?: string;
+  paidKop?: number;
+  parts?: WithdrawalPart[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface RequestEstimate {
+  amountKop: number;
+  parts: WithdrawalPart[];
+}
+
+export interface RequestView {
+  _id: string;
+  groupId: string;
+  status: REQUEST_STATUS;
+  username: string;
+  nickname: string;
+  kind: EXPENSE_KIND;
+  isOrder: boolean;
+  crumbs?: number;
+  amountKop?: number;
+  projectId?: string;
+  title?: string;
+  requisite?: string;
+  comment?: string;
+  createdAt?: Date;
+  closedAt?: Date;
+  closedBy?: string;
+  paidKop?: number;
+  parts?: WithdrawalPart[];
+  estimate: RequestEstimate | null;
+  problem: string | null;
+}
+
+export interface WithdrawalInfo {
+  nickname: string | null;
+  balance: number;
+  reservedCrumbs: number;
+  availableCrumbs: number;
+  lockedCrumbs: number;
+  shares: SeasonShare[];
+}
+
+export interface MyWithdrawal extends WithdrawalInfo {
+  requests: RequestView[];
+}
+
+export interface PreviewLine {
+  kind: EXPENSE_KIND;
+  crumbs?: number;
+  amountKop?: number;
+  estimate: RequestEstimate | null;
+}
+
+export interface RequestPreview {
+  info: WithdrawalInfo;
+  lines: PreviewLine[];
+  problem: string | null;
 }
 
 export interface TrackSnapshot {

@@ -1,0 +1,104 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.heading {
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    padding: 6px 10px;
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px;
+    vertical-align: top;
+    text-align: left;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+  }
+}
+
+.closed td {
+  color: var(--text-muted);
+}
+
+.sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.problem {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--danger, #e5484d);
+}
+
+.requisite {
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+
+.chipOpen {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.chipDone {
+  color: var(--success, #3fb950);
+}
+
+.chipRejected {
+  color: var(--danger, #e5484d);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.empty {
+  padding: 8px 0;
+  color: var(--text-muted);
+}
+
+.note {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.amountField {
+  width: 140px;
+}

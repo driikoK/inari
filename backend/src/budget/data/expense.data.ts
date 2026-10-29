@@ -1,23 +1,12 @@
 import { z } from 'zod';
-import { hasCardNumber, isCardNumber, isHttpsLink, isMasked } from '../card.js';
 import {
   EXPENSE_KIND,
   EXPENSE_SECTION,
   MAX_AMOUNT_KOP,
   SUPPORT_DIRECTION,
 } from '../enums/index.js';
+import { requisiteProblem, text } from './payout.data.js';
 import { day } from './period.data.js';
-
-// Only the last digits of a card are ever kept, so a whole number has no
-// business in a field that is stored as it is
-const text = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max, `Максимум ${max} символів`)
-    .refine((value) => !hasCardNumber(value), {
-      error: 'Не вказуйте номер карти в цьому полі',
-    });
 
 const lineFields = {
   kind: z.enum(EXPENSE_KIND, { error: 'Оберіть, що саме виплачується' }),
@@ -25,7 +14,10 @@ const lineFields = {
     .int('Сума має бути в копійках, цілим числом')
     .min(1, 'Сума має бути більшою за нуль')
     .max(MAX_AMOUNT_KOP, 'Забагато для одного видатку'),
-  section: z.enum(EXPENSE_SECTION, { error: 'Оберіть розділ бюджету' }),
+  // A payout of crumbs is written only by fulfilling a request
+  section: z.enum([EXPENSE_SECTION.SUPPORT, EXPENSE_SECTION.ORDERS], {
+    error: 'Оберіть розділ бюджету',
+  }),
   direction: z.enum(SUPPORT_DIRECTION).nullish(),
   projectId: z.string().trim().min(1).nullish(),
   title: text(200).nullish(),
@@ -45,33 +37,6 @@ type LineShape = {
   projectId?: string | null;
   title?: string | null;
   requisite?: string | null;
-};
-
-// An already masked number is what an edit sends back untouched
-const requisiteProblem = (
-  { kind, requisite }: LineShape,
-  isUpdate: boolean,
-) => {
-  if (kind === EXPENSE_KIND.DEVELOPMENT) return null;
-  if (!requisite) {
-    return kind === EXPENSE_KIND.CARD
-      ? 'Вкажіть номер карти'
-      : 'Вкажіть номер карти або посилання на банку';
-  }
-
-  if (isCardNumber(requisite) || (isUpdate && isMasked(requisite))) return null;
-
-  if (kind === EXPENSE_KIND.CARD) {
-    return 'Номер карти — 16 цифр, перевірте, чи немає помилки';
-  }
-
-  if (!isHttpsLink(requisite)) {
-    return 'Вкажіть номер карти або посилання, що починається з https://';
-  }
-
-  return hasCardNumber(requisite)
-    ? 'Посилання не має містити номер карти'
-    : null;
 };
 
 const checkLine =

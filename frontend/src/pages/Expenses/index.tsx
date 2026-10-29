@@ -6,19 +6,24 @@ import { useMembersStore } from '@/stores';
 import useBudgetStore from '@/stores/useBudgetStore';
 import { notifyFailure } from '@/utils/request';
 import styles from './Expenses.module.scss';
+import { QueueTab } from './components/QueueTab';
 import { TreatForm } from './components/TreatForm';
 
 enum TAB {
+  QUEUE = 'queue',
   TREAT = 'treat',
 }
 
-const tabs = [{ value: TAB.TREAT, label: 'Частування' }];
+const tabs = [
+  { value: TAB.QUEUE, label: 'Запити' },
+  { value: TAB.TREAT, label: 'Частування' },
+];
 
 const Expenses: FC = () => {
   const getSummary = useBudgetStore((state) => state.getSummary);
   const getMembers = useMembersStore((state) => state.getMembers);
 
-  const [tab, setTab] = useState(TAB.TREAT);
+  const [tab, setTab] = useState(TAB.QUEUE);
 
   useEffect(() => {
     getSummary().catch(notifyFailure);
@@ -30,7 +35,7 @@ const Expenses: FC = () => {
       <div className={styles.header}>
         <div className={styles.title}>Видатки</div>
         <div className={styles.subtitle}>
-          Виплати з бюджету: на карту, донатом або на розвиток команди
+          Запити учасників на вивід і виплати з бюджету: на карту, донатом або на розвиток команди
         </div>
       </div>
 
@@ -40,6 +45,7 @@ const Expenses: FC = () => {
         ))}
       </Tabs>
 
+      {tab === TAB.QUEUE && <QueueTab />}
       {tab === TAB.TREAT && <TreatForm />}
     </div>
   );

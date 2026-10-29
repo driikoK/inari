@@ -2,8 +2,6 @@ import { ConfigService } from '@nestjs/config';
 import mongoose from 'mongoose';
 import type { AppConfig } from '../config/configuration.js';
 
-mongoose.set('debug', true);
-
 export const databaseProviders = [
   {
     provide: 'DATABASE_CONNECTION',

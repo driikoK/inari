@@ -10,7 +10,7 @@ import { ConfirmDeleteDialog, CustomTable } from '@/components';
 import { formatDay } from '@/pages/Projects/const/options';
 import { seasonLabel } from '@/pages/Proposals/const/options';
 import useBudgetStore, { type BudgetEntry, type EntriesParams } from '@/stores/useBudgetStore';
-import { ENTRY_TYPE } from '@/types';
+import { ENTRY_TYPE, EXPENSE_SECTION } from '@/types';
 import { notifyFailure } from '@/utils/request';
 import {
   entryDetails,
@@ -50,6 +50,10 @@ const DELETE_TEXT: Record<ENTRY_TYPE, { title: string; message: string; done: st
     done: 'Частування видалено',
   },
 };
+
+// The crumbs of a payout have already left the nickname, so the journal cannot change it
+const isLockedEntry = (entry: BudgetEntry) =>
+  entry.type === ENTRY_TYPE.EXPENSE && entry.section === EXPENSE_SECTION.CRUMBS;
 
 export const EntriesTab: FC<EntriesTabProps> = ({ today }) => {
   const entries = useBudgetStore((state) => state.entries);
@@ -156,26 +160,29 @@ export const EntriesTab: FC<EntriesTabProps> = ({ today }) => {
       type: 'actions',
       headerName: 'Дії',
       width: 90,
-      getActions: ({ row }) => [
-        ...(row.type === ENTRY_TYPE.ALLOCATION
+      getActions: ({ row }) =>
+        isLockedEntry(row)
           ? []
           : [
+              ...(row.type === ENTRY_TYPE.ALLOCATION
+                ? []
+                : [
+                    <GridActionsCellItem
+                      key="edit"
+                      icon={<EditIcon />}
+                      label="Редагувати"
+                      onClick={() => setEntryToEdit(row)}
+                      color="inherit"
+                    />,
+                  ]),
               <GridActionsCellItem
-                key="edit"
-                icon={<EditIcon />}
-                label="Редагувати"
-                onClick={() => setEntryToEdit(row)}
+                key="delete"
+                icon={<DeleteIcon />}
+                label="Видалити"
+                onClick={() => setEntryToDelete(row)}
                 color="inherit"
               />,
-            ]),
-        <GridActionsCellItem
-          key="delete"
-          icon={<DeleteIcon />}
-          label="Видалити"
-          onClick={() => setEntryToDelete(row)}
-          color="inherit"
-        />,
-      ],
+            ],
     },
   ];
 

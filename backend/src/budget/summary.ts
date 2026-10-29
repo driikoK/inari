@@ -2,6 +2,7 @@ import { seasonOfOrdinal, seasonOrdinal } from '../projects/layout.js';
 import type { SEASON } from '../shared/index.js';
 import type { SeasonCoins } from '../tracks/interfaces/track.interface.js';
 import {
+  coefficientOf,
   effectsOf,
   NO_NAME,
   NO_TITLE,
@@ -24,6 +25,7 @@ import type {
   EntryGroup,
   ExpenseLine,
   LisodarLine,
+  SeasonRate,
   SeasonSummary,
   SupportLine,
   TitleLine,
@@ -39,8 +41,6 @@ interface Parts {
   allocations: Allocation[];
   expenses: Expense[];
 }
-
-const round4 = (value: number) => Math.round(value * 10000) / 10000;
 
 const sum = <T>(items: T[], pick: (item: T) => number) =>
   items.reduce((total, item) => total + pick(item), 0);
@@ -81,6 +81,13 @@ const topExpenses = (expenses: Expense[]): ExpenseLine[] => {
         amountOf,
       ),
     },
+    {
+      category: 'crumbs' as const,
+      kop: total(
+        paid.filter(({ section }) => section === EXPENSE_SECTION.CRUMBS),
+        amountOf,
+      ),
+    },
     ...Object.values(SUPPORT_DIRECTION).map((direction) => ({
       category: direction,
       kop: total(
@@ -115,7 +122,15 @@ const summarizeSeason = (
     incomesHere.filter(isOfSource(INCOME_SOURCE.ORDER)),
     titleShare,
   );
-  const payoutsKop = 0;
+  const payoutsKop = total(
+    expenses.filter(
+      (expense) =>
+        expense.section === EXPENSE_SECTION.CRUMBS &&
+        expense.crumbSeason === season &&
+        expense.crumbYear === year,
+    ),
+    amountOf,
+  );
   const jarBeforePayoutsKop = incomeKop + transfersKop - supportKop - ordersKop;
   const earned = sum(
     crumbs.filter((item) => item.season === season && item.year === year),
@@ -133,10 +148,7 @@ const summarizeSeason = (
     payoutsKop,
     jarKop: jarBeforePayoutsKop - payoutsKop,
     crumbs: round3(earned),
-    coefficient:
-      earned > 0
-        ? Math.max(0, round4(jarBeforePayoutsKop / 100 / earned))
-        : null,
+    coefficient: coefficientOf(jarBeforePayoutsKop, earned),
     treatsKop: total(
       incomesHere.filter(isOfSource(INCOME_SOURCE.PROJECT_JAR)),
       amountOf,
@@ -289,6 +301,34 @@ const lisodarLines = ({ incomes, expenses }: Parts): LisodarLine[] => {
   return [...lines.values()].sort(
     (a, b) => b.kop - a.kop || a.name.localeCompare(b.name),
   );
+};
+
+export const orderBudgets = (entries: EntryGroup[]): TitleLine[] =>
+  titleLines(split(entries));
+
+// The coefficient of every season that has crumbs, which is what a payout of
+// crumbs of that season is paid at
+export const seasonRates = (
+  entries: EntryGroup[],
+  crumbs: SeasonCoins[],
+): SeasonRate[] => {
+  const parts = split(entries);
+  const rates = new Map<string, SeasonRate>();
+
+  for (const { season, year } of crumbs) {
+    const key = `${year}-${season}`;
+
+    if (!rates.has(key)) {
+      rates.set(key, {
+        season,
+        year,
+        coefficient: summarizeSeason(parts, crumbs, { season, year }, false)
+          .coefficient,
+      });
+    }
+  }
+
+  return [...rates.values()];
 };
 
 export const summarize = (

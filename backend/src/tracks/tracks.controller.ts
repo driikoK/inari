@@ -14,7 +14,9 @@ import { TrackService } from './tracks.service.js';
 import { CreateTrackData } from './data/create-track.data.js';
 import { FilterTrackData } from './data/filter-track.data.js';
 import { UpdateTrackData } from './data/update-track.data.js';
+import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
+import { CuratorGuard } from '../auth/curator.guard.js';
 import type { ValidatedUser } from '../users/interfaces/user.interface.js';
 import { LastTracksData } from './data/last-tracks.js';
 
@@ -33,7 +35,7 @@ export class TracksController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, CuratorGuard)
   async addNewTrack(
     @Body({ schema: CreateTrackData }) track: CreateTrackData,
     @CurrentUser() user: ValidatedUser,
@@ -42,7 +44,7 @@ export class TracksController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   updateTrack(
     @Param('id') id: string,
     @Body({ schema: UpdateTrackData }) track: UpdateTrackData,
@@ -52,7 +54,7 @@ export class TracksController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   async deleteTrack(
     @Param('id') id: string,
     @CurrentUser() user: ValidatedUser,

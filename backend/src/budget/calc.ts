@@ -14,6 +14,7 @@ import {
 } from './enums/index.js';
 import type {
   BudgetEntry,
+  Change,
   Effect,
   EntryGroup,
   EntrySnapshot,
@@ -23,6 +24,33 @@ export const NO_TITLE = 'Без назви';
 export const NO_NAME = 'Без імені';
 
 export const round3 = (value: number) => Math.round(value * 1000) / 1000;
+
+export const formatCrumbs = (value: number) =>
+  round3(value).toLocaleString('uk-UA', { maximumFractionDigits: 3 });
+
+const COEFFICIENT_TICKS = 10000;
+
+// Hryvnias per crumb, rounded down to four digits so that what is paid out at
+// this rate never adds up to more than the jar holds. The integer maths keeps a
+// whole number of hryvnias from falling a tick short.
+export const coefficientOf = (
+  jarKop: number,
+  earnedCrumbs: number,
+): number | null => {
+  if (!(earnedCrumbs > 0)) return null;
+
+  const milliCrumbs = Math.max(1, Math.round(earnedCrumbs * 1000));
+  const ticks = Math.floor((jarKop * 100000) / milliCrumbs);
+
+  return Math.max(0, ticks) / COEFFICIENT_TICKS;
+};
+
+// What crumbs are worth in kopiykas at a coefficient, rounded down to a kopiyka
+export const kopOfCrumbs = (crumbs: number, coefficient: number) =>
+  Math.floor(
+    (Math.round(crumbs * 1000) * Math.round(coefficient * COEFFICIENT_TICKS)) /
+      100000,
+  );
 
 export const splitOrder = (amountKop: number) => {
   const general = Math.floor((amountKop * ORDER_GENERAL_PERCENT + 50) / 100);
@@ -52,6 +80,13 @@ export const typeOf = (entry: { type?: ENTRY_TYPE }) =>
   entry.type ?? ENTRY_TYPE.INCOME;
 
 export const jarKey = (season: SEASON, year: number) => `jar:${year}-${season}`;
+
+export const created = (entry: BudgetEntry): Change => ({
+  entry,
+  before: null,
+  after: snapshotOf(entry),
+  effects: effectsOf(snapshotOf(entry)),
+});
 
 const jarOf = (season: SEASON, year: number) => ({
   kind: SIDE_KIND.JAR,
@@ -128,9 +163,16 @@ export const effectsOf = (entry: EntryGroup): Effect[] => {
     case ENTRY_TYPE.EXPENSE: {
       const { amountKop, kind, section, direction } = entry;
       const from =
-        section === EXPENSE_SECTION.SUPPORT && direction
-          ? supportOf(direction, -amountKop)
-          : ordersOf(entry, -amountKop);
+        section === EXPENSE_SECTION.CRUMBS &&
+        entry.crumbSeason &&
+        entry.crumbYear !== undefined
+          ? {
+              ...jarOf(entry.crumbSeason, entry.crumbYear),
+              deltaKop: -amountKop,
+            }
+          : section === EXPENSE_SECTION.SUPPORT && direction
+            ? supportOf(direction, -amountKop)
+            : ordersOf(entry, -amountKop);
 
       // Money given to the development of the team stays in the team: it
       // lands in the jar of the season as a gift with a name
@@ -246,6 +288,12 @@ export const snapshotOf = (entry: BudgetEntry): EntrySnapshot => {
         ...(entry.projectId && { projectId: entry.projectId }),
         ...(entry.title && { title: entry.title }),
         nickname: entry.nickname,
+        ...(entry.crumbSeason && { crumbSeason: entry.crumbSeason }),
+        ...(entry.crumbYear !== undefined && { crumbYear: entry.crumbYear }),
+        ...(entry.crumbs !== undefined && { crumbs: entry.crumbs }),
+        ...(entry.coefficient !== undefined && {
+          coefficient: entry.coefficient,
+        }),
         ...(entry.requisite && { requisite: entry.requisite }),
         ...(entry.comment && { comment: entry.comment }),
       };
@@ -277,9 +325,13 @@ export const describeEntry = (entry: EntrySnapshot) => {
       ].join(' ');
     case ENTRY_TYPE.EXPENSE: {
       const section =
-        entry.section === EXPENSE_SECTION.SUPPORT && entry.direction
-          ? `Печивко підтримки → ${DIRECTION_LABEL[entry.direction]}`
-          : `Тістечка замовлень → ${entry.title || NO_TITLE}`;
+        entry.section === EXPENSE_SECTION.CRUMBS &&
+        entry.crumbSeason &&
+        entry.crumbYear !== undefined
+          ? `Крихти ${seasonLabel(entry.crumbSeason, entry.crumbYear)}${entry.crumbs === undefined ? '' : `, ${formatCrumbs(entry.crumbs)} крихт`}`
+          : entry.section === EXPENSE_SECTION.SUPPORT && entry.direction
+            ? `Печивко підтримки → ${DIRECTION_LABEL[entry.direction]}`
+            : `Тістечка замовлень → ${entry.title || NO_TITLE}`;
 
       return [
         `«${KIND_LABEL[entry.kind]}» ${formatKop(entry.amountKop)}`,

@@ -7,6 +7,7 @@ import type {
   EXPENSE_KIND,
   EXPENSE_SECTION,
   INCOME_SOURCE,
+  REQUEST_STATUS,
   SUPPORT_DIRECTION,
 } from '@/types';
 import { ensure } from '@/utils/request';
@@ -119,6 +120,11 @@ export interface ExpenseEntry extends EntryBase {
   nickname: string;
   requisite?: string;
   comment?: string;
+  crumbs?: number;
+  coefficient?: number;
+  crumbSeason?: string;
+  crumbYear?: number;
+  requestId?: string;
 }
 
 export type BudgetEntry = IncomeEntry | AllocationEntry | ExpenseEntry;
@@ -197,6 +203,93 @@ export interface SupportPreview {
   problem: string | null;
 }
 
+export interface WithdrawalPart {
+  season: string;
+  year: number;
+  crumbs: number;
+  coefficient: number;
+  amountKop: number;
+}
+
+export interface SeasonShare {
+  season: string;
+  year: number;
+  crumbs: number;
+  coefficient: number;
+}
+
+// What a line would be paid at the rates of now. The sums are fixed when the admin fulfils it.
+export interface RequestEstimate {
+  amountKop: number;
+  parts: WithdrawalPart[];
+}
+
+// One line of a request: a card, a donation or a gift to the team. A card number comes whole
+// only to the admin and only while the line is open.
+export interface RequestView {
+  _id: string;
+  groupId: string;
+  status: REQUEST_STATUS;
+  username: string;
+  nickname: string;
+  kind: EXPENSE_KIND;
+  isOrder: boolean;
+  crumbs?: number;
+  amountKop?: number;
+  projectId?: string;
+  title?: string;
+  requisite?: string;
+  comment?: string;
+  createdAt?: string;
+  closedAt?: string;
+  closedBy?: string;
+  paidKop?: number;
+  parts?: WithdrawalPart[];
+  estimate: RequestEstimate | null;
+  problem: string | null;
+}
+
+export interface WithdrawalInfo {
+  nickname: string | null;
+  balance: number;
+  reservedCrumbs: number;
+  availableCrumbs: number;
+  lockedCrumbs: number;
+  shares: SeasonShare[];
+}
+
+export interface MyWithdrawal extends WithdrawalInfo {
+  requests: RequestView[];
+}
+
+export interface PreviewLine {
+  kind: EXPENSE_KIND;
+  crumbs?: number;
+  amountKop?: number;
+  estimate: RequestEstimate | null;
+}
+
+export interface RequestPreview {
+  info: WithdrawalInfo;
+  lines: PreviewLine[];
+  problem: string | null;
+}
+
+export interface RequestLinePayload {
+  kind: EXPENSE_KIND;
+  crumbs: number | null;
+  amountKop: number | null;
+  requisite: string | null;
+}
+
+export interface RequestPayload {
+  isOrder: boolean;
+  projectId: string | null;
+  title: string | null;
+  comment: string | null;
+  lines: RequestLinePayload[];
+}
+
 // Records audited before the other kinds existed have no type: they are incomes
 export interface IncomeSnapshot {
   type?: ENTRY_TYPE.INCOME;
@@ -233,6 +326,10 @@ export interface ExpenseSnapshot {
   nickname: string;
   requisite?: string;
   comment?: string;
+  crumbs?: number;
+  coefficient?: number;
+  crumbSeason?: string;
+  crumbYear?: number;
 }
 
 export type AuditSnapshot = IncomeSnapshot | AllocationSnapshot | ExpenseSnapshot;
@@ -315,6 +412,8 @@ interface State {
   entriesParams: EntriesParams | null;
   audit: Paged<AuditOperation> | null;
   auditParams: AuditParams | null;
+  withdrawal: MyWithdrawal | null;
+  queue: RequestView[] | null;
 }
 
 interface Actions {
@@ -328,14 +427,23 @@ interface Actions {
   updateSupport: (payload: SupportPayload) => Promise<void>;
   previewSupport: (payload: SupportPayload) => Promise<SupportPreview>;
   deleteEntry: (id: string) => Promise<void>;
+  getWithdrawal: () => Promise<void>;
+  previewRequest: (payload: RequestPayload) => Promise<RequestPreview>;
+  createRequest: (payload: RequestPayload) => Promise<void>;
+  cancelRequest: (id: string) => Promise<void>;
+  getQueue: () => Promise<void>;
+  fulfilRequest: (id: string, amountKop: number | null) => Promise<void>;
+  rejectRequest: (id: string) => Promise<void>;
   clearEntries: () => void;
   clearAudit: () => void;
+  clearQueue: () => void;
 }
 
 const defaultPath = '/budget';
 
 let latestEntriesRequest = 0;
 let latestAuditRequest = 0;
+let latestQueueRequest = 0;
 
 const useBudgetStore = create<State & Actions>((set, get) => {
   const fetchSummary = async () => {
@@ -345,12 +453,15 @@ const useBudgetStore = create<State & Actions>((set, get) => {
   };
 
   const refresh = async () => {
-    const { entriesParams, auditParams, getEntries, getAudit } = get();
+    const { entriesParams, auditParams, withdrawal, queue } = get();
+    const { getEntries, getAudit, getWithdrawal, getQueue } = get();
 
     await Promise.all([
       fetchSummary(),
       entriesParams && getEntries(entriesParams),
       auditParams && getAudit(auditParams),
+      withdrawal && getWithdrawal(),
+      queue && getQueue(),
     ]);
   };
 
@@ -371,6 +482,8 @@ const useBudgetStore = create<State & Actions>((set, get) => {
     entriesParams: null,
     audit: null,
     auditParams: null,
+    withdrawal: null,
+    queue: null,
 
     getSummary: async () => {
       set({ isSummaryLoading: true });
@@ -422,6 +535,31 @@ const useBudgetStore = create<State & Actions>((set, get) => {
 
     deleteEntry: (id) => change(() => axios.delete(`${defaultPath}/entries/${id}`)),
 
+    getWithdrawal: async () => {
+      const response = ensure(await axios.get<MyWithdrawal>(`${defaultPath}/requests/mine`));
+
+      set({ withdrawal: response.data });
+    },
+
+    previewRequest: async (payload) =>
+      ensure(await axios.post<RequestPreview>(`${defaultPath}/requests/preview`, payload)).data,
+
+    createRequest: (payload) => change(() => axios.post(`${defaultPath}/requests`, payload)),
+
+    cancelRequest: (id) => change(() => axios.post(`${defaultPath}/requests/${id}/cancel`)),
+
+    getQueue: async () => {
+      const request = ++latestQueueRequest;
+      const response = ensure(await axios.get<RequestView[]>(`${defaultPath}/requests`));
+
+      if (request === latestQueueRequest) set({ queue: response.data });
+    },
+
+    fulfilRequest: (id, amountKop) =>
+      change(() => axios.post(`${defaultPath}/requests/${id}/fulfil`, { amountKop })),
+
+    rejectRequest: (id) => change(() => axios.post(`${defaultPath}/requests/${id}/reject`)),
+
     clearEntries: () => {
       latestEntriesRequest++;
 
@@ -432,6 +570,12 @@ const useBudgetStore = create<State & Actions>((set, get) => {
       latestAuditRequest++;
 
       set({ audit: null, auditParams: null });
+    },
+
+    clearQueue: () => {
+      latestQueueRequest++;
+
+      set({ queue: null });
     },
   };
 });

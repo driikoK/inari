@@ -20,6 +20,9 @@ export const seasonOrdinal = (day: string): number => {
   return year * SEASONS.length + Math.floor((month - 1) / MONTHS_IN_SEASON);
 };
 
+export const ordinalOf = (season: SEASON, year: number): number =>
+  year * SEASONS.length + SEASONS.indexOf(season);
+
 export const seasonOfOrdinal = (ordinal: number) => ({
   season: SEASONS[ordinal % SEASONS.length],
   year: Math.floor(ordinal / SEASONS.length),

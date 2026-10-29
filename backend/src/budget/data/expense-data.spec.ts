@@ -62,6 +62,22 @@ describe('CreateExpensesData', () => {
     expect(result.data?.comment).toBe('Дякуємо');
   });
 
+  it('does not take a payout of crumbs, which only a request writes', () => {
+    expect(
+      messagesOf(
+        CreateExpensesData,
+        create([{ ...card, section: EXPENSE_SECTION.CRUMBS }]),
+      ),
+    ).toContain('Оберіть розділ бюджету');
+    expect(
+      messagesOf(UpdateExpenseData, {
+        ...card,
+        date: '2027-05-10',
+        section: EXPENSE_SECTION.CRUMBS,
+      }),
+    ).toContain('Оберіть розділ бюджету');
+  });
+
   it('wants at least one line and not too many', () => {
     expect(messagesOf(CreateExpensesData, create([]))).toContain(
       'Заповніть хоча б один розділ',

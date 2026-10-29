@@ -6,6 +6,8 @@ interface ConfirmDeleteDialogProps {
   title: string;
   message: string;
   isLoading?: boolean;
+  confirmLabel?: string;
+  cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -15,6 +17,8 @@ export const ConfirmDeleteDialog: FC<ConfirmDeleteDialogProps> = ({
   title,
   message,
   isLoading = false,
+  confirmLabel = 'Видалити',
+  cancelLabel = 'Скасувати',
   onConfirm,
   onCancel,
 }) => {
@@ -24,10 +28,10 @@ export const ConfirmDeleteDialog: FC<ConfirmDeleteDialogProps> = ({
       <DialogContent dividers>{message}</DialogContent>
       <DialogActions>
         <Button onClick={onCancel} disabled={isLoading}>
-          Скасувати
+          {cancelLabel}
         </Button>
         <Button color="error" onClick={onConfirm} disabled={isLoading}>
-          Видалити
+          {confirmLabel}
         </Button>
       </DialogActions>
     </Dialog>

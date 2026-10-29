@@ -89,7 +89,7 @@ const isTouched = ({ amount, requisite, nickname, place }: PayoutValues) =>
   [amount, requisite, nickname, place].some((value) => value.trim() !== '');
 
 // A masked number is what an edit sends back, a new payout has to bring a real one
-const requisiteProblem = (kind: EXPENSE_KIND, value: string, isEdit: boolean) => {
+export const requisiteProblem = (kind: EXPENSE_KIND, value: string, isEdit: boolean) => {
   const text = value.trim();
 
   if (kind === EXPENSE_KIND.DEVELOPMENT) return null;

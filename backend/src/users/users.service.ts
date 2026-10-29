@@ -70,6 +70,19 @@ export class UsersService {
       .exec();
   }
 
+  // The nickname each account holds now. An account that is gone is missing.
+  async nicknamesOf(
+    usernames: string[],
+  ): Promise<Map<string, string | undefined>> {
+    if (usernames.length === 0) return new Map();
+
+    const users = await this.userModel
+      .find({ username: { $in: usernames } }, { username: 1, nickname: 1 })
+      .lean<{ username: string; nickname?: string }[]>();
+
+    return new Map(users.map(({ username, nickname }) => [username, nickname]));
+  }
+
   async create({
     username,
     password,
