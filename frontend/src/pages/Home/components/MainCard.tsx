@@ -21,25 +21,18 @@ export const MainCard: FunctionComponent<{ isLoggedIn: boolean }> = ({ isLoggedI
           <span className={styles.heroTitleAccent}>Інарчата!</span> 🦊
         </h1>
         <p className={styles.heroDescription}>
-          Система обліку крихт аніме-субтитрів гурту Inari. Відстежуй прогрес, докладай лапу до
-          тайтлів та переглядай рейтинги.
+          Ласкаво просимо до лисятника — простору, де кожен лис творить, зростає й залишає свій слід
+          у спільній магії локалізації. Це — серце нашого творчого об’єднання, місце, де
+          зберігаються крихти праці, печивко вдячності, історії проєктів і шлях команди крізь
+          сезони.
         </p>
-        <div className={styles.heroActions}>
-          {isLoggedIn ? (
-            <>
-              <Button variant="contained" onClick={() => navigate('/cookie')}>
-                Крихти →
-              </Button>
-              <Button variant="outlined" onClick={() => navigate('/cookie/rating')}>
-                Рейтинг
-              </Button>
-            </>
-          ) : (
+        {!isLoggedIn && (
+          <div className={styles.heroActions}>
             <Button variant="contained" onClick={() => navigate('/login')}>
               Увійти →
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className={styles.heroImageWrapper}>

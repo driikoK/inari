@@ -1,5 +1,7 @@
+import { AboutBlock } from './AboutBlock';
 import { LeaderBoard } from './LeaderBoard';
 import { MainCard } from './MainCard';
-import { StatsRow } from './StatsRow';
+import { SectionLinks } from './SectionLinks';
+import { StatsGrid } from './StatsGrid';
 
-export { LeaderBoard, MainCard, StatsRow };
+export { AboutBlock, LeaderBoard, MainCard, SectionLinks, StatsGrid };

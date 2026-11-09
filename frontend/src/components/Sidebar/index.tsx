@@ -1,122 +1,23 @@
-import { FC, ReactNode } from 'react';
+import { FC } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, useMediaQuery } from '@mui/material';
 import clsx from 'clsx';
 import { useAuthStore } from '@/stores';
-import { usePermissions } from '@/hooks';
-import { SUBJECTS } from '@/context/casl';
 import styles from './Sidebar.module.scss';
-import {
-  HomeOutlined,
-  CookieOutlined,
-  FormatListBulletedOutlined,
-  StarBorderOutlined,
-  LightbulbOutlined,
-  FolderSpecialOutlined,
-  SavingsOutlined,
-  PaymentsOutlined,
-  MenuBookOutlined,
-  OpenInNewOutlined,
-  SettingsOutlined,
-  Person2Outlined,
-  LogoutOutlined,
-  TableChartOutlined,
-} from '@mui/icons-material';
+import { useNavItems } from './useNavItems';
+import { OpenInNewOutlined, Person2Outlined, LogoutOutlined } from '@mui/icons-material';
 
 export const SIDEBAR_FULL_W = 200;
 export const SIDEBAR_MINI_W = 68;
 export const SIDEBAR_BREAKPOINT = '(max-width: 900px)';
 
-type NavItemDef = {
-  id: string;
-  path: string;
-  label: string;
-  icon: ReactNode;
-  // A page outside the site, opened in a new tab
-  href?: string;
-};
-
 const Sidebar: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, isLoggedIn } = useAuthStore();
-  const { hasAccess } = usePermissions();
+  const { logout } = useAuthStore();
+  const navItems = useNavItems();
 
   const collapsed = useMediaQuery(SIDEBAR_BREAKPOINT);
-  const isAdmin = hasAccess(SUBJECTS.PERMISSION_EDIT);
-  const canManageBudget = hasAccess(SUBJECTS.MANAGE_BUDGET);
-  const canAddCrumbs = hasAccess([SUBJECTS.ADD_COOKIES, SUBJECTS.ADD_MEMBERS]);
-  const codexUrl = process.env.VITE_CODEX_URL;
-
-  const navItems: NavItemDef[] = [
-    { id: 'home', path: '/home', label: 'Головна', icon: <HomeOutlined /> },
-    ...(isLoggedIn
-      ? [
-          { id: 'budget', path: '/budget', label: 'Печивко', icon: <SavingsOutlined /> },
-          ...(canManageBudget
-            ? [
-                {
-                  id: 'expenses',
-                  path: '/budget/expenses',
-                  label: 'Видатки',
-                  icon: <PaymentsOutlined />,
-                },
-              ]
-            : []),
-          ...(canAddCrumbs
-            ? [{ id: 'cookie', path: '/cookie', label: 'Крихти', icon: <CookieOutlined /> }]
-            : []),
-          {
-            id: 'cookie-list',
-            path: '/cookie/list',
-            label: 'Список крихт',
-            icon: <FormatListBulletedOutlined />,
-          },
-          {
-            id: 'cookie-rating',
-            path: '/cookie/rating',
-            label: 'Рейтинг',
-            icon: <StarBorderOutlined />,
-          },
-          {
-            id: 'projects',
-            path: '/projects',
-            label: 'Проєкти',
-            icon: <FolderSpecialOutlined />,
-          },
-          {
-            id: 'proposals',
-            path: '/proposals',
-            label: 'Пропозиції',
-            icon: <LightbulbOutlined />,
-          },
-        ]
-      : []),
-    ...(process.env.VITE_SHEET_EMBED_URL
-      ? [
-          {
-            id: 'sheet',
-            path: '/sheet',
-            label: 'Лисяча комора',
-            icon: <TableChartOutlined />,
-          },
-        ]
-      : []),
-    ...(isLoggedIn && codexUrl
-      ? [
-          {
-            id: 'codex',
-            path: codexUrl,
-            href: codexUrl,
-            label: 'Кодекс Інарі',
-            icon: <MenuBookOutlined />,
-          },
-        ]
-      : []),
-    ...(isAdmin
-      ? [{ id: 'settings', path: '/settings', label: 'Налаштування', icon: <SettingsOutlined /> }]
-      : []),
-  ];
 
   const isActive = (path: string) => location.pathname === path;
 

@@ -1,46 +1,46 @@
 import { FunctionComponent, useEffect, useMemo } from 'react';
 
-import { useAuthStore, useMembersStore } from '@/stores';
+import { SUBJECTS } from '@/context/casl';
+import { usePermissions } from '@/hooks';
+import { useAuthStore, useBudgetStore, useMembersStore } from '@/stores';
+import useProjectsStore from '@/stores/useProjectsStore';
+import { notifyFailure } from '@/utils/request';
 import styles from './Home.module.scss';
-import { MainCard, StatsRow, LeaderBoard } from './components';
-
-const LEADERS_TO_SHOW = 3;
+import { AboutBlock, MainCard, SectionLinks, StatsGrid } from './components';
 
 const Home: FunctionComponent = () => {
   const { isLoggedIn } = useAuthStore();
+  const { hasAccess } = usePermissions();
   const { members, getMembers } = useMembersStore();
+  const { summary, getSummary } = useBudgetStore();
+  const { seasons, getProjects } = useProjectsStore();
 
   useEffect(() => {
     if (isLoggedIn) {
-      getMembers();
+      getMembers().catch(notifyFailure);
+      getSummary().catch(notifyFailure);
+      getProjects().catch(notifyFailure);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, getMembers, getSummary, getProjects]);
 
-  const sortedMembers = useMemo(() => {
-    return [...members].sort((a, b) => b.coins - a.coins);
-  }, [members]);
-  const totalCoins = useMemo(
-    () => members.reduce((sum, member) => sum + member.coins, 0),
-    [members],
-  );
+  const sortedMembers = useMemo(() => [...members].sort((a, b) => b.coins - a.coins), [members]);
 
   return (
     <div className={styles.page}>
       <MainCard isLoggedIn={isLoggedIn} />
 
-      <div className={styles.pageStatistics}>
-        {isLoggedIn && sortedMembers.length >= LEADERS_TO_SHOW && (
-          <LeaderBoard sortedMembers={sortedMembers} />
-        )}
-
-        {isLoggedIn && members.length > 0 && (
-          <StatsRow
-            membersQuantity={members.length}
-            totalCoins={totalCoins}
-            leader={sortedMembers[0]}
+      {isLoggedIn && (
+        <>
+          <AboutBlock />
+          <SectionLinks />
+          <StatsGrid
+            members={sortedMembers}
+            budget={summary?.seasons.find(({ isCurrent }) => isCurrent)}
+            projects={seasons.find(({ isCurrent }) => isCurrent)}
+            showUnmarked={hasAccess(SUBJECTS.EDIT_MEMBER_KIND)}
           />
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };

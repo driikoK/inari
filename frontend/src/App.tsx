@@ -25,8 +25,11 @@ function RequireAuth({ children }: PropsWithChildren) {
     window.location.replace('/login');
   }
 
+  // The home page is open to guests, but a logged-in user needs their role there too
+  const needsUser = !isPathForUnloggedUser || (isLoggedIn && pathname === '/home');
+
   useEffect(() => {
-    if (!isPathForUnloggedUser) getCurrentUser();
+    if (needsUser) getCurrentUser();
   }, [pathname]);
 
   if (!user && !isPathForUnloggedUser) return <FallbackComponent />;
