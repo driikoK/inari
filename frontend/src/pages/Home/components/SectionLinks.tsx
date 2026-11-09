@@ -5,9 +5,11 @@ import { OpenInNewOutlined } from '@mui/icons-material';
 import { useNavItems } from '@/components/Sidebar/useNavItems';
 import styles from '../Home.module.scss';
 
+const NOT_ON_HOME = ['home', 'settings'];
+
 export const SectionLinks: FunctionComponent = () => {
   const navigate = useNavigate();
-  const items = useNavItems().filter(({ id }) => id !== 'home');
+  const items = useNavItems().filter(({ id }) => !NOT_ON_HOME.includes(id));
 
   return (
     <div className={`fade-up ${styles.links}`}>
