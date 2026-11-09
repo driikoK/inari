@@ -8,6 +8,7 @@ interface ConfirmDeleteDialogProps {
   isLoading?: boolean;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmColor?: 'error' | 'primary';
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -19,6 +20,7 @@ export const ConfirmDeleteDialog: FC<ConfirmDeleteDialogProps> = ({
   isLoading = false,
   confirmLabel = 'Видалити',
   cancelLabel = 'Скасувати',
+  confirmColor = 'error',
   onConfirm,
   onCancel,
 }) => {
@@ -30,7 +32,7 @@ export const ConfirmDeleteDialog: FC<ConfirmDeleteDialogProps> = ({
         <Button onClick={onCancel} disabled={isLoading}>
           {cancelLabel}
         </Button>
-        <Button color="error" onClick={onConfirm} disabled={isLoading}>
+        <Button color={confirmColor} onClick={onConfirm} disabled={isLoading}>
           {confirmLabel}
         </Button>
       </DialogActions>

@@ -11,6 +11,7 @@ import type {
 } from '@/stores/useBudgetStore';
 import {
   AUDIT_KIND,
+  AUDIT_UNIT,
   BUDGET_ERROR,
   ENTRY_TYPE,
   EXPENSE_KIND,
@@ -127,6 +128,26 @@ export const formatSignedCrumbs = (crumbs: number) => {
 // How the crumbs of one season were or would be paid
 export const partText = ({ season, year, crumbs, coefficient, amountKop }: WithdrawalPart) =>
   `${seasonLabel(season, year)}: ${formatCrumbs(crumbs)} × ${formatRate(coefficient)} = ${formatKop(amountKop)}`;
+
+// A number of the reconciliation is hryvnias or crumbs, as its unit says, and may be missing
+export const formatReconcileValue = (unit?: AUDIT_UNIT, value?: number) => {
+  if (!unit || value === undefined) return '—';
+
+  return unit === AUDIT_UNIT.MONEY ? formatKop(value) : `${formatCrumbs(value)} крихт`;
+};
+
+export const formatReconcileDifference = (unit?: AUDIT_UNIT, value?: number) => {
+  if (!unit || value === undefined) return '—';
+
+  return unit === AUDIT_UNIT.MONEY ? formatSignedKop(value) : `${formatSignedCrumbs(value)} крихт`;
+};
+
+export const formatDateTime = (value: string, timeStyle: 'short' | 'medium' = 'short') =>
+  new Date(value).toLocaleString('uk-UA', {
+    timeZone: 'Europe/Kyiv',
+    dateStyle: 'short',
+    timeStyle,
+  });
 
 export const requestDate = (value?: string) =>
   value ? new Date(value).toLocaleDateString('uk-UA', { timeZone: 'Europe/Kyiv' }) : '—';

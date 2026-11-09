@@ -9,10 +9,12 @@ import { Model } from 'mongoose';
 import { todayInKyiv } from '../projects/layout.js';
 import { escapeRegExp } from '../shared/index.js';
 import type { AuditQueryData } from './data/index.js';
-import { AUDIT_UNIT, BUDGET_ERROR, type AUDIT_KIND } from './enums/index.js';
+import { AUDIT_KIND, AUDIT_UNIT, BUDGET_ERROR } from './enums/index.js';
 import type {
   AuditOperation,
   AuditRow,
+  CrumbAuditSum,
+  MoneyAuditSum,
   NewAuditRow,
   OperationHead,
   OperationRow,
@@ -75,6 +77,87 @@ export class BudgetAuditService {
         BUDGET_ERROR.AUDIT_NOT_SAVED,
       );
     }
+  }
+
+  // What the rows of money add up to on every side, and how many rows that is
+  async moneySums(): Promise<MoneyAuditSum[]> {
+    const groups = await this.auditModel.aggregate<{
+      _id: string;
+      label: string;
+      kop: number;
+      rows: number;
+    }>([
+      { $match: { unit: { $ne: AUDIT_UNIT.CRUMBS } } },
+      {
+        $group: {
+          _id: '$subjectKey',
+          label: { $max: '$subjectLabel' },
+          kop: { $sum: '$deltaKop' },
+          rows: { $sum: 1 },
+        },
+      },
+    ]);
+
+    return groups.map(({ _id, label, kop, rows }) => ({
+      key: _id,
+      label,
+      kop,
+      rows,
+    }));
+  }
+
+  // The records of the journal that have at least one row of money
+  async auditedEntryIds(): Promise<Set<string>> {
+    const ids = await this.auditModel.distinct('entryId', {
+      unit: { $ne: AUDIT_UNIT.CRUMBS },
+      entryId: { $ne: null },
+    });
+
+    return new Set(ids.map(String));
+  }
+
+  // What the rows of crumbs add up to for every nickname, by kind of operation,
+  // and how many rows that is
+  async crumbSums(): Promise<CrumbAuditSum[]> {
+    const groups = await this.auditModel.aggregate<{
+      _id: { key: string; kind: AUDIT_KIND };
+      crumbs: number;
+      rows: number;
+    }>([
+      { $match: { unit: AUDIT_UNIT.CRUMBS } },
+      {
+        $group: {
+          _id: { key: '$subjectKey', kind: '$kind' },
+          crumbs: { $sum: '$deltaCrumbs' },
+          rows: { $sum: 1 },
+        },
+      },
+    ]);
+
+    return groups.map(({ _id, crumbs, rows }) => ({
+      key: _id.key,
+      kind: _id.kind,
+      crumbs,
+      rows,
+    }));
+  }
+
+  // The crumbs a fulfilled request took off a nickname for each payout it wrote
+  async crumbsOfPayouts(): Promise<Map<string, number>> {
+    const groups = await this.auditModel.aggregate<{
+      _id: string;
+      crumbs: number;
+    }>([
+      {
+        $match: {
+          unit: AUDIT_UNIT.CRUMBS,
+          kind: AUDIT_KIND.REQUEST_FULFILLED,
+        },
+      },
+      { $group: { _id: '$entryId', crumbs: { $sum: '$deltaCrumbs' } } },
+    ]);
+
+    return new Map(groups.map(({ _id, crumbs }) => [_id, crumbs]));
   }
 
   async find(query: AuditQueryData): Promise<Paged<AuditOperation>> {

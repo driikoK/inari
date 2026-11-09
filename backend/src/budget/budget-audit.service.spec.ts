@@ -300,4 +300,87 @@ describe('BudgetAuditService', () => {
       expect(subjectLabel.test('xAxB(x')).toBe(false);
     });
   });
+
+  describe('for the reconciliation', () => {
+    it('adds up the rows of money by side and counts them, and leaves the rows of crumbs out', async () => {
+      model.aggregate.mockResolvedValue([
+        {
+          _id: 'jar:2027-spring',
+          label: 'Банка Весна 2027',
+          kop: 70000,
+          rows: 3,
+        },
+      ] as any);
+
+      await expect(service.moneySums()).resolves.toEqual([
+        {
+          key: 'jar:2027-spring',
+          label: 'Банка Весна 2027',
+          kop: 70000,
+          rows: 3,
+        },
+      ]);
+
+      const [pipeline, options] = model.aggregate.mock.calls[0] as any[];
+
+      expect(pipeline[0]).toEqual({
+        $match: { unit: { $ne: AUDIT_UNIT.CRUMBS } },
+      });
+      expect(pipeline).toHaveLength(2);
+      expect(pipeline[1].$group).toMatchObject({
+        _id: '$subjectKey',
+        kop: { $sum: '$deltaKop' },
+        rows: { $sum: 1 },
+      });
+      // no sort of the whole audit: the label only has to be one of the labels
+      expect(pipeline.some((stage: object) => '$sort' in stage)).toBe(false);
+      expect(options).toBeUndefined();
+    });
+
+    it('lists the records of the journal that have a row of money', async () => {
+      model.distinct.mockResolvedValue(['e1', 'e2'] as any);
+
+      await expect(service.auditedEntryIds()).resolves.toEqual(
+        new Set(['e1', 'e2']),
+      );
+      expect(model.distinct).toHaveBeenCalledWith('entryId', {
+        unit: { $ne: AUDIT_UNIT.CRUMBS },
+        entryId: { $ne: null },
+      });
+    });
+
+    it('adds up the rows of crumbs by nickname and kind of operation, and counts them', async () => {
+      model.aggregate.mockResolvedValue([
+        {
+          _id: { key: 'crumbs:аня', kind: AUDIT_KIND.TRACK_CREATED },
+          crumbs: 40,
+          rows: 4,
+        },
+      ] as any);
+
+      await expect(service.crumbSums()).resolves.toEqual([
+        {
+          key: 'crumbs:аня',
+          kind: AUDIT_KIND.TRACK_CREATED,
+          crumbs: 40,
+          rows: 4,
+        },
+      ]);
+      expect((model.aggregate.mock.calls[0][0] as any[])[0]).toEqual({
+        $match: { unit: AUDIT_UNIT.CRUMBS },
+      });
+    });
+
+    it('tells the crumbs a fulfilled request took off a nickname for each payout', async () => {
+      model.aggregate.mockResolvedValue([{ _id: 'p1', crumbs: -10 }] as any);
+
+      await expect(service.crumbsOfPayouts()).resolves.toEqual(
+        new Map([['p1', -10]]),
+      );
+      expect((model.aggregate.mock.calls[0][0] as any[])[0].$match).toEqual({
+        unit: AUDIT_UNIT.CRUMBS,
+        kind: AUDIT_KIND.REQUEST_FULFILLED,
+      });
+    });
+  });
 });

@@ -725,7 +725,7 @@ export class BudgetService {
 
   // The sums need only what the effects depend on, so the database counts
   // equal entries instead of sending every record.
-  private async loadGroups(): Promise<EntryGroup[]> {
+  async loadGroups(): Promise<EntryGroup[]> {
     const groups = await this.entryModel.aggregate<{
       _id: EntryFacts;
       count: number;

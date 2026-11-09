@@ -7,6 +7,8 @@ import { BudgetAuditModule } from './budget-audit.module.js';
 import { BudgetController } from './budget.controller.js';
 import { budgetProviders } from './budget.provider.js';
 import { BudgetService } from './budget.service.js';
+import { ReconcileController } from './reconcile.controller.js';
+import { ReconcileService } from './reconcile.service.js';
 import { RequestsController } from './requests.controller.js';
 import { RequestsService } from './requests.service.js';
 
@@ -18,8 +20,13 @@ import { RequestsService } from './requests.service.js';
     MembersModule,
     BudgetAuditModule,
   ],
-  providers: [BudgetService, RequestsService, ...budgetProviders],
-  controllers: [BudgetController, RequestsController],
+  providers: [
+    BudgetService,
+    RequestsService,
+    ReconcileService,
+    ...budgetProviders,
+  ],
+  controllers: [BudgetController, RequestsController, ReconcileController],
   exports: [BudgetService],
 })
 export class BudgetModule {}

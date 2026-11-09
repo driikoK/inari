@@ -361,6 +361,25 @@ export class MembersService {
     );
   }
 
+  // Every nickname with its counters, hidden ones too, for the reconciliation
+  crumbBalances(): Promise<IMember[]> {
+    return this.memberModel
+      .find(
+        {},
+        { nickname: 1, coins: 1, seasons: 1, crumbsAuditedAt: 1, deletedAt: 1 },
+      )
+      .lean<IMember[]>();
+  }
+
+  // Writes the opening state of a nickname nobody has changed since the audit
+  // began, which its first change would otherwise write. False when it already
+  // had one.
+  auditOpening(nickname: string, actor: string): Promise<boolean> {
+    const { season, year } = seasonOfDay(todayInKyiv());
+
+    return this.claimOpening(nickname, actor, season, year);
+  }
+
   // The first change of a nickname after the audit began is also the one that
   // writes its opening state. Whoever wins the claim writes it, whatever
   // happens to the change itself.
@@ -369,7 +388,7 @@ export class MembersService {
     actor: string,
     season: SEASON,
     year: number,
-  ) {
+  ): Promise<boolean> {
     const claimed = await this.memberModel
       .findOneAndUpdate(
         { nickname, crumbsAuditedAt: null },
@@ -378,7 +397,7 @@ export class MembersService {
       )
       .lean<IMember>();
 
-    if (!claimed) return;
+    if (!claimed) return false;
 
     try {
       await this.crumbAudit.recordOpening(
@@ -396,6 +415,8 @@ export class MembersService {
 
       throw error;
     }
+
+    return true;
   }
 
   async findMember(nickname: string) {

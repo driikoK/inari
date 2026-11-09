@@ -587,6 +587,70 @@ describe('MembersService', () => {
     });
   });
 
+  describe('for the reconciliation', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('reads every nickname with its counters, hidden ones too', async () => {
+      const members = [{ nickname: 'Dixy', coins: 5, seasons: [] }];
+
+      model.find.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(members),
+      } as any);
+
+      await expect(service.crumbBalances()).resolves.toBe(members);
+      expect(model.find).toHaveBeenCalledWith(
+        {},
+        {
+          nickname: 1,
+          coins: 1,
+          seasons: 1,
+          crumbsAuditedAt: 1,
+          deletedAt: 1,
+        },
+      );
+    });
+
+    it('writes the opening state of a nickname the audit has not met, in the current season', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2027-10-05T12:00:00Z'));
+      model.findOneAndUpdate.mockReturnValueOnce({
+        lean: vi.fn().mockResolvedValue({
+          coins: 100,
+          seasons: [{ season: SEASON.WINTER, year: 2027, coins: 100 }],
+        }),
+      } as any);
+
+      await expect(service.auditOpening('Dixy', 'boss')).resolves.toBe(true);
+
+      expect(model.findOneAndUpdate).toHaveBeenCalledWith(
+        { nickname: 'Dixy', crumbsAuditedAt: null },
+        { $set: { crumbsAuditedAt: expect.any(Date) } },
+        { new: false },
+      );
+      expect(crumbAudit.recordOpening).toHaveBeenCalledWith(
+        'boss',
+        'Dixy',
+        {
+          coins: 100,
+          seasons: [{ season: SEASON.WINTER, year: 2027, coins: 100 }],
+        },
+        SEASON.FALL,
+        2027,
+      );
+    });
+
+    it('writes nothing for a nickname that already has its opening state', async () => {
+      model.findOneAndUpdate.mockReturnValueOnce({
+        lean: vi.fn().mockResolvedValue(null),
+      } as any);
+
+      await expect(service.auditOpening('Dixy', 'boss')).resolves.toBe(false);
+      expect(crumbAudit.recordOpening).not.toHaveBeenCalled();
+    });
+  });
+
   describe('updateMember', () => {
     const before = {
       nickname: 'Dixy',

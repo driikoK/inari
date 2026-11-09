@@ -7,6 +7,7 @@ import type {
   EXPENSE_KIND,
   EXPENSE_SECTION,
   INCOME_SOURCE,
+  RECONCILE_STATUS,
   REQUEST_STATUS,
   SUPPORT_DIRECTION,
 } from '@/types';
@@ -405,6 +406,38 @@ export interface AuditParams {
   search?: string;
 }
 
+// Numbers are kopiykas or crumbs as `unit` says, the difference is actual minus expected
+export interface ReconcileProblem {
+  severity: RECONCILE_STATUS.WARNING | RECONCILE_STATUS.ERROR;
+  subject: string;
+  message: string;
+  unit?: AUDIT_UNIT;
+  expected?: number;
+  actual?: number;
+  difference?: number;
+}
+
+export interface ReconcileCheck {
+  key: string;
+  title: string;
+  description: string;
+  status: RECONCILE_STATUS;
+  total: number;
+  problems: ReconcileProblem[];
+}
+
+export interface ReconcileReport {
+  checkedAt: string;
+  status: RECONCILE_STATUS;
+  counts: { entries: number; auditRows: number; members: number; requests: number };
+  checks: ReconcileCheck[];
+  unaudited: string[];
+}
+
+export interface OpeningResult {
+  written: string[];
+}
+
 interface State {
   summary: BudgetSummary | null;
   isSummaryLoading: boolean;
@@ -414,6 +447,10 @@ interface State {
   auditParams: AuditParams | null;
   withdrawal: MyWithdrawal | null;
   queue: RequestView[] | null;
+  reconcile: ReconcileReport | null;
+  isReconciling: boolean;
+  // Something was changed after the report was made
+  isReconcileStale: boolean;
 }
 
 interface Actions {
@@ -434,9 +471,12 @@ interface Actions {
   getQueue: () => Promise<void>;
   fulfilRequest: (id: string, amountKop: number | null) => Promise<void>;
   rejectRequest: (id: string) => Promise<void>;
+  runReconcile: () => Promise<void>;
+  writeOpening: () => Promise<OpeningResult>;
   clearEntries: () => void;
   clearAudit: () => void;
   clearQueue: () => void;
+  clearReconcile: () => void;
 }
 
 const defaultPath = '/budget';
@@ -444,6 +484,8 @@ const defaultPath = '/budget';
 let latestEntriesRequest = 0;
 let latestAuditRequest = 0;
 let latestQueueRequest = 0;
+let latestReconcileRequest = 0;
+let changesMade = 0;
 
 const useBudgetStore = create<State & Actions>((set, get) => {
   const fetchSummary = async () => {
@@ -453,6 +495,10 @@ const useBudgetStore = create<State & Actions>((set, get) => {
   };
 
   const refresh = async () => {
+    changesMade++;
+
+    if (get().reconcile) set({ isReconcileStale: true });
+
     const { entriesParams, auditParams, withdrawal, queue } = get();
     const { getEntries, getAudit, getWithdrawal, getQueue } = get();
 
@@ -484,6 +530,9 @@ const useBudgetStore = create<State & Actions>((set, get) => {
     auditParams: null,
     withdrawal: null,
     queue: null,
+    reconcile: null,
+    isReconciling: false,
+    isReconcileStale: false,
 
     getSummary: async () => {
       set({ isSummaryLoading: true });
@@ -560,6 +609,32 @@ const useBudgetStore = create<State & Actions>((set, get) => {
 
     rejectRequest: (id) => change(() => axios.post(`${defaultPath}/requests/${id}/reject`)),
 
+    runReconcile: async () => {
+      const request = ++latestReconcileRequest;
+      const changesBefore = changesMade;
+
+      set({ isReconciling: true });
+
+      try {
+        const response = ensure(await axios.get<ReconcileReport>(`${defaultPath}/reconcile`));
+
+        if (request === latestReconcileRequest) {
+          set({ reconcile: response.data, isReconcileStale: changesBefore !== changesMade });
+        }
+      } finally {
+        if (request === latestReconcileRequest) set({ isReconciling: false });
+      }
+    },
+
+    // The opening rows are rows of the audit, so an audit page that is open has to see them
+    writeOpening: async () => {
+      try {
+        return ensure(await axios.post<OpeningResult>(`${defaultPath}/reconcile/opening`)).data;
+      } finally {
+        await refresh().catch(() => undefined);
+      }
+    },
+
     clearEntries: () => {
       latestEntriesRequest++;
 
@@ -576,6 +651,12 @@ const useBudgetStore = create<State & Actions>((set, get) => {
       latestQueueRequest++;
 
       set({ queue: null });
+    },
+
+    clearReconcile: () => {
+      latestReconcileRequest++;
+
+      set({ reconcile: null, isReconciling: false, isReconcileStale: false });
     },
   };
 });

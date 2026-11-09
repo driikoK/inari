@@ -28,6 +28,7 @@ import {
   ITrack,
   ITracksWithPagination,
   Multipliers,
+  NicknameCoins,
   SeasonCoins,
 } from './interfaces/track.interface.js';
 import { MULTIPLIER } from './enums/types.enum.js';
@@ -349,6 +350,26 @@ export class TrackService {
     return groups.map(({ _id, coins }) => ({
       season: _id.season,
       year: _id.year,
+      coins: Math.round(coins * 1000) / 1000,
+    }));
+  }
+
+  // What each nickname earned in each season, hidden members included
+  async getCoinsByNickname(): Promise<NicknameCoins[]> {
+    const groups = await this.trackModel.aggregate<{
+      _id: { nickname: string; season: SEASON; year: number };
+      coins: number;
+    }>([
+      {
+        $group: {
+          _id: { nickname: '$nickname', season: '$season', year: '$year' },
+          coins: { $sum: '$coins' },
+        },
+      },
+    ]);
+
+    return groups.map(({ _id, coins }) => ({
+      ..._id,
       coins: Math.round(coins * 1000) / 1000,
     }));
   }

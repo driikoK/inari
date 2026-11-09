@@ -155,6 +155,12 @@ export enum AUDIT_UNIT {
   CRUMBS = 'crumbs',
 }
 
+export enum RECONCILE_STATUS {
+  OK = 'ok',
+  WARNING = 'warning',
+  ERROR = 'error',
+}
+
 export enum BUDGET_ERROR {
   AUDIT_NOT_SAVED = 'AUDIT_NOT_SAVED',
 }

@@ -117,6 +117,34 @@ describe('TrackService', () => {
     });
   });
 
+  describe('getCoinsByNickname', () => {
+    it('sums the coins of every track by nickname and season', async () => {
+      model.aggregate.mockResolvedValue([
+        {
+          _id: { nickname: 'Аня', season: SEASON.SPRING, year: 2026 },
+          coins: 0.1 + 0.2,
+        },
+        {
+          _id: { nickname: 'Борис', season: SEASON.SUMMER, year: 2026 },
+          coins: 80,
+        },
+      ]);
+
+      await expect(service.getCoinsByNickname()).resolves.toEqual([
+        { nickname: 'Аня', season: SEASON.SPRING, year: 2026, coins: 0.3 },
+        { nickname: 'Борис', season: SEASON.SUMMER, year: 2026, coins: 80 },
+      ]);
+      expect(model.aggregate).toHaveBeenCalledWith([
+        {
+          $group: {
+            _id: { nickname: '$nickname', season: '$season', year: '$year' },
+            coins: { $sum: '$coins' },
+          },
+        },
+      ]);
+    });
+  });
+
   describe('create', () => {
     const track = (): CreateTrackData => ({
       membersInfo: [

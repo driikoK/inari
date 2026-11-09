@@ -8,6 +8,8 @@ import type {
   EXPENSE_KIND,
   EXPENSE_SECTION,
   INCOME_SOURCE,
+  RECONCILE_CHECK,
+  RECONCILE_STATUS,
   REQUEST_STATUS,
   SIDE_KIND,
   SUPPORT_DIRECTION,
@@ -403,4 +405,60 @@ export interface Paged<T> {
   page: number;
   perPage: number;
   total: number;
+}
+
+// What the rows of the audit add up to, for one side of the money or for one
+// nickname and one kind of operation
+export interface MoneyAuditSum {
+  key: string;
+  label: string;
+  kop: number;
+  rows: number;
+}
+
+export interface CrumbAuditSum {
+  key: string;
+  kind: AUDIT_KIND;
+  crumbs: number;
+  rows: number;
+}
+
+// What the reconciliation found. A number is kopiykas or crumbs, as `unit` says,
+// and the difference is the actual minus the expected.
+export interface ReconcileProblem {
+  severity: RECONCILE_STATUS.WARNING | RECONCILE_STATUS.ERROR;
+  subject: string;
+  message: string;
+  unit?: AUDIT_UNIT;
+  expected?: number;
+  actual?: number;
+  difference?: number;
+}
+
+export interface ReconcileCheck {
+  key: RECONCILE_CHECK;
+  title: string;
+  description: string;
+  status: RECONCILE_STATUS;
+  // `problems` holds only the first ones, this is how many there are
+  total: number;
+  problems: ReconcileProblem[];
+}
+
+export interface ReconcileReport {
+  checkedAt: Date;
+  status: RECONCILE_STATUS;
+  counts: {
+    entries: number;
+    auditRows: number;
+    members: number;
+    requests: number;
+  };
+  checks: ReconcileCheck[];
+  // Nicknames with crumbs whose opening state is not in the audit yet
+  unaudited: string[];
+}
+
+export interface OpeningResult {
+  written: string[];
 }

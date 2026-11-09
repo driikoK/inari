@@ -10,6 +10,7 @@ import {
   auditKindLabel,
   describeSnapshot,
   formatCrumbs,
+  formatDateTime,
   formatKop,
   formatSignedCrumbs,
   formatSignedKop,
@@ -19,13 +20,6 @@ import styles from './AuditOperationCard.module.scss';
 interface AuditOperationCardProps {
   operation: AuditOperation;
 }
-
-const formatTime = (at: string) =>
-  new Date(at).toLocaleString('uk-UA', {
-    timeZone: 'Europe/Kyiv',
-    dateStyle: 'short',
-    timeStyle: 'short',
-  });
 
 const changedRecords = (rows: AuditRow[]) => [
   ...new Map(
@@ -45,7 +39,7 @@ export const AuditOperationCard: FC<AuditOperationCardProps> = ({ operation }) =
         <div className={styles.top}>
           <span className={styles.kind}>{auditKindLabel(operation.kind)}</span>
           <span className={styles.meta}>
-            {formatTime(operation.at)} · {operation.actor}
+            {formatDateTime(operation.at)} · {operation.actor}
           </span>
         </div>
         <div className={styles.description}>{operation.description}</div>

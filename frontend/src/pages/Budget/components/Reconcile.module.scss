@@ -1,0 +1,93 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.intro {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.check {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.checkHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.checkTitle {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    padding: 6px 10px;
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 8px 10px;
+    vertical-align: top;
+    text-align: left;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  th.num,
+  td.num {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+.warning td {
+  color: var(--text-muted);
+}
+
+.more {
+  font-size: 13px;
+  color: var(--text-muted);
+}

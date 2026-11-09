@@ -79,6 +79,25 @@ export enum AUDIT_KIND {
   CRUMBS_INITIAL = 'crumbs.initial',
 }
 
+export enum RECONCILE_STATUS {
+  OK = 'ok',
+  WARNING = 'warning',
+  ERROR = 'error',
+}
+
+export enum RECONCILE_CHECK {
+  CONFECTIONERY = 'confectionery',
+  NEGATIVE = 'negative',
+  AUDIT_MONEY = 'auditMoney',
+  UNAUDITED_ENTRIES = 'unauditedEntries',
+  ENTRIES = 'entries',
+  REQUESTS = 'requests',
+  CRUMBS_SUM = 'crumbsSum',
+  CRUMBS_NEGATIVE = 'crumbsNegative',
+  CRUMBS_AUDIT = 'crumbsAudit',
+  CRUMBS_TRACKS = 'crumbsTracks',
+}
+
 export const SYSTEM_ACTOR = 'система';
 
 export enum BUDGET_ERROR {

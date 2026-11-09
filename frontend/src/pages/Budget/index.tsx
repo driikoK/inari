@@ -13,6 +13,7 @@ import { AuditTab } from './components/AuditTab';
 import { EntriesTab } from './components/EntriesTab';
 import { IncomeFormDialog } from './components/IncomeFormDialog';
 import { MyRequestsTab } from './components/MyRequestsTab';
+import { ReconcileTab } from './components/ReconcileTab';
 import { SummaryCards } from './components/SummaryCards';
 import { WithdrawDialog } from './components/WithdrawDialog';
 
@@ -21,6 +22,7 @@ enum TAB {
   REQUESTS = 'requests',
   JOURNAL = 'journal',
   AUDIT = 'audit',
+  RECONCILE = 'reconcile',
 }
 
 const memberTabs = [
@@ -31,6 +33,7 @@ const memberTabs = [
 const adminTabs = [
   { value: TAB.JOURNAL, label: 'Журнал' },
   { value: TAB.AUDIT, label: 'Аудит' },
+  { value: TAB.RECONCILE, label: 'Звірка' },
 ];
 
 const Budget: FC = () => {
@@ -106,6 +109,7 @@ const Budget: FC = () => {
       {tab === TAB.REQUESTS && <MyRequestsTab />}
       {summary && canManage && tab === TAB.JOURNAL && <EntriesTab today={summary.today} />}
       {summary && canManage && tab === TAB.AUDIT && <AuditTab today={summary.today} />}
+      {canManage && tab === TAB.RECONCILE && <ReconcileTab />}
 
       {isIncomeOpen && <IncomeFormDialog open onClose={() => setIsIncomeOpen(false)} />}
       {isWithdrawOpen && summary && (

@@ -25,6 +25,10 @@ export interface SeasonCoins {
   coins: number;
 }
 
+export interface NicknameCoins extends SeasonCoins {
+  nickname: string;
+}
+
 export interface ITracksWithPagination {
   data: ITrack[];
   total: number;
