@@ -9,8 +9,6 @@ export enum SUBJECTS {
   RATING_VIEW = 'rating-view',
   PERMISSION_EDIT = 'permissions-edit',
   COOKIES_RATINGS_EDIT = 'cookies-ratings-edit',
-  ADD_POLL_ANIME = 'add-poll-anime',
-  DELETE_POLL_ANIME = 'delete-poll-anime',
   DELETE_TEAM_ANIME = 'delete-team-anime',
   DELETE_USERS = 'delete-users',
   DELETE_MEMBERS = 'delete-members',
@@ -19,8 +17,6 @@ export enum SUBJECTS {
   MANAGE_PROPOSALS = 'manage-proposals',
   MANAGE_PROJECTS = 'manage-projects',
   MANAGE_BUDGET = 'manage-budget',
-  SHOW_RESULTS = 'show-results',
-  CLEAR_RESULTS = 'clear-results',
 }
 
 export enum ROLE {

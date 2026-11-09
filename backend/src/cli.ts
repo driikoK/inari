@@ -26,17 +26,9 @@ const commands: Record<string, Command> = {
     describe: 'create nicknames',
     run: (seed) => seed.nicknames(),
   },
-  'seed:anime': {
-    describe: 'create anime',
-    run: (seed) => seed.anime(),
-  },
   'seed:team-animes': {
     describe: 'create team animes',
     run: (seed) => seed.teamAnimes(),
-  },
-  'seed:votes': {
-    describe: 'create demo votes for ongoing anime (needs seed:anime)',
-    run: (seed) => seed.votes(),
   },
   'seed:proposals': {
     describe: 'create demo seasons with proposals and participants',
@@ -53,6 +45,10 @@ const commands: Record<string, Command> = {
   'seed:budget': {
     describe: 'add demo incomes over the last three seasons (journal empty)',
     run: (seed) => seed.budget(),
+  },
+  'drop:polls': {
+    describe: 'drop the collections of the removed voting (votes, poll_animes)',
+    run: (seed) => seed.dropPolls(),
   },
   'seed:clear': {
     describe: 'clear lists',

@@ -1,24 +1,3 @@
-export type TAnime = {
-  _id: string;
-  name: string;
-  link: string;
-  posterUrl: string;
-  isOngoing: boolean;
-  isPriority: boolean;
-  isDecided: boolean;
-  isSponsored: boolean;
-};
-
-export type TResultAnime = {
-  anime: TAnime & {
-    votes: {
-      _id: string;
-      userName: string;
-    }[];
-  };
-  voteCount: number;
-};
-
 export interface TrackType {
   _id: string;
   nickname: string;
@@ -163,15 +142,6 @@ export enum RECONCILE_STATUS {
 
 export enum BUDGET_ERROR {
   AUDIT_NOT_SAVED = 'AUDIT_NOT_SAVED',
-}
-
-export enum ROLES_ON_VOTE {
-  DUB = 'dub',
-  SUB = 'sub',
-  SOUND = 'sound',
-  DIRECTOR = 'director',
-  FIXER = 'fixer',
-  RELEASER = 'releaser',
 }
 
 export type MemberKind = 'team' | 'guest';

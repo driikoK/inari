@@ -21,8 +21,8 @@ export const MainCard: FunctionComponent<{ isLoggedIn: boolean }> = ({ isLoggedI
           <span className={styles.heroTitleAccent}>Інарчата!</span> 🦊
         </h1>
         <p className={styles.heroDescription}>
-          Система обліку крихт аніме-субтитрів гурту Inari. Відстежуй прогрес, голосуй за тайтли та
-          переглядай рейтинги.
+          Система обліку крихт аніме-субтитрів гурту Inari. Відстежуй прогрес, докладай лапу до
+          тайтлів та переглядай рейтинги.
         </p>
         <div className={styles.heroActions}>
           {isLoggedIn ? (

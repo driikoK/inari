@@ -183,7 +183,7 @@ const Settings = () => {
       <ConfirmDeleteDialog
         open={!!userToDelete}
         title="Видалити користувача?"
-        message={`Користувача «${userToDelete?.username}» буде видалено разом з його голосом у голосуванні. Цю дію не можна скасувати.`}
+        message={`Користувача «${userToDelete?.username}» буде видалено разом з його лапами у відкритих сезонах пропозицій. Цю дію не можна скасувати.`}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setUserToDelete(null)}
       />

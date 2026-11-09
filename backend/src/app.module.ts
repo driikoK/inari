@@ -10,7 +10,6 @@ import { validate } from './config/env.validation.js';
 import { SeedModule } from './seeds/seed.module.js';
 import { BudgetModule } from './budget/budget.module.js';
 import { MembersModule } from './members/members.module.js';
-import { PollsModule } from './polls/polls.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { ProposalsModule } from './proposals/proposals.module.js';
 import { TeamAnimesModule } from './team-animes/team-animes.module.js';
@@ -26,7 +25,6 @@ import { EmailModule } from './email/email.module.js';
     ConfigModule.forRoot({ isGlobal: true, load: [configuration], validate }),
     SeedModule,
     MembersModule,
-    PollsModule,
     ProposalsModule,
     ProjectsModule,
     BudgetModule,

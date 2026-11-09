@@ -52,10 +52,10 @@ Put new components into new files. Do not create many components in the same fil
 
 Defined in `src/router/index.tsx`. All routes are lazy-loaded. Two routes are conditionally included:
 
-- `VITE_FEATURE_POLL === 'true'` → `/vote`
-- `hasAccess(SUBJECTS.SHOW_RESULTS) || VITE_FEATURE_RESULTS === 'true'` → `/result`
+- `VITE_SHEET_EMBED_URL` is set → `/sheet`
+- `hasAccess(SUBJECTS.MANAGE_BUDGET)` → `/budget/expenses`
 
-`/cookie` is wrapped in `RequireAccess` (`src/components/RequireAccess`), which waits for the permissions (they arrive a moment after the user) and sends a user with none of the given subjects to `/home`. Use it, not `conditionalRoutes`, for a page a logged-in user may open by its address, since a dropped route falls through to the login page. `/proposals`, `/projects` and `/budget` are always on for logged-in users, each with a sidebar item and a header link. `/proposals` is meant to replace `/vote` and `/result`, which stay until a follow-up removes them. `/projects?project=<id>` selects the season of that project and opens its card (not for a member when the tile is greyed), then drops the parameter.
+`/cookie` is wrapped in `RequireAccess` (`src/components/RequireAccess`), which waits for the permissions (they arrive a moment after the user) and sends a user with none of the given subjects to `/home`. Use it, not `conditionalRoutes`, for a page a logged-in user may open by its address, since a dropped route falls through to the login page. `/proposals`, `/projects` and `/budget` are always on for logged-in users, each with a sidebar item. `/projects?project=<id>` selects the season of that project and opens its card (not for a member when the tile is greyed), then drops the parameter.
 
 ### State (Zustand)
 
@@ -63,7 +63,6 @@ All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`
 
 - `useAuthStore` — login/logout, current user, all users, update/delete user
 - `useProposalsStore` and `useProjectsStore` — seasons with their proposals / the project layout. Every successful mutation refetches the list, so the page shows what the server holds. `ensure()` (in `utils/request.ts`) turns a response-less Axios result into an error, and components call `notifyFailure(error)` from there in `catch`, because the interceptor only toasts errors the server answered
-- `usePollStore` — voting state
 - `useAnimesStore` / `useTracksStore` — anime/episode data
 - `useCoinsStore` — coin values by anime type
 - `useMembersStore` / `useRolesStore` — team members ("nicknames") and roles; `deleteMember` and `updateMemberKind` also update `membersDictionary`, `addMember` needs a `kind`
@@ -79,7 +78,7 @@ This only hides UI. The backend decides what is allowed (see its `CLAUDE.md` for
 
 - Schemas live in each page's `const/form.ts` as factories (`createTrackFormSchema(coins)`, …) and are passed to `zodResolver`.
 - Annotate the factory's return type as `z.ZodType<FormValues, FormValues>` so the compiler checks the schema against the form's interface.
-- Zod strips keys that are not in the schema, so declare every field the form has. The poll form once lost its optional `note` this way.
+- Zod strips keys that are not in the schema, so declare every field the form has, or an optional one (a `note`, say) is silently lost.
 - Required fields use `z.string({ error: msg }).min(1, msg)`, which keeps the Ukrainian "Обов’язкове поле" style messages the UI shows through `ErrorMessage`.
 - A `.check()` chained after `.min()`/`.max()` is skipped when those fail, so put custom checks first. `z.number({ error })` replaces the message of every issue, give the range checks their own messages.
 - URL fields: `.trim().min(1).pipe(httpUrl)`, which reports "required" before "invalid link". `httpUrl` and `LINK_MESSAGE` live in `utils/validation.ts`.
@@ -129,7 +128,7 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 
 ### Budget page
 
-- `src/pages/Budget/` (`/budget`, sidebar and header «Печивко») is open to every logged-in user and shows the season jars (the current and the previous season) and the totals. Everyone with a linked nickname gets the button «Вивести крихти» (off, with a hint, until an admin links one) and the tab «Мої запити». An admin (`SUBJECTS.MANAGE_BUDGET`) also gets the button «Внести надходження» and the tabs «Журнал», «Аудит» and «Звірка».
+- `src/pages/Budget/` (`/budget`, sidebar «Печивко») is open to every logged-in user and shows the season jars (the current and the previous season) and the totals. Everyone with a linked nickname gets the button «Вивести крихти» (off, with a hint, until an admin links one) and the tab «Мої запити». An admin (`SUBJECTS.MANAGE_BUDGET`) also gets the button «Внести надходження» and the tabs «Журнал», «Аудит» and «Звірка».
 - The server sends money in kopiykas and the browser only formats it (`formatKop` in `const/options.ts`). A form takes hryvnias as text («1500», «1 500,50») and `parseUah` turns it into kopiykas. Nothing about jars, coefficients, balances or totals is computed in the browser: no `reduce`, no sum, no difference of two money values. A total the screen needs comes from the server (`supportAllocatedKop`, `ordersReceivedKop` and the others in the summary), and what a form would change comes from `POST /budget/support/preview` (`previewSupport`). Turning a value into text, flipping its sign for display and comparing it with what the page showed are fine.
 - `IncomeFormDialog` adds several incomes with one date and season. The season is prefilled from the date until the admin picks one by hand, after which the date stops overriding it. The year select runs from 2000 (the oldest date the server takes) to next year, so a prefilled year is never missing from it. Editing opens the same dialog for one record. If the server answers `AUDIT_NOT_SAVED` (`BUDGET_ERROR`, `isAuditNotSaved`) the record is already saved, so the dialog closes instead of waiting for a second submit. An order needs a title, a project jar may have one, a lisodar may have a name. `TitleField` takes a project from `useProjectsStore` or free text, `NicknameField` a nickname from `useMembersStore` or free text.
 - `WithdrawDialog` is the member's request: the checkbox «Замовлення» (hryvnias out of the budget of a title, picked from the budgets of the summary) or three sections (card, donation, gift to the team) in crumbs, one comment. As in the support dialog, the server prices it while the form is valid (`previewRequest`, after a short pause) and says how many crumbs are free and what is wrong, and the button is off while there is a problem. The schema is in `const/requestForm.ts` and checks the card as the server does. `MyRequestsTab` shows the balance (all, free to withdraw, in requests, waiting for the end of the season), the shares of the seasons with their coefficients, and the lines with a status chip, an estimate while open and the fixed sums once paid; an open line can be cancelled. The card shows only its last four digits.
@@ -182,8 +181,6 @@ Read as `process.env.VITE_*` (injected by `define` in `vite.config.ts`), set in 
 | Variable                | Purpose                                                  |
 | ----------------------- | -------------------------------------------------------- |
 | `VITE_API_URL`          | Backend base URL                                         |
-| `VITE_FEATURE_POLL`     | Show voting page                                         |
-| `VITE_FEATURE_RESULTS`  | Show results page                                        |
 | `VITE_SHEET_EMBED_URL`  | Published Google Sheet embed URL, blank hides the page   |
 | `VITE_CODEX_URL`        | Page of «Кодекс Інарі» opened in a new tab, blank hides the item |
 

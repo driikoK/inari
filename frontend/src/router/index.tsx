@@ -4,8 +4,6 @@ import { FallbackComponent, Layout, RequireAccess } from '@/components';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
-const Vote = lazy(() => import('../pages/Vote'));
-const Result = lazy(() => import('../pages/Result'));
 const Proposals = lazy(() => import('../pages/Proposals'));
 const Projects = lazy(() => import('../pages/Projects'));
 const Budget = lazy(() => import('../pages/Budget'));
@@ -39,10 +37,6 @@ const useConditionalRoutes = () => {
           path: 'login',
           element: <Auth />,
         },
-        ...conditionalRoutes(process.env.VITE_FEATURE_POLL === 'true', {
-          path: 'vote',
-          element: <Vote />,
-        }),
         {
           path: 'proposals',
           element: <Proposals />,
@@ -59,13 +53,6 @@ const useConditionalRoutes = () => {
           path: 'budget/expenses',
           element: <Expenses />,
         }),
-        ...conditionalRoutes(
-          hasAccess(SUBJECTS.SHOW_RESULTS) || process.env.VITE_FEATURE_RESULTS === 'true',
-          {
-            path: 'result',
-            element: <Result />,
-          },
-        ),
         ...conditionalRoutes(!!process.env.VITE_SHEET_EMBED_URL, {
           path: 'sheet',
           element: <Sheet />,

@@ -3,7 +3,6 @@ import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard } from '../auth/auth.guard.js';
-import { PollsService } from '../polls/polls.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { ROLE } from './enums/index.js';
 import type { ValidatedUser } from './interfaces/user.interface.js';
@@ -23,19 +22,13 @@ describe('UsersController', () => {
   } as ValidatedUser;
 
   let usersService: DeepMocked<UsersService>;
-  let pollsService: DeepMocked<PollsService>;
   let proposalsService: DeepMocked<ProposalsService>;
   let controller: UsersController;
 
   beforeEach(() => {
     usersService = createMock<UsersService>();
-    pollsService = createMock<PollsService>();
     proposalsService = createMock<ProposalsService>();
-    controller = new UsersController(
-      usersService,
-      pollsService,
-      proposalsService,
-    );
+    controller = new UsersController(usersService, proposalsService);
   });
 
   describe('update', () => {
@@ -101,46 +94,31 @@ describe('UsersController', () => {
   });
 
   describe('remove', () => {
-    it("deletes the account, then the account's vote", async () => {
+    it("deletes the account, then the account's paws in open seasons", async () => {
       usersService.delete.mockResolvedValue('ghost');
 
       await expect(controller.remove('m1', admin)).resolves.toBe(true);
 
       expect(usersService.delete).toHaveBeenCalledWith('m1', 'a1');
-      expect(pollsService.deleteVotesByUser).toHaveBeenCalledWith('ghost');
       expect(proposalsService.deleteParticipationsByUser).toHaveBeenCalledWith(
         'ghost',
       );
     });
 
-    it('still removes the proposal paws when the vote cleanup fails, then reports the failure', async () => {
-      usersService.delete.mockResolvedValue('ghost');
-      pollsService.deleteVotesByUser.mockRejectedValue(new Error('db down'));
-
-      await expect(controller.remove('m1', admin)).rejects.toThrow('db down');
-
-      expect(proposalsService.deleteParticipationsByUser).toHaveBeenCalledWith(
-        'ghost',
-      );
-    });
-
-    it('still removes the vote when the paw cleanup fails', async () => {
+    it('reports the failure when the paw cleanup fails', async () => {
       usersService.delete.mockResolvedValue('ghost');
       proposalsService.deleteParticipationsByUser.mockRejectedValue(
         new Error('db down'),
       );
 
       await expect(controller.remove('m1', admin)).rejects.toThrow('db down');
-
-      expect(pollsService.deleteVotesByUser).toHaveBeenCalledWith('ghost');
     });
 
-    it('keeps the vote when the account could not be deleted', async () => {
+    it('keeps the paws when the account could not be deleted', async () => {
       usersService.delete.mockRejectedValue(new Error('refused'));
 
       await expect(controller.remove('m1', admin)).rejects.toThrow('refused');
 
-      expect(pollsService.deleteVotesByUser).not.toHaveBeenCalled();
       expect(
         proposalsService.deleteParticipationsByUser,
       ).not.toHaveBeenCalled();

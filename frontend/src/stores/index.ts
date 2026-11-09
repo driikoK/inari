@@ -3,7 +3,6 @@ import useAuthStore from './useAuthStore';
 import useBudgetStore from './useBudgetStore';
 import useCoinsStore from './useCoinsStore';
 import useMembersStore from './useMembersStore';
-import usePollStore from './usePollStore';
 import useRolesStore from './useRolesStore';
 import useTracksStore from './useTracksStore';
 
@@ -13,7 +12,6 @@ export {
   useBudgetStore,
   useCoinsStore,
   useMembersStore,
-  usePollStore,
   useRolesStore,
   useTracksStore,
 };

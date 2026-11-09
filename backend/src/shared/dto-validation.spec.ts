@@ -7,7 +7,6 @@ import {
 } from '../members/data/filter-members.data.js';
 import { UpdateMemberData } from '../members/data/update-member.data.js';
 import { UpdateMemberKindData } from '../members/data/update-member-kind.data.js';
-import { VoteData } from '../polls/data/vote.data.js';
 import {
   CreateProposalData,
   CreateSeasonData,
@@ -86,32 +85,6 @@ describe('request DTO schemas', () => {
       expect(
         messagesOf(LastTracksData, { titleName: 'T', episode: '1' }),
       ).toEqual(['Епізод мусить бути мінімум 2']);
-    });
-  });
-
-  describe('VoteData', () => {
-    const vote = { animeId: 'x', roles: ['dub', 'sub'] };
-
-    it('validates every vote, not just the list', () => {
-      expect(VoteData.safeParse({ votes: [vote] }).success).toBe(true);
-      expect(
-        VoteData.safeParse({ votes: [{ animeId: 'x', roles: ['nope'] }] })
-          .success,
-      ).toBe(false);
-      expect(VoteData.safeParse({ votes: [{ roles: ['dub'] }] }).success).toBe(
-        false,
-      );
-    });
-
-    it('limits votes and roles with the user-facing messages', () => {
-      expect(messagesOf(VoteData, { votes: Array(11).fill(vote) })).toEqual([
-        'Обрано більше 10 аніме',
-      ]);
-      expect(
-        messagesOf(VoteData, {
-          votes: [{ animeId: 'x', roles: Array(7).fill('dub') }],
-        }),
-      ).toEqual(['Обрано забагато ролей']);
     });
   });
 

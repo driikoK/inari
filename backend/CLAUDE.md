@@ -18,7 +18,7 @@ npm run format              # Biome format --write
 
 Swagger UI is at `http://localhost:8000/api-docs` (JSON at `/api-docs-json`).
 
-Seeds (`npm run seed:all | seed:root | seed:users | seed:nicknames | seed:anime | seed:team-animes | seed:votes | seed:proposals | seed:projects | seed:tracks | seed:budget | seed:clear`) are idempotent. The npm scripts run `nest build` first, which wipes `dist/`, so while `start:dev` is running use `node dist/cli.js seed:root` instead. `seed:root` needs `ROOT_PASSWORD` (a random one is printed when it is empty).
+Seeds (`npm run seed:all | seed:root | seed:users | seed:nicknames | seed:team-animes | seed:proposals | seed:projects | seed:tracks | seed:budget | seed:clear`) are idempotent. The npm scripts run `nest build` first, which wipes `dist/`, so while `start:dev` is running use `node dist/cli.js seed:root` instead. `seed:root` needs `ROOT_PASSWORD` (a random one is printed when it is empty). `npm run drop:polls` is a one-off cleanup: it drops the `votes` and `poll_animes` collections that the removed voting left in a database (a missing one is skipped), so run it once per database, and only on one you mean to clean.
 
 ## Stack
 
@@ -51,12 +51,12 @@ NestJS 12 on Fastify, ESM only (`"type": "module"`), Mongoose, Zod 4 for validat
 - `AuthGuard` verifies the signature and then loads the user from the database, so deleting an account locks the token out at once. Tokens without a `username` (the password-reset token carries `{ email }`) are rejected. It sets `request.user` to the user without the password, read it with `@CurrentUser()` (`ValidatedUser`).
 - `AdminGuard` only checks `request.user.role`, so it must come after `AuthGuard`: `@UseGuards(AuthGuard, AdminGuard)`. `CuratorGuard` works the same way and lets `admin` and `director` through, it protects every write in `projects`.
 - `UsersModule` must stay `@Global()`. `AuthGuard` injects `UsersService` into whichever module uses it, and removing the decorator makes boot fail with "Nest can't resolve dependencies of the AuthGuard".
-- Admin-only today: both deletes, `PATCH /members/:id/kind`, `GET /members/coins-total`, `PUT /users/:id/nickname` and every write in `proposals` except `PUT /proposals/:id/join`. `PUT /users/:id` lets admins edit anyone while everyone else may edit only themselves and never their own role. Crumbs are money, so they are guarded as the frontend does: `POST /tracks` and `POST /members` are for `CuratorGuard` (admin and director), `PUT` and `DELETE /tracks` and `PUT /members` (it sets the crumbs of the rating) for `AdminGuard`. Every other write endpoint (team animes, polls) is open to any logged-in user and only hidden in the frontend. Add a guard when you add or touch a write endpoint.
+- Admin-only today: both deletes, `PATCH /members/:id/kind`, `GET /members/coins-total`, `PUT /users/:id/nickname` and every write in `proposals` except `PUT /proposals/:id/join`. `PUT /users/:id` lets admins edit anyone while everyone else may edit only themselves and never their own role. Crumbs are money, so they are guarded as the frontend does: `POST /tracks` and `POST /members` are for `CuratorGuard` (admin and director), `PUT` and `DELETE /tracks` and `PUT /members` (it sets the crumbs of the rating) for `AdminGuard`. Every other write endpoint (team animes) is open to any logged-in user and only hidden in the frontend. Add a guard when you add or touch a write endpoint.
 - CORS `methods` in `main.ts` is an explicit list (GET, POST, PUT, PATCH, DELETE). A route with a verb that is not in it works in tests and curl and fails only in the browser, at the preflight. Add the verb there with the route.
 
 ## Domain rules to preserve
 
-- `root` can be neither edited nor deleted, and nobody can delete their own account. Deleting a user also deletes their vote (`PollsService.deleteVotesByUser`) and their paws in open proposal seasons (`ProposalsService.deleteParticipationsByUser`), the paws in closed seasons stay. Tracks keep `username` as plain text.
+- `root` can be neither edited nor deleted, and nobody can delete their own account. Deleting a user also deletes their paws in open proposal seasons (`ProposalsService.deleteParticipationsByUser`), the paws in closed seasons stay. Tracks keep `username` as plain text.
 - Members ("nicknames") are soft-deleted with `deletedAt`. Every member listing must filter `deletedAt: null`. `findMember(nickname)` deliberately still finds hidden members so their old tracks can be edited and deleted. `createMember` restores a hidden nickname with its coins and merges the roles. Creating a track for a hidden nickname is refused with 409 before anything is written.
 - A member has a `kind`, `team` or `guest` (`MEMBER_KIND`). Nicknames created before the field have none and count as not marked, which is a normal state, not an error: `GET /members?kind=unmarked` lists them. `POST /members` requires a kind and applies it when it restores a hidden nickname. The kind changes only through `PATCH /members/:id/kind`, `PUT /members` strips it. Nothing on the backend turns a guest into a guest track line, the frontend ticks `isGuest` per line and the half-coins rule stays per track.
 - `GET /members/coins-total` (`season` and `year` together or neither, `includeGuests` defaults to true) is the sum shown above the Rating table. It is its own aggregation and ignores the role, kind and nickname filters of the list. It skips hidden members, a season takes the `seasons[]` coins and only nicknames that have that season, and without a season it sums `coins`. `includeGuests=false` drops only `kind: guest`, so a nickname without a kind stays in as team, and `unmarkedCount` says how many of those the total holds. `includeGuests` is parsed with `z.stringbool()`, `z.coerce.boolean()` would turn `'false'` into true.
@@ -87,7 +87,7 @@ NestJS 12 on Fastify, ESM only (`"type": "module"`), Mongoose, Zod 4 for validat
 | --- | --- |
 | `auth`, `users`, `email` | accounts, JWT, roles, password reset by mail |
 | `members`, `tracks`, `dictionaries` | nicknames and their ratings, recorded work, coin rates |
-| `polls`, `team-animes` | voting on anime (to be replaced by `proposals`), the team's titles |
+| `team-animes` | the team's titles |
 | `proposals` | seasons with proposed titles, and who joins them in which roles |
 | `projects` | titles the team is working on, laid out by season with debts and statistics |
 | `budget` | the team's money: incomes ledger, season jars, coefficient, append-only audit |

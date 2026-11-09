@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
-import { PollsService } from '../polls/polls.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { ROLE } from './enums/index.js';
 import type { ValidatedUser } from './interfaces/user.interface.js';
@@ -25,7 +24,6 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 export class UsersController {
   constructor(
     private readonly userService: UsersService,
-    private readonly pollsService: PollsService,
     private readonly proposalsService: ProposalsService,
   ) {}
 
@@ -78,16 +76,7 @@ export class UsersController {
   ): Promise<boolean> {
     const username = await this.userService.delete(id, currentUser._id);
 
-    const cleanups = await Promise.allSettled([
-      this.pollsService.deleteVotesByUser(username),
-      this.proposalsService.deleteParticipationsByUser(username),
-    ]);
-    const failed = cleanups.find(
-      (cleanup): cleanup is PromiseRejectedResult =>
-        cleanup.status === 'rejected',
-    );
-
-    if (failed) throw failed.reason;
+    await this.proposalsService.deleteParticipationsByUser(username);
 
     return true;
   }

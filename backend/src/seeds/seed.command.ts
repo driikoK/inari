@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
-import { Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { Mongoose } from 'mongoose';
 import { nicknames } from './datas/nicknames.data.js';
 import { users as userSeeds } from './datas/users.data.js';
 import { teamAnimes as teamAnimeSeeds } from './datas/team-animes.data.js';
@@ -10,8 +10,6 @@ import { MemberData } from '../members/data/member.data.js';
 import { MembersService } from '../members/members.service.js';
 import { UsersService } from '../users/users.service.js';
 import { ROLE } from '../users/enums/index.js';
-import { animeSeries } from './datas/anime.data.js';
-import { PollsService } from '../polls/polls.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { proposalSeasons } from './datas/proposals.data.js';
 import { projectSeeds } from './datas/projects.data.js';
@@ -24,21 +22,20 @@ import { BudgetService } from '../budget/budget.service.js';
 import { SYSTEM_ACTOR } from '../budget/enums/index.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { todayInKyiv } from '../projects/layout.js';
-import { CreateAnimeData, VoteData } from '../polls/data/index.js';
-import { ROLES_ON_VOTE } from '../polls/enums/index.js';
 import { TeamAnimesService } from '../team-animes/team-animes.service.js';
 import { TrackService } from '../tracks/tracks.service.js';
 import type { AppConfig } from '../config/configuration.js';
 
 const ROOT_USERNAME = 'root';
+const POLL_COLLECTIONS = ['votes', 'poll_animes'];
 
 @Injectable()
 export class SeedCommand {
   constructor(
+    @Inject('DATABASE_CONNECTION') private readonly database: Mongoose,
     private readonly budgetService: BudgetService,
     private readonly usersService: UsersService,
     private readonly membersService: MembersService,
-    private readonly pollsService: PollsService,
     private readonly proposalsService: ProposalsService,
     private readonly projectsService: ProjectsService,
     private readonly teamAnimesService: TeamAnimesService,
@@ -94,31 +91,6 @@ export class SeedCommand {
         `seed:users - generated password for all new users: ${password}`,
       );
     }
-  }
-
-  async anime() {
-    const { ongoings, olds } = await this.pollsService.findAll();
-    const existing = new Set([...ongoings, ...olds].map(({ name }) => name));
-    let created = 0;
-
-    for (const anime of animeSeries) {
-      if (existing.has(anime.name)) continue;
-
-      const animeTemplate: CreateAnimeData = {
-        isPriority: false,
-        isDecided: false,
-        isSponsored: false,
-        ...anime,
-      };
-      await this.pollsService.createAnime(animeTemplate);
-      created++;
-    }
-
-    console.log(
-      `seed:anime - created ${created}, skipped ${
-        animeSeries.length - created
-      }`,
-    );
   }
 
   async nicknames() {
@@ -253,34 +225,6 @@ export class SeedCommand {
     );
   }
 
-  async votes() {
-    const { ongoings } = await this.pollsService.findAll();
-
-    if (!ongoings.length) {
-      throw new Error(
-        'seed:votes - no ongoing anime found, run seed:anime first',
-      );
-    }
-
-    const roles = Object.values(ROLES_ON_VOTE);
-
-    for (const [userIndex, user] of userSeeds.entries()) {
-      const voteData: VoteData = {
-        votes: ongoings.slice(0, 3 + userIndex).map((anime, animeIndex) => ({
-          animeId: String((anime as unknown as { _id: Types.ObjectId })._id),
-          roles: [
-            roles[(userIndex + animeIndex) % roles.length],
-            roles[(userIndex + animeIndex + 1) % roles.length],
-          ],
-        })),
-      };
-
-      await this.pollsService.vote(user.username, voteData);
-    }
-
-    console.log(`seed:votes - voted for ${userSeeds.length} demo users`);
-  }
-
   async tracks() {
     if (!(await this.usersService.findOneByUsername(ROOT_USERNAME))) {
       throw new Error('seed:tracks - root user not found, run seed:root first');
@@ -332,13 +276,33 @@ export class SeedCommand {
     await this.root();
     await this.users();
     await this.nicknames();
-    await this.anime();
     await this.teamAnimes();
-    await this.votes();
     await this.proposals();
     await this.projects();
     await this.tracks();
     await this.budget();
+  }
+
+  async dropPolls() {
+    const db = this.database.connection.db;
+    if (!db) throw new Error('drop:polls - no database connection');
+
+    const existing = new Set(
+      (await db.listCollections({}, { nameOnly: true }).toArray()).map(
+        ({ name }) => name,
+      ),
+    );
+
+    for (const name of POLL_COLLECTIONS) {
+      if (!existing.has(name)) {
+        console.log(`drop:polls - ${name} not found, skipped`);
+        continue;
+      }
+
+      const count = await db.collection(name).countDocuments();
+      await db.dropCollection(name);
+      console.log(`drop:polls - dropped ${name} (${count} documents)`);
+    }
   }
 
   async clear() {
