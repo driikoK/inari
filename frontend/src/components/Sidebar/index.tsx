@@ -11,12 +11,12 @@ import {
   CookieOutlined,
   FormatListBulletedOutlined,
   StarBorderOutlined,
-  LeaderboardOutlined,
   LightbulbOutlined,
   FolderSpecialOutlined,
   SavingsOutlined,
   PaymentsOutlined,
-  AutoGraphOutlined,
+  MenuBookOutlined,
+  OpenInNewOutlined,
   SettingsOutlined,
   Person2Outlined,
   LogoutOutlined,
@@ -32,6 +32,8 @@ type NavItemDef = {
   path: string;
   label: string;
   icon: ReactNode;
+  // A page outside the site, opened in a new tab
+  href?: string;
 };
 
 const Sidebar: FC = () => {
@@ -43,15 +45,27 @@ const Sidebar: FC = () => {
   const collapsed = useMediaQuery(SIDEBAR_BREAKPOINT);
   const isAdmin = hasAccess(SUBJECTS.PERMISSION_EDIT);
   const canManageBudget = hasAccess(SUBJECTS.MANAGE_BUDGET);
-  const isShowPoll = process.env.VITE_FEATURE_POLL === 'true';
-  const isShowResults =
-    hasAccess(SUBJECTS.SHOW_RESULTS) || process.env.VITE_FEATURE_RESULTS === 'true';
+  const canAddCrumbs = hasAccess([SUBJECTS.ADD_COOKIES, SUBJECTS.ADD_MEMBERS]);
+  const codexUrl = process.env.VITE_CODEX_URL;
 
   const navItems: NavItemDef[] = [
     { id: 'home', path: '/home', label: 'Головна', icon: <HomeOutlined /> },
     ...(isLoggedIn
       ? [
-          { id: 'cookie', path: '/cookie', label: 'Крихти', icon: <CookieOutlined /> },
+          { id: 'budget', path: '/budget', label: 'Печивко', icon: <SavingsOutlined /> },
+          ...(canManageBudget
+            ? [
+                {
+                  id: 'expenses',
+                  path: '/budget/expenses',
+                  label: 'Видатки',
+                  icon: <PaymentsOutlined />,
+                },
+              ]
+            : []),
+          ...(canAddCrumbs
+            ? [{ id: 'cookie', path: '/cookie', label: 'Крихти', icon: <CookieOutlined /> }]
+            : []),
           {
             id: 'cookie-list',
             path: '/cookie/list',
@@ -63,6 +77,18 @@ const Sidebar: FC = () => {
             path: '/cookie/rating',
             label: 'Рейтинг',
             icon: <StarBorderOutlined />,
+          },
+          {
+            id: 'projects',
+            path: '/projects',
+            label: 'Проєкти',
+            icon: <FolderSpecialOutlined />,
+          },
+          {
+            id: 'proposals',
+            path: '/proposals',
+            label: 'Пропозиції',
+            icon: <LightbulbOutlined />,
           },
         ]
       : []),
@@ -76,43 +102,16 @@ const Sidebar: FC = () => {
           },
         ]
       : []),
-    ...(isLoggedIn
+    ...(isLoggedIn && codexUrl
       ? [
           {
-            id: 'proposals',
-            path: '/proposals',
-            label: 'Пропозиції',
-            icon: <LightbulbOutlined />,
+            id: 'codex',
+            path: codexUrl,
+            href: codexUrl,
+            label: 'Кодекс Інарі',
+            icon: <MenuBookOutlined />,
           },
-          {
-            id: 'projects',
-            path: '/projects',
-            label: 'Проєкти',
-            icon: <FolderSpecialOutlined />,
-          },
-          {
-            id: 'budget',
-            path: '/budget',
-            label: 'Печивко',
-            icon: <SavingsOutlined />,
-          },
-          ...(canManageBudget
-            ? [
-                {
-                  id: 'expenses',
-                  path: '/budget/expenses',
-                  label: 'Видатки',
-                  icon: <PaymentsOutlined />,
-                },
-              ]
-            : []),
         ]
-      : []),
-    ...(isShowPoll
-      ? [{ id: 'vote', path: '/vote', label: 'Голосування', icon: <LeaderboardOutlined /> }]
-      : []),
-    ...(isShowResults
-      ? [{ id: 'result', path: '/result', label: 'Результати', icon: <AutoGraphOutlined /> }]
       : []),
     ...(isAdmin
       ? [{ id: 'settings', path: '/settings', label: 'Налаштування', icon: <SettingsOutlined /> }]
@@ -144,17 +143,34 @@ const Sidebar: FC = () => {
       </div>
 
       <nav className={styles.nav}>
-        {navItems.map((item) => (
-          <Button
-            key={item.id}
-            onClick={() => navigate(item.path)}
-            className={navBtnClass(item.path)}
-            startIcon={collapsed ? undefined : item.icon}
-            fullWidth
-          >
-            {collapsed ? item.icon : item.label}
-          </Button>
-        ))}
+        {navItems.map((item) =>
+          item.href ? (
+            <Button
+              key={item.id}
+              component="a"
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={navBtnClass(item.path)}
+              startIcon={collapsed ? undefined : item.icon}
+              endIcon={collapsed ? undefined : <OpenInNewOutlined sx={{ fontSize: 14 }} />}
+              title={collapsed ? item.label : undefined}
+              fullWidth
+            >
+              {collapsed ? item.icon : item.label}
+            </Button>
+          ) : (
+            <Button
+              key={item.id}
+              onClick={() => navigate(item.path)}
+              className={navBtnClass(item.path)}
+              startIcon={collapsed ? undefined : item.icon}
+              fullWidth
+            >
+              {collapsed ? item.icon : item.label}
+            </Button>
+          ),
+        )}
       </nav>
 
       <div className={styles.bottomSection}>

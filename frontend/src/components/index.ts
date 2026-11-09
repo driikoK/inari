@@ -8,6 +8,7 @@ import Sidebar from './Sidebar';
 import SelectField from './SelectField';
 import { ConfirmTableChangeDialog } from './ConfirmTableChangeDialog';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
+import { RequireAccess } from './RequireAccess';
 import { MemberKindToggle } from './MemberKindToggle';
 import { H5, H6, ErrorText, P, Subtitle } from './Typography';
 import CustomDialog from './CustomDialog';
@@ -30,6 +31,7 @@ export {
   Subtitle,
   ConfirmTableChangeDialog,
   ConfirmDeleteDialog,
+  RequireAccess,
   MemberKindToggle,
   CustomDialog,
   TextWrapTableCell,

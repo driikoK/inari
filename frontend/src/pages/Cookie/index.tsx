@@ -1,5 +1,4 @@
 import { FC, FunctionComponent, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import Skeleton from '@mui/material/Skeleton';
 
@@ -12,8 +11,6 @@ import s from './Cookie.module.scss';
 const IMAGES = {
   cookie: '/cookie.png',
   foxes: '/foxes.png',
-  general: '/general.png',
-  roles: '/roles.png',
 };
 
 const Cookie: FunctionComponent = () => {
@@ -22,14 +19,9 @@ const Cookie: FunctionComponent = () => {
   const [imageLoaded, setImageLoaded] = useState({
     cookie: false,
     foxes: false,
-    general: false,
-    roles: false,
   });
 
-  const isAllImagesLoaded =
-    imageLoaded.cookie && imageLoaded.foxes && imageLoaded.general && imageLoaded.roles;
-
-  const navigate = useNavigate();
+  const isAllImagesLoaded = imageLoaded.cookie && imageLoaded.foxes;
 
   const { hasAccess } = usePermissions();
 
@@ -42,15 +34,13 @@ const Cookie: FunctionComponent = () => {
   useEffect(() => {
     preloadImage('cookie', IMAGES.cookie);
     preloadImage('foxes', IMAGES.foxes);
-    preloadImage('general', IMAGES.general);
-    preloadImage('roles', IMAGES.roles);
   }, []);
 
   return (
     <div className={s.page}>
       <div className={s.header}>
         <div className={s.headerTitle}>Крихти</div>
-        <div className={s.headerSubtitle}>Управляй та переглядай крихти учасників</div>
+        <div className={s.headerSubtitle}>Записуй крихти та додавай учасників і тайтли</div>
       </div>
 
       <Container>
@@ -73,22 +63,6 @@ const Cookie: FunctionComponent = () => {
             description="Новий учасник або тайтл"
           />
         )}
-
-        <Card
-          isLoaded={isAllImagesLoaded}
-          onClick={() => navigate('list')}
-          imgUrl={IMAGES.general}
-          title="Список крихт"
-          description="Переглянути всі записи"
-        />
-
-        <Card
-          isLoaded={isAllImagesLoaded}
-          onClick={() => navigate('rating')}
-          imgUrl={IMAGES.roles}
-          title="Рейтинг крихт"
-          description="Хто заробив найбільше?"
-        />
       </Container>
 
       {openCookieDialog && (

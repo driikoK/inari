@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { RouteObject, useRoutes } from 'react-router-dom';
-import { FallbackComponent, Layout } from '@/components';
+import { FallbackComponent, Layout, RequireAccess } from '@/components';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
@@ -72,7 +72,11 @@ const useConditionalRoutes = () => {
         }),
         {
           path: 'cookie',
-          element: <Cookie />,
+          element: (
+            <RequireAccess subjects={[SUBJECTS.ADD_COOKIES, SUBJECTS.ADD_MEMBERS]}>
+              <Cookie />
+            </RequireAccess>
+          ),
         },
         {
           path: 'cookie/rating',

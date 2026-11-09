@@ -46,7 +46,7 @@ Put new components into new files. Do not create many components in the same fil
 
 ### Layout
 
-`src/components/Layout/` renders a `Sidebar` + `<main>` layout via React Router's `<Outlet>`. All routes are children of the `/` layout route. The sidebar is hidden on auth pages (`/login`, `/forgot-password`, `/reset/:token`). The sidebar collapses to a mini icon-only mode on small screens (`SIDEBAR_BREAKPOINT` exported from `Sidebar`).
+`src/components/Layout/` renders a `Sidebar` + `<main>` layout via React Router's `<Outlet>`. All routes are children of the `/` layout route. The sidebar is hidden on auth pages (`/login`, `/forgot-password`, `/reset/:token`). The sidebar collapses to a mini icon-only mode on small screens (`SIDEBAR_BREAKPOINT` exported from `Sidebar`). Its order for a logged-in user is Головна, Печивко, Видатки (`MANAGE_BUDGET`), Крихти (only with `ADD_COOKIES` or `ADD_MEMBERS`, so not for a plain member), Список крихт, Рейтинг, Проєкти, Пропозиції, Лисяча комора (`VITE_SHEET_EMBED_URL`, shown without a login too), Кодекс Інарі and, for an admin, Налаштування last. «Кодекс Інарі» is an external link (`href` in the item, opened in a new tab) shown only after login and only when `VITE_CODEX_URL` is set: Telegraph forbids framing (`X-Frame-Options: SAMEORIGIN`) and its API has no CORS, so it cannot be shown inside the site.
 
 ### Routing
 
@@ -55,7 +55,7 @@ Defined in `src/router/index.tsx`. All routes are lazy-loaded. Two routes are co
 - `VITE_FEATURE_POLL === 'true'` → `/vote`
 - `hasAccess(SUBJECTS.SHOW_RESULTS) || VITE_FEATURE_RESULTS === 'true'` → `/result`
 
-`/proposals`, `/projects` and `/budget` are always on for logged-in users, each with a sidebar item and a header link. `/proposals` is meant to replace `/vote` and `/result`, which stay until a follow-up removes them. `/projects?project=<id>` selects the season of that project and opens its card (not for a member when the tile is greyed), then drops the parameter.
+`/cookie` is wrapped in `RequireAccess` (`src/components/RequireAccess`), which waits for the permissions (they arrive a moment after the user) and sends a user with none of the given subjects to `/home`. Use it, not `conditionalRoutes`, for a page a logged-in user may open by its address, since a dropped route falls through to the login page. `/proposals`, `/projects` and `/budget` are always on for logged-in users, each with a sidebar item and a header link. `/proposals` is meant to replace `/vote` and `/result`, which stay until a follow-up removes them. `/projects?project=<id>` selects the season of that project and opens its card (not for a member when the tile is greyed), then drops the parameter.
 
 ### State (Zustand)
 
@@ -185,6 +185,7 @@ Read as `process.env.VITE_*` (injected by `define` in `vite.config.ts`), set in 
 | `VITE_FEATURE_POLL`     | Show voting page                                         |
 | `VITE_FEATURE_RESULTS`  | Show results page                                        |
 | `VITE_SHEET_EMBED_URL`  | Published Google Sheet embed URL, blank hides the page   |
+| `VITE_CODEX_URL`        | Page of «Кодекс Інарі» opened in a new tab, blank hides the item |
 
 Known issue: `define: { 'process.env': process.env }` in `vite.config.ts` inlines the whole environment of the machine that runs `vite build` into the shipped JavaScript. Never build with secrets in the environment, and prefer moving to `import.meta.env.VITE_*`.
 
