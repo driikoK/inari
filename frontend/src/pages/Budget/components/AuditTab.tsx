@@ -2,6 +2,7 @@ import { FC, useEffect, useMemo, useState } from 'react';
 
 import { Box, MenuItem, Pagination, TextField } from '@mui/material';
 
+import { DateInput } from '@/components';
 import { seasonLabel } from '@/pages/Proposals/const/options';
 import useBudgetStore, { type AuditParams } from '@/stores/useBudgetStore';
 import useRolesStore from '@/stores/useRolesStore';
@@ -115,21 +116,17 @@ export const AuditTab: FC<AuditTabProps> = ({ today }) => {
             </MenuItem>
           ))}
         </TextField>
-        <TextField
-          type="date"
+        <DateInput
           size="small"
           label="З"
           value={from}
           onChange={(event) => filter(setFrom)(event.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
         />
-        <TextField
-          type="date"
+        <DateInput
           size="small"
           label="По"
           value={to}
           onChange={(event) => filter(setTo)(event.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
         />
       </Box>
 

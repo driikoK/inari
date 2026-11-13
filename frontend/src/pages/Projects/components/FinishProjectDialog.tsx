@@ -4,9 +4,9 @@ import toast from 'react-hot-toast';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ErrorMessage } from '@hookform/error-message';
-import { Box, Button, Checkbox, FormControlLabel, TextField } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel } from '@mui/material';
 
-import { CustomDialog, ErrorText, H6, P } from '@/components';
+import { CustomDialog, DateInput, ErrorText, H6, P } from '@/components';
 import useProjectsStore, { type ProjectView } from '@/stores/useProjectsStore';
 import { notifyFailure } from '@/utils/request';
 import { createFinishFormSchema, type FinishFormValues } from '../const/form';
@@ -54,14 +54,11 @@ export const FinishProjectDialog: FC<FinishProjectDialogProps> = ({ open, onClos
               control={control}
               name="endDate"
               render={({ field }) => (
-                <TextField
+                <DateInput
                   {...field}
-                  type="date"
                   label="Дата фіналу"
-                  slotProps={{
-                    inputLabel: { shrink: true },
-                    htmlInput: { min: project.startDate, max: today },
-                  }}
+                  min={project.startDate}
+                  max={today}
                   fullWidth
                 />
               )}

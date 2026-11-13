@@ -15,7 +15,7 @@ import {
   ToggleButtonGroup,
 } from '@mui/material';
 
-import { ErrorText, P } from '@/components';
+import { DateInput, ErrorText, P } from '@/components';
 import { fundingOptions, kindOptions } from '@/pages/Proposals/const/options';
 import useProjectsStore, { type ProjectView } from '@/stores/useProjectsStore';
 import useProposalsStore, { type Proposal } from '@/stores/useProposalsStore';
@@ -129,13 +129,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
         control={control}
         name={name}
         render={({ field }) => (
-          <TextField
-            {...field}
-            type="date"
-            label={label}
-            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: MIN_DAY, max: today } }}
-            fullWidth
-          />
+          <DateInput {...field} label={label} min={MIN_DAY} max={today} fullWidth />
         )}
       />
       <ErrorMessage

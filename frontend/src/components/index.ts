@@ -11,6 +11,7 @@ import { RequireAccess } from './RequireAccess';
 import { MemberKindToggle } from './MemberKindToggle';
 import { H5, H6, ErrorText, P, Subtitle } from './Typography';
 import CustomDialog from './CustomDialog';
+import { DateInput } from './DateInput';
 import { TextWrapTableCell } from './TextWrapTableCell';
 
 export {
@@ -31,5 +32,6 @@ export {
   RequireAccess,
   MemberKindToggle,
   CustomDialog,
+  DateInput,
   TextWrapTableCell,
 };

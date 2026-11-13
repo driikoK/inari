@@ -2,9 +2,8 @@ import { FC } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { ErrorMessage } from '@hookform/error-message';
-import { TextField } from '@mui/material';
 
-import { ErrorText } from '@/components';
+import { DateInput, ErrorText } from '@/components';
 import { MIN_DAY, todayDay } from '@/pages/Projects/const/options';
 
 interface DateFieldProps {
@@ -24,16 +23,13 @@ export const DateField: FC<DateFieldProps> = ({ maxWidth }) => {
         control={control}
         name="date"
         render={({ field }) => (
-          <TextField
+          <DateInput
             {...field}
-            type="date"
             label="Дата"
             fullWidth
             sx={maxWidth ? { maxWidth } : undefined}
-            slotProps={{
-              inputLabel: { shrink: true },
-              htmlInput: { min: MIN_DAY, max: todayDay() },
-            }}
+            min={MIN_DAY}
+            max={todayDay()}
           />
         )}
       />
