@@ -280,14 +280,64 @@ describe('RequestsService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    it('says why when there is nothing to withdraw yet', async () => {
-      members.findVisibleByNicknames.mockResolvedValue([
-        member({ seasons: [{ season: SEASON.FALL, year: 2027, coins: 15 }] }),
-      ]);
+    describe('when there is nothing to withdraw', () => {
+      const only = (seasons: object[]) =>
+        members.findVisibleByNicknames.mockResolvedValue([member({ seasons })]);
 
-      await expect(service.create(user, ask([card(1)]))).rejects.toThrow(
-        /лише із завершених сезонів/,
-      );
+      it('says the running season has to end first', async () => {
+        only([{ season: SEASON.FALL, year: 2027, coins: 15 }]);
+
+        await expect(service.create(user, ask([card(1)]))).rejects.toThrow(
+          /«Осінь 2027» можна вивести після його завершення/,
+        );
+      });
+
+      it('names a finished season that has crumbs but no money in its jar', async () => {
+        only([{ season: SEASON.SUMMER, year: 2027, coins: 70 }]);
+
+        await expect(service.create(user, ask([card(1)]))).rejects.toThrow(
+          /«Літо 2027» поки не можна вивести: у банці цього сезону немає грошей/,
+        );
+      });
+
+      it('names a finished season that is not among the rates at all', async () => {
+        only([{ season: SEASON.WINTER, year: 2024, coins: 96.25 }]);
+
+        await expect(service.create(user, ask([card(1)]))).rejects.toThrow(
+          /«Зима 2024».*Адмін має внести надходження/,
+        );
+      });
+
+      it('says both reasons when both apply', async () => {
+        only([
+          { season: SEASON.WINTER, year: 2024, coins: 96.25 },
+          { season: SEASON.FALL, year: 2027, coins: 15 },
+        ]);
+
+        await expect(service.create(user, ask([card(1)]))).rejects.toThrow(
+          /«Зима 2024».*«Осінь 2027» можна вивести після його завершення/,
+        );
+      });
+
+      it('says the open requests hold it all when everything that can be paid is reserved', async () => {
+        reserved(140);
+
+        await expect(service.create(user, ask([card(1)]))).rejects.toThrow(
+          /уже в ваших відкритих запитах/,
+        );
+      });
+
+      it('says there is nothing for a nickname with no crumbs, and gives the same answer to the preview of the form', async () => {
+        only([]);
+
+        await expect(service.create(user, ask([card(1)]))).rejects.toThrow(
+          /У вас немає крихт для виводу/,
+        );
+
+        const preview = await service.preview(user, ask([card(1)]));
+
+        expect(preview.problem).toBe('У вас немає крихт для виводу');
+      });
     });
 
     it('refuses a nickname that is hidden or gone', async () => {

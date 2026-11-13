@@ -1,6 +1,13 @@
 import { SEASON } from '../shared/index.js';
 import type { SeasonRate } from './interfaces/index.js';
-import { paidOf, planWithdrawal, sharesOf, totalCrumbs } from './withdrawal.js';
+import {
+  lockedSeasonsOf,
+  nothingToWithdraw,
+  paidOf,
+  planWithdrawal,
+  sharesOf,
+  totalCrumbs,
+} from './withdrawal.js';
 
 const rates: SeasonRate[] = [
   { season: SEASON.WINTER, year: 2027, coefficient: 2 },
@@ -56,6 +63,112 @@ describe('sharesOf', () => {
 
   it('copes with a nickname that has no seasons', () => {
     expect(sharesOf(undefined, rates, today)).toEqual([]);
+  });
+});
+
+describe('lockedSeasonsOf', () => {
+  it('splits the crumbs that cannot be paid out into the finished seasons with no money and the season that is running', () => {
+    expect(lockedSeasonsOf(seasons, rates, today)).toEqual({
+      uncovered: [
+        { season: SEASON.FALL, year: 2026, coins: 30 },
+        { season: SEASON.SUMMER, year: 2027, coins: 70 },
+      ],
+      running: [{ season: SEASON.FALL, year: 2027, coins: 15 }],
+    });
+  });
+
+  it('counts a finished season that is not among the rates at all as one with no money', () => {
+    expect(
+      lockedSeasonsOf(
+        [{ season: SEASON.WINTER, year: 2024, coins: 96.25 }],
+        rates,
+        today,
+      ),
+    ).toEqual({
+      uncovered: [{ season: SEASON.WINTER, year: 2024, coins: 96.25 }],
+      running: [],
+    });
+  });
+
+  it('leaves out a season that can be paid out and one with no crumbs left', () => {
+    expect(
+      lockedSeasonsOf(
+        [
+          { season: SEASON.WINTER, year: 2027, coins: 40 },
+          { season: SEASON.SPRING, year: 2027, coins: 0 },
+        ],
+        rates,
+        today,
+      ),
+    ).toEqual({ uncovered: [], running: [] });
+  });
+
+  it('copes with a nickname that has no seasons', () => {
+    expect(lockedSeasonsOf(undefined, rates, today)).toEqual({
+      uncovered: [],
+      running: [],
+    });
+  });
+});
+
+describe('nothingToWithdraw', () => {
+  const none = { uncovered: [], running: [] };
+  const winter2024 = { season: SEASON.WINTER, year: 2024, coins: 96.25 };
+  const spring2025 = { season: SEASON.SPRING, year: 2025, coins: 10 };
+  const fall2027 = { season: SEASON.FALL, year: 2027, coins: 15 };
+
+  it('names the finished season whose jar has no money, and what to do about it', () => {
+    const message = nothingToWithdraw(
+      { ...none, uncovered: [winter2024] },
+      false,
+    );
+
+    expect(message).toContain('сезон «Зима 2024»');
+    expect(message).toContain('немає грошей');
+    expect(message).toContain('коефіцієнт нульовий');
+    expect(message).toContain('Адмін має внести надходження в цей сезон');
+  });
+
+  it('puts several seasons in the plural, oldest first as they come', () => {
+    const message = nothingToWithdraw(
+      { ...none, uncovered: [winter2024, spring2025] },
+      false,
+    );
+
+    expect(message).toContain('сезони «Зима 2024», «Весна 2025»');
+    expect(message).toContain('у банках цих сезонів');
+    expect(message).toContain('в ці сезони');
+  });
+
+  it('says the running season has to end first', () => {
+    expect(nothingToWithdraw({ ...none, running: [fall2027] }, false)).toBe(
+      'Крихти за сезон «Осінь 2027» можна вивести після його завершення',
+    );
+  });
+
+  it('says both when both are the case', () => {
+    const message = nothingToWithdraw(
+      { uncovered: [winter2024], running: [fall2027] },
+      false,
+    );
+
+    expect(message).toContain('«Зима 2024»');
+    expect(message).toContain(
+      '«Осінь 2027» можна вивести після його завершення',
+    );
+    expect(message.indexOf('Зима 2024')).toBeLessThan(
+      message.indexOf('Осінь 2027'),
+    );
+  });
+
+  it('says that the open requests hold everything when that is the reason', () => {
+    expect(nothingToWithdraw({ ...none, uncovered: [winter2024] }, true)).toBe(
+      'Усі крихти, які можна вивести, уже в ваших відкритих запитах',
+    );
+  });
+
+  it('says there is nothing at all for a nickname with no crumbs', () => {
+    expect(nothingToWithdraw(none, false)).toBe('У вас немає крихт для виводу');
   });
 });
 

@@ -55,7 +55,14 @@ import type {
   WithdrawalPart,
   WithdrawalRequest,
 } from './interfaces/index.js';
-import { paidOf, planWithdrawal, sharesOf, totalCrumbs } from './withdrawal.js';
+import {
+  lockedSeasonsOf,
+  nothingToWithdraw,
+  paidOf,
+  planWithdrawal,
+  sharesOf,
+  totalCrumbs,
+} from './withdrawal.js';
 
 // What the requests of the nicknames in hand need to know about the crumbs.
 // `holders` is the nickname each account holds now: a request is only as good
@@ -609,7 +616,10 @@ export class RequestsService {
         problem:
           info.availableCrumbs > 0
             ? `Для виводу доступно лише ${formatCrumbs(info.availableCrumbs)} крихт, а ви просите ${formatCrumbs(asked)}`
-            : 'Зараз немає крихт для виводу: їх можна вивести лише із завершених сезонів, які мають коефіцієнт',
+            : nothingToWithdraw(
+                lockedSeasonsOf(member.seasons, ledger.rates, today),
+                info.reservedCrumbs > 0 && info.shares.length > 0,
+              ),
       };
     }
 
