@@ -550,6 +550,23 @@ describe('RequestsService', () => {
     });
   });
 
+  describe('openCount', () => {
+    it('counts the open lines, those of crumbs and of orders alike, and nothing that is closed', async () => {
+      requests.countDocuments.mockResolvedValue(3 as any);
+
+      await expect(service.openCount()).resolves.toEqual({ count: 3 });
+      expect(requests.countDocuments).toHaveBeenCalledWith({
+        status: REQUEST_STATUS.OPEN,
+      });
+    });
+
+    it('is zero when nothing waits', async () => {
+      requests.countDocuments.mockResolvedValue(0 as any);
+
+      await expect(service.openCount()).resolves.toEqual({ count: 0 });
+    });
+  });
+
   describe('queue', () => {
     it('shows the admin the full card of an open line and only the end of a closed one', async () => {
       found([

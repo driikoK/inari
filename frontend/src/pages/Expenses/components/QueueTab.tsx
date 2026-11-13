@@ -184,7 +184,7 @@ export const QueueTab: FC = () => {
       <ConfirmDeleteDialog
         open={!!toReject}
         title="Відхилити запит?"
-        message="Рядок закриється без виплати, а крихти учасника знову стануть доступними."
+        message="Запит закриється без виплати, а крихти повернуться учаснику."
         confirmLabel="Відхилити"
         cancelLabel="Лишити"
         isLoading={isRejecting}

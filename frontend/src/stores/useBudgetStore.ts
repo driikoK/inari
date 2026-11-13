@@ -8,9 +8,9 @@ import type {
   EXPENSE_SECTION,
   INCOME_SOURCE,
   RECONCILE_STATUS,
-  REQUEST_STATUS,
   SUPPORT_DIRECTION,
 } from '@/types';
+import { REQUEST_STATUS } from '@/types';
 import { ensure } from '@/utils/request';
 
 export interface SourceLine {
@@ -447,6 +447,9 @@ interface State {
   auditParams: AuditParams | null;
   withdrawal: MyWithdrawal | null;
   queue: RequestView[] | null;
+  // The lines that wait for the admin, for the counter of the menu. It is null until an admin's
+  // menu has asked, so a member's actions do not fetch it.
+  openRequests: number | null;
   reconcile: ReconcileReport | null;
   isReconciling: boolean;
   // Something was changed after the report was made
@@ -469,6 +472,7 @@ interface Actions {
   createRequest: (payload: RequestPayload) => Promise<void>;
   cancelRequest: (id: string) => Promise<void>;
   getQueue: () => Promise<void>;
+  getOpenRequests: () => Promise<void>;
   fulfilRequest: (id: string, amountKop: number | null) => Promise<void>;
   rejectRequest: (id: string) => Promise<void>;
   runReconcile: () => Promise<void>;
@@ -484,6 +488,7 @@ const defaultPath = '/budget';
 let latestEntriesRequest = 0;
 let latestAuditRequest = 0;
 let latestQueueRequest = 0;
+let latestOpenRequest = 0;
 let latestReconcileRequest = 0;
 let changesMade = 0;
 
@@ -499,8 +504,8 @@ const useBudgetStore = create<State & Actions>((set, get) => {
 
     if (get().reconcile) set({ isReconcileStale: true });
 
-    const { entriesParams, auditParams, withdrawal, queue } = get();
-    const { getEntries, getAudit, getWithdrawal, getQueue } = get();
+    const { entriesParams, auditParams, withdrawal, queue, openRequests } = get();
+    const { getEntries, getAudit, getWithdrawal, getQueue, getOpenRequests } = get();
 
     await Promise.all([
       fetchSummary(),
@@ -508,6 +513,7 @@ const useBudgetStore = create<State & Actions>((set, get) => {
       auditParams && getAudit(auditParams),
       withdrawal && getWithdrawal(),
       queue && getQueue(),
+      openRequests !== null && getOpenRequests(),
     ]);
   };
 
@@ -530,6 +536,7 @@ const useBudgetStore = create<State & Actions>((set, get) => {
     auditParams: null,
     withdrawal: null,
     queue: null,
+    openRequests: null,
     reconcile: null,
     isReconciling: false,
     isReconcileStale: false,
@@ -601,7 +608,27 @@ const useBudgetStore = create<State & Actions>((set, get) => {
       const request = ++latestQueueRequest;
       const response = ensure(await axios.get<RequestView[]>(`${defaultPath}/requests`));
 
-      if (request === latestQueueRequest) set({ queue: response.data });
+      if (request === latestQueueRequest) {
+        // The queue is the fresher news, so a count that is still on its way is dropped
+        latestOpenRequest++;
+
+        set({
+          queue: response.data,
+          openRequests: response.data.filter(({ status }) => status === REQUEST_STATUS.OPEN).length,
+        });
+      }
+    },
+
+    // Asked every minute, so a failure is left alone instead of popping up an error each time
+    getOpenRequests: async () => {
+      const request = ++latestOpenRequest;
+      const response = await axios.get<{ count: number }>(`${defaultPath}/requests/open-count`, {
+        validateStatus: () => true,
+      });
+
+      if (response?.status === 200 && request === latestOpenRequest) {
+        set({ openRequests: response.data.count });
+      }
     },
 
     fulfilRequest: (id, amountKop) =>

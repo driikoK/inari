@@ -214,7 +214,14 @@ export class RequestsService {
     );
   }
 
-  // Open lines, and the ones closed in the current season
+  async openCount(): Promise<{ count: number }> {
+    return {
+      count: await this.requestModel.countDocuments({
+        status: REQUEST_STATUS.OPEN,
+      }),
+    };
+  }
+
   async queue(): Promise<RequestView[]> {
     const today = todayInKyiv();
     const requests = await this.requestModel

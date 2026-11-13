@@ -32,7 +32,7 @@ describe('RequestsController', () => {
     },
   );
 
-  it.each(['queue', 'fulfil', 'reject'] as const)(
+  it.each(['queue', 'openCount', 'fulfil', 'reject'] as const)(
     '%s is for admins only, as it shows card numbers or moves money',
     (handler) => {
       expect(guardsOf(RequestsController.prototype[handler])).toEqual([
@@ -41,6 +41,12 @@ describe('RequestsController', () => {
       ]);
     },
   );
+
+  it('answers the counter of the menu from the service', async () => {
+    service.openCount.mockResolvedValue({ count: 4 });
+
+    await expect(controller.openCount()).resolves.toEqual({ count: 4 });
+  });
 
   it('signs a fulfilment and a rejection with the username of the admin', async () => {
     await controller.fulfil('r1', { amountKop: 100 }, admin);

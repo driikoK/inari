@@ -13,6 +13,7 @@ import {
   TableChartOutlined,
 } from '@mui/icons-material';
 import { useAuthStore } from '@/stores';
+import useBudgetStore from '@/stores/useBudgetStore';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
@@ -23,6 +24,8 @@ export type NavItemDef = {
   icon: ReactNode;
   // A page outside the site, opened in a new tab
   href?: string;
+  // How many things wait there, shown next to the name when it is above zero
+  badge?: number;
 };
 
 // The sections the current user can open, in the order of the sidebar
@@ -34,6 +37,7 @@ export const useNavItems = (): NavItemDef[] => {
   const canManageBudget = hasAccess(SUBJECTS.MANAGE_BUDGET);
   const canAddCrumbs = hasAccess([SUBJECTS.ADD_COOKIES, SUBJECTS.ADD_MEMBERS]);
   const codexUrl = process.env.VITE_CODEX_URL;
+  const openRequests = useBudgetStore((state) => state.openRequests);
 
   return [
     { id: 'home', path: '/home', label: 'Головна', icon: <HomeOutlined /> },
@@ -47,6 +51,7 @@ export const useNavItems = (): NavItemDef[] => {
                   path: '/budget/expenses',
                   label: 'Видатки',
                   icon: <PaymentsOutlined />,
+                  badge: openRequests ?? 0,
                 },
               ]
             : []),

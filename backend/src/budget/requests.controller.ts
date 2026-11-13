@@ -47,6 +47,15 @@ export class RequestsController {
     return this.requestsService.cancel(user, id);
   }
 
+  @Get('open-count')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({
+    summary: 'How many lines wait for the admin, for the counter in the menu',
+  })
+  openCount() {
+    return this.requestsService.openCount();
+  }
+
   @Get()
   @UseGuards(AuthGuard, AdminGuard)
   @ApiOperation({ summary: 'The queue of requests, newest first' })

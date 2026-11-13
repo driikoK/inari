@@ -3,8 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, useMediaQuery } from '@mui/material';
 import clsx from 'clsx';
 import { useAuthStore } from '@/stores';
+import { SUBJECTS } from '@/context/casl';
+import { usePermissions } from '@/hooks';
 import styles from './Sidebar.module.scss';
+import { NavBadge } from './NavBadge';
 import { useNavItems } from './useNavItems';
+import { useOpenRequests } from './useOpenRequests';
 import { OpenInNewOutlined, Person2Outlined, LogoutOutlined } from '@mui/icons-material';
 
 export const SIDEBAR_FULL_W = 200;
@@ -16,6 +20,9 @@ const Sidebar: FC = () => {
   const location = useLocation();
   const { logout } = useAuthStore();
   const navItems = useNavItems();
+  const { hasAccess } = usePermissions();
+
+  useOpenRequests(hasAccess(SUBJECTS.MANAGE_BUDGET));
 
   const collapsed = useMediaQuery(SIDEBAR_BREAKPOINT);
 
@@ -66,9 +73,23 @@ const Sidebar: FC = () => {
               onClick={() => navigate(item.path)}
               className={navBtnClass(item.path)}
               startIcon={collapsed ? undefined : item.icon}
+              title={collapsed ? item.label : undefined}
+              aria-label={item.badge ? `${item.label}, очікують: ${item.badge}` : undefined}
               fullWidth
             >
-              {collapsed ? item.icon : item.label}
+              {collapsed ? (
+                <span className={styles.iconWithBadge}>
+                  {item.icon}
+                  <NavBadge count={item.badge} collapsed />
+                </span>
+              ) : item.badge ? (
+                <>
+                  <span className={styles.label}>{item.label}</span>
+                  <NavBadge count={item.badge} />
+                </>
+              ) : (
+                item.label
+              )}
             </Button>
           ),
         )}
