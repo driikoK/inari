@@ -12,6 +12,7 @@ import {
   UpdateExpenseData,
   UpdateSupportData,
 } from './index.js';
+import { CARD_LENGTH_MESSAGE, CARD_SUM_MESSAGE } from './payout.data.js';
 
 const messagesOf = (schema: z.ZodType, input: unknown) => {
   const result = schema.safeParse(input);
@@ -147,10 +148,28 @@ describe('CreateExpensesData', () => {
           CreateExpensesData,
           create([{ ...card, requisite: '4111 1111 1111 1112' }]),
         ),
-      ).toContain('Номер карти — 16 цифр, перевірте, чи немає помилки');
+      ).toContain(CARD_SUM_MESSAGE);
       expect(
         messagesOf(CreateExpensesData, create([{ ...card, requisite: LINK }])),
       ).not.toEqual([]);
+    });
+
+    it('tells a number of 16 digits that does not add up from one of the wrong length', () => {
+      const messages = (requisite: string, kind = EXPENSE_KIND.CARD) =>
+        messagesOf(CreateExpensesData, create([{ ...card, kind, requisite }]));
+
+      expect(messages('4444 1144 2314 2234')).toContain(CARD_SUM_MESSAGE);
+      expect(messages('4444-1144-2314-2234')).toContain(CARD_SUM_MESSAGE);
+      expect(messages('4444 1144 2314 2234')).not.toContain(
+        CARD_LENGTH_MESSAGE,
+      );
+      expect(messages('4444 1144 2314')).toContain(CARD_LENGTH_MESSAGE);
+      expect(messages('4444 1144 2314 2234 5')).toContain(CARD_LENGTH_MESSAGE);
+      expect(messages('4444 1144 2314 22ab')).toContain(CARD_LENGTH_MESSAGE);
+      expect(messages('4444 1144 2314 2234', EXPENSE_KIND.DONATION)).toContain(
+        CARD_SUM_MESSAGE,
+      );
+      expect(messages('4444 4444 4444 4448')).toEqual([]);
     });
 
     it('takes a card or a secure link for a donation', () => {

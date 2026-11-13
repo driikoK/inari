@@ -9,11 +9,14 @@ import type {
   ExpensesPayload,
 } from '@/stores/useBudgetStore';
 import { EXPENSE_KIND, EXPENSE_SECTION, type SUPPORT_DIRECTION } from '@/types';
-import { hasCardNumber, isCardNumber, isHttpsLink, isMasked } from './card';
+import { hasCardLength, hasCardNumber, isCardNumber, isHttpsLink, isMasked } from './card';
 import { periodShape } from './form';
 import { directionLabel, kopToUah, MAX_KOP, normalizeName, parseUah } from './options';
 
 const NO_CARD_MESSAGE = 'Не вказуйте номер карти в цьому полі';
+const CARD_LENGTH_MESSAGE = 'Номер карти — 16 цифр, перевірте, чи немає помилки';
+const CARD_SUM_MESSAGE =
+  'Номер карти не проходить перевірку контрольної цифри, перевірте, чи немає помилки';
 
 export const SUPPORT_GROUP = 'Печивко підтримки';
 export const ORDERS_GROUP = 'Тістечка замовлень';
@@ -102,7 +105,10 @@ export const requisiteProblem = (kind: EXPENSE_KIND, value: string, isEdit: bool
 
   if (isCardNumber(text) || (isEdit && isMasked(text))) return null;
 
-  if (kind === EXPENSE_KIND.CARD) return 'Номер карти — 16 цифр, перевірте, чи немає помилки';
+  // Sixteen digits that do not add up are a typo, which "16 digits" would not say
+  if (hasCardLength(text)) return CARD_SUM_MESSAGE;
+
+  if (kind === EXPENSE_KIND.CARD) return CARD_LENGTH_MESSAGE;
 
   if (!isHttpsLink(text)) return 'Вкажіть номер карти або посилання, що починається з https://';
 

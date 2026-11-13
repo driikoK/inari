@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import { EXPENSE_KIND } from '../enums/index.js';
 import { CreateRequestData, FulfilRequestData } from './index.js';
+import { CARD_LENGTH_MESSAGE, CARD_SUM_MESSAGE } from './payout.data.js';
 
 const messagesOf = (schema: z.ZodType, input: unknown) => {
   const result = schema.safeParse(input);
@@ -72,7 +73,13 @@ describe('CreateRequestData', () => {
         CreateRequestData,
         ask([{ ...card, requisite: '4111 1111 1111 1112' }]),
       ),
-    ).toContain('Номер карти — 16 цифр, перевірте, чи немає помилки');
+    ).toContain(CARD_SUM_MESSAGE);
+    expect(
+      messagesOf(
+        CreateRequestData,
+        ask([{ ...card, requisite: '4111 1111 1111' }]),
+      ),
+    ).toContain(CARD_LENGTH_MESSAGE);
     expect(
       messagesOf(CreateRequestData, ask([{ ...card, requisite: '•••• 1111' }])),
     ).not.toEqual([]);

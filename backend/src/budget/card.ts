@@ -1,31 +1,21 @@
+import { z } from 'zod';
+
 const CARD_LENGTH = 16;
 const MASK = '•••• ';
 const MASKED = /^•{4} \d{4}$/;
 
 export const digitsOf = (value: string) => value.replace(/[\s-]/g, '');
 
-// Cards are checked by the Luhn sum, which catches a mistyped digit
-export const isCardNumber = (value: string) => {
-  const digits = digitsOf(value);
+// Sixteen digits, with or without spaces and dashes, whether or not they add up
+export const hasCardLength = (value: string) =>
+  new RegExp(`^\\d{${CARD_LENGTH}}$`).test(digitsOf(value));
 
-  if (!new RegExp(`^\\d{${CARD_LENGTH}}$`).test(digits)) return false;
+// The Luhn sum of Zod's own card check, which catches a mistyped digit. It
+// also takes 12 to 19 digits, and the length that is wanted here is 16.
+const luhn = z.creditCard();
 
-  let sum = 0;
-
-  for (let index = 0; index < digits.length; index++) {
-    let digit = Number(digits[digits.length - 1 - index]);
-
-    if (index % 2 === 1) {
-      digit *= 2;
-
-      if (digit > 9) digit -= 9;
-    }
-
-    sum += digit;
-  }
-
-  return sum % 10 === 0;
-};
+export const isCardNumber = (value: string) =>
+  hasCardLength(value) && luhn.safeParse(digitsOf(value)).success;
 
 // A number can hide in a comment or a link, with spaces or dashes between
 // its digits
