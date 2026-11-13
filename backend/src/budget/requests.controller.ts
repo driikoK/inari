@@ -1,9 +1,21 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
 import type { ValidatedUser } from '../users/interfaces/user.interface.js';
-import { CreateRequestData, FulfilRequestData } from './data/index.js';
+import {
+  CreateRequestData,
+  FulfilRequestData,
+  QueueQueryData,
+} from './data/index.js';
 import { RequestsService } from './requests.service.js';
 
 @ApiTags('Budget requests')
@@ -58,9 +70,12 @@ export class RequestsController {
 
   @Get()
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'The queue of requests, newest first' })
-  queue() {
-    return this.requestsService.queue();
+  @ApiOperation({
+    summary:
+      'The queue of requests: every open line, and pages of the closed ones, for crumbs and for orders',
+  })
+  queue(@Query({ schema: QueueQueryData }) query: QueueQueryData) {
+    return this.requestsService.queue(query);
   }
 
   @Post(':id/fulfil')

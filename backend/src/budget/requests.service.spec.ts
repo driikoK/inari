@@ -187,14 +187,14 @@ describe('RequestsService', () => {
       ]);
     });
 
-    it('asks for the requests of this account, the open ones and those closed this season', async () => {
+    it('asks for the requests of this account, the open ones and those closed this season or the one before', async () => {
       await service.mine(user);
 
       expect(requests.find).toHaveBeenCalledWith({
         username: 'anya',
         $or: [
           { status: REQUEST_STATUS.OPEN },
-          { closedDay: { $gte: '2027-10-01' } },
+          { closedDay: { $gte: '2027-07-01' } },
         ],
       });
     });
@@ -568,27 +568,77 @@ describe('RequestsService', () => {
   });
 
   describe('queue', () => {
+    const chain = (list: WithdrawalRequest[]) => {
+      const query: any = {
+        sort: vi.fn(() => query),
+        skip: vi.fn(() => query),
+        limit: vi.fn(() => query),
+        lean: vi.fn().mockResolvedValue(list),
+      };
+
+      return query;
+    };
+    const closedLine = (extra: Partial<WithdrawalRequest> = {}) =>
+      line({
+        _id: new Types.ObjectId(),
+        status: REQUEST_STATUS.DONE,
+        requisite: '•••• 2222',
+        closedDay: '2027-10-02',
+        closedAt: new Date('2027-10-02T10:00:00Z'),
+        ...extra,
+      });
+
+    // The queue reads three times, the open lines and a page of each kind of the closed ones, and
+    // they are told apart by their filters
+    let reads: { filter: any; query: any }[];
+    const queued = ({
+      open = [],
+      crumbs = [],
+      orders = [],
+      crumbsTotal = crumbs.length,
+      ordersTotal = orders.length,
+    }: {
+      open?: WithdrawalRequest[];
+      crumbs?: WithdrawalRequest[];
+      orders?: WithdrawalRequest[];
+      crumbsTotal?: number;
+      ordersTotal?: number;
+    }) => {
+      reads = [];
+      requests.find.mockImplementation(((filter: any) => {
+        const list =
+          filter.status === REQUEST_STATUS.OPEN
+            ? open
+            : filter.isOrder === true
+              ? orders
+              : crumbs;
+        const query = chain(list);
+
+        reads.push({ filter, query });
+
+        return query;
+      }) as any);
+      requests.countDocuments.mockImplementation((async (filter: any) =>
+        filter.isOrder === true ? ordersTotal : crumbsTotal) as any);
+    };
+    const getQueue = (crumbsPage = 1, ordersPage = 1) =>
+      service.queue({ crumbsPage, ordersPage });
+
     it('shows the admin the full card of an open line and only the end of a closed one', async () => {
-      found([
-        line(),
-        line({
-          _id: new Types.ObjectId(),
-          status: REQUEST_STATUS.DONE,
-          requisite: '•••• 2222',
-          closedDay: '2027-10-02',
-        }),
-      ]);
+      queued({ open: [line()], crumbs: [closedLine()] });
 
-      const [open, done] = await service.queue();
+      const { crumbs } = await getQueue();
 
-      expect(open.requisite).toBe(CARD);
-      expect(done.requisite).toBe('•••• 2222');
+      expect(crumbs.open[0].requisite).toBe(CARD);
+      expect(crumbs.closed.data[0].requisite).toBe('•••• 2222');
     });
 
     it('prices an open line and names the problem of one that cannot be paid now', async () => {
-      found([line(), line({ _id: new Types.ObjectId(), crumbs: 500 })]);
+      queued({
+        open: [line(), line({ _id: new Types.ObjectId(), crumbs: 500 })],
+      });
 
-      const [fine, short] = await service.queue();
+      const [fine, short] = (await getQueue()).crumbs.open;
 
       expect(fine.estimate?.amountKop).toBe(15000);
       expect(fine.problem).toBeNull();
@@ -598,20 +648,22 @@ describe('RequestsService', () => {
 
     it('says so when the nickname is no longer there', async () => {
       members.findVisibleByNicknames.mockResolvedValue([]);
-      found([line()]);
+      queued({ open: [line()] });
 
-      const [view] = await service.queue();
+      const [view] = (await getQueue()).crumbs.open;
 
       expect(view.problem).toMatch(/прихований або не існує/);
     });
 
     it('names the problem of a line whose account no longer holds the nickname', async () => {
       users.nicknamesOf.mockResolvedValue(new Map([['anya', 'Інша']]));
-      found([line(), line({ _id: new Types.ObjectId(), isOrder: true })]);
+      queued({
+        open: [line(), line({ _id: new Types.ObjectId(), isOrder: true })],
+      });
 
-      const [crumbs, order] = await service.queue();
+      const { crumbs, orders } = await getQueue();
 
-      for (const view of [crumbs, order]) {
+      for (const view of [crumbs.open[0], orders.open[0]]) {
         expect(view.estimate).toBeNull();
         expect(view.problem).toBe(
           'Нікнейм «Аня» більше не прив’язаний до акаунта anya',
@@ -620,28 +672,119 @@ describe('RequestsService', () => {
     });
 
     it('asks only for the accounts of the open lines', async () => {
-      found([
-        line(),
-        line({
-          _id: new Types.ObjectId(),
-          username: 'old',
-          status: REQUEST_STATUS.DONE,
-          closedDay: '2027-10-02',
-        }),
-      ]);
+      queued({ open: [line()], crumbs: [closedLine({ username: 'old' })] });
 
-      await service.queue();
+      await getQueue();
 
       expect(users.nicknamesOf).toHaveBeenCalledWith(['anya']);
     });
 
     it('does not price an order, whose sum was written in hryvnias', async () => {
-      found([line({ isOrder: true, crumbs: undefined, amountKop: 5000 })]);
+      queued({
+        open: [line({ isOrder: true, crumbs: undefined, amountKop: 5000 })],
+      });
 
-      const [view] = await service.queue();
+      const { crumbs, orders } = await getQueue();
 
-      expect(view.estimate).toBeNull();
-      expect(view.amountKop).toBe(5000);
+      expect(orders.open[0].estimate).toBeNull();
+      expect(orders.open[0].amountKop).toBe(5000);
+      expect(crumbs.open).toEqual([]);
+    });
+
+    it('keeps the crumbs and the orders apart, open and closed alike', async () => {
+      queued({
+        open: [line(), line({ _id: new Types.ObjectId(), isOrder: true })],
+        crumbs: [closedLine()],
+        orders: [closedLine({ isOrder: true })],
+      });
+
+      const { crumbs, orders } = await getQueue();
+
+      expect(crumbs.open.map(({ isOrder }) => isOrder)).toEqual([false]);
+      expect(orders.open.map(({ isOrder }) => isOrder)).toEqual([true]);
+      expect(crumbs.closed.data.map(({ isOrder }) => isOrder)).toEqual([false]);
+      expect(orders.closed.data.map(({ isOrder }) => isOrder)).toEqual([true]);
+    });
+
+    it('brings every open line however many there are, never in pages', async () => {
+      queued({
+        open: Array.from({ length: 25 }, () =>
+          line({ _id: new Types.ObjectId() }),
+        ),
+      });
+
+      const { crumbs } = await getQueue();
+      const openRead = reads.find(
+        ({ filter }) => filter.status === REQUEST_STATUS.OPEN,
+      );
+
+      expect(crumbs.open).toHaveLength(25);
+      expect(openRead?.query.skip).not.toHaveBeenCalled();
+      expect(openRead?.query.limit).not.toHaveBeenCalled();
+    });
+
+    it('brings the closed lines ten to a page, a page for each kind, and says how many there are', async () => {
+      queued({
+        crumbs: [closedLine()],
+        orders: [closedLine({ isOrder: true })],
+        crumbsTotal: 33,
+        ordersTotal: 12,
+      });
+
+      const { crumbs, orders } = await getQueue(4, 2);
+      const closedReads = reads.filter(
+        ({ filter }) => filter.status !== REQUEST_STATUS.OPEN,
+      );
+
+      expect(crumbs.closed).toMatchObject({ page: 4, perPage: 10, total: 33 });
+      expect(orders.closed).toMatchObject({ page: 2, perPage: 10, total: 12 });
+      expect(closedReads[0].query.skip).toHaveBeenCalledWith(30);
+      expect(closedReads[0].query.limit).toHaveBeenCalledWith(10);
+      expect(closedReads[1].query.skip).toHaveBeenCalledWith(10);
+      expect(closedReads[1].query.limit).toHaveBeenCalledWith(10);
+    });
+
+    it('lists the lines closed in this season and the one before it, and counts the same lines', async () => {
+      queued({});
+
+      await getQueue();
+
+      const crumbsFilter = {
+        status: { $ne: REQUEST_STATUS.OPEN },
+        closedDay: { $gte: '2027-07-01' },
+        isOrder: { $ne: true },
+      };
+      const ordersFilter = { ...crumbsFilter, isOrder: true };
+
+      expect(reads.map(({ filter }) => filter)).toEqual(
+        expect.arrayContaining([crumbsFilter, ordersFilter]),
+      );
+      expect(requests.countDocuments).toHaveBeenCalledWith(crumbsFilter);
+      expect(requests.countDocuments).toHaveBeenCalledWith(ordersFilter);
+    });
+
+    it('puts the line that was closed last first', async () => {
+      queued({ crumbs: [closedLine()] });
+
+      await getQueue();
+
+      const closedRead = reads.find(
+        ({ filter }) => filter.status !== REQUEST_STATUS.OPEN,
+      );
+
+      expect(closedRead?.query.sort).toHaveBeenCalledWith({
+        closedAt: -1,
+        _id: -1,
+      });
+    });
+
+    it('never deletes anything, a line that is old is only left out of the lists', async () => {
+      queued({});
+
+      await getQueue();
+
+      expect(requests.deleteOne).not.toHaveBeenCalled();
+      expect(requests.deleteMany).not.toHaveBeenCalled();
     });
   });
 

@@ -8,9 +8,9 @@ import type {
   EXPENSE_SECTION,
   INCOME_SOURCE,
   RECONCILE_STATUS,
+  REQUEST_STATUS,
   SUPPORT_DIRECTION,
 } from '@/types';
-import { REQUEST_STATUS } from '@/types';
 import { ensure } from '@/utils/request';
 
 export interface SourceLine {
@@ -227,6 +227,23 @@ export interface RequestEstimate {
 
 // One line of a request: a card, a donation or a gift to the team. A card number comes whole
 // only to the admin and only while the line is open.
+// One group of the queue: every open line, and a page of the lines closed lately
+export interface RequestGroup {
+  open: RequestView[];
+  closed: Paged<RequestView>;
+}
+
+export interface RequestQueue {
+  crumbs: RequestGroup;
+  orders: RequestGroup;
+}
+
+// The page of the closed lines of each group
+export interface QueueParams {
+  crumbsPage: number;
+  ordersPage: number;
+}
+
 export interface RequestView {
   _id: string;
   groupId: string;
@@ -446,7 +463,8 @@ interface State {
   audit: Paged<AuditOperation> | null;
   auditParams: AuditParams | null;
   withdrawal: MyWithdrawal | null;
-  queue: RequestView[] | null;
+  queue: RequestQueue | null;
+  queueParams: QueueParams | null;
   // The lines that wait for the admin, for the counter of the menu. It is null until an admin's
   // menu has asked, so a member's actions do not fetch it.
   openRequests: number | null;
@@ -471,7 +489,7 @@ interface Actions {
   previewRequest: (payload: RequestPayload) => Promise<RequestPreview>;
   createRequest: (payload: RequestPayload) => Promise<void>;
   cancelRequest: (id: string) => Promise<void>;
-  getQueue: () => Promise<void>;
+  getQueue: (params: QueueParams) => Promise<void>;
   getOpenRequests: () => Promise<void>;
   fulfilRequest: (id: string, amountKop: number | null) => Promise<void>;
   rejectRequest: (id: string) => Promise<void>;
@@ -504,7 +522,7 @@ const useBudgetStore = create<State & Actions>((set, get) => {
 
     if (get().reconcile) set({ isReconcileStale: true });
 
-    const { entriesParams, auditParams, withdrawal, queue, openRequests } = get();
+    const { entriesParams, auditParams, withdrawal, queueParams, openRequests } = get();
     const { getEntries, getAudit, getWithdrawal, getQueue, getOpenRequests } = get();
 
     await Promise.all([
@@ -512,7 +530,7 @@ const useBudgetStore = create<State & Actions>((set, get) => {
       entriesParams && getEntries(entriesParams),
       auditParams && getAudit(auditParams),
       withdrawal && getWithdrawal(),
-      queue && getQueue(),
+      queueParams && getQueue(queueParams),
       openRequests !== null && getOpenRequests(),
     ]);
   };
@@ -536,6 +554,7 @@ const useBudgetStore = create<State & Actions>((set, get) => {
     auditParams: null,
     withdrawal: null,
     queue: null,
+    queueParams: null,
     openRequests: null,
     reconcile: null,
     isReconciling: false,
@@ -604,18 +623,20 @@ const useBudgetStore = create<State & Actions>((set, get) => {
 
     cancelRequest: (id) => change(() => axios.post(`${defaultPath}/requests/${id}/cancel`)),
 
-    getQueue: async () => {
+    getQueue: async (params) => {
       const request = ++latestQueueRequest;
-      const response = ensure(await axios.get<RequestView[]>(`${defaultPath}/requests`));
+
+      set({ queueParams: params });
+
+      const response = ensure(await axios.get<RequestQueue>(`${defaultPath}/requests`, { params }));
 
       if (request === latestQueueRequest) {
+        const { crumbs, orders } = response.data;
+
         // The queue is the fresher news, so a count that is still on its way is dropped
         latestOpenRequest++;
 
-        set({
-          queue: response.data,
-          openRequests: response.data.filter(({ status }) => status === REQUEST_STATUS.OPEN).length,
-        });
+        set({ queue: response.data, openRequests: crumbs.open.length + orders.open.length });
       }
     },
 
@@ -677,7 +698,7 @@ const useBudgetStore = create<State & Actions>((set, get) => {
     clearQueue: () => {
       latestQueueRequest++;
 
-      set({ queue: null });
+      set({ queue: null, queueParams: null });
     },
 
     clearReconcile: () => {

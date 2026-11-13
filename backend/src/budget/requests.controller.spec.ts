@@ -42,6 +42,15 @@ describe('RequestsController', () => {
     },
   );
 
+  it('hands the pages it was asked for to the service', async () => {
+    await controller.queue({ crumbsPage: 3, ordersPage: 2 });
+
+    expect(service.queue).toHaveBeenCalledWith({
+      crumbsPage: 3,
+      ordersPage: 2,
+    });
+  });
+
   it('answers the counter of the menu from the service', async () => {
     service.openCount.mockResolvedValue({ count: 4 });
 

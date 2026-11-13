@@ -41,6 +41,15 @@
   color: var(--text-muted);
 }
 
+// The line between the open requests and the closed ones that follow
+.divider td {
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+
 .sub {
   margin-top: 2px;
   font-size: 12px;

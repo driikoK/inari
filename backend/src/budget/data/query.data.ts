@@ -42,5 +42,13 @@ export const AuditQueryData = z
   })
   .refine(seasonTogether.check, seasonTogether.options);
 
+// The open lines of the queue all come at once, the closed ones in pages, a page for each of the
+// two groups of the queue
+export const QueueQueryData = z.object({
+  crumbsPage: z.coerce.number().int().min(1).default(1),
+  ordersPage: z.coerce.number().int().min(1).default(1),
+});
+
 export type EntriesQueryData = z.infer<typeof EntriesQueryData>;
+export type QueueQueryData = z.infer<typeof QueueQueryData>;
 export type AuditQueryData = z.infer<typeof AuditQueryData>;

@@ -30,13 +30,19 @@ import {
 } from './calc.js';
 import { keepRequisite } from './card.js';
 import { type CrumbsChange, crumbRow, memberSnapshot } from './crumbs.js';
-import type { CreateRequestData, FulfilRequestData } from './data/index.js';
+import type {
+  CreateRequestData,
+  FulfilRequestData,
+  QueueQueryData,
+} from './data/index.js';
 import {
   AUDIT_KIND,
   ENTRY_TYPE,
   EXPENSE_KIND,
   EXPENSE_SECTION,
   KIND_LABEL,
+  QUEUE_PER_PAGE,
+  REQUEST_HISTORY_SEASONS,
   REQUEST_STATUS,
 } from './enums/index.js';
 import type {
@@ -44,9 +50,12 @@ import type {
   MyWithdrawal,
   NewAuditRow,
   OperationHead,
+  Paged,
   PreviewLine,
   RequestEstimate,
+  RequestGroup,
   RequestPreview,
+  RequestQueue,
   RequestView,
   SeasonRate,
   SeasonShare,
@@ -222,33 +231,67 @@ export class RequestsService {
     };
   }
 
-  async queue(): Promise<RequestView[]> {
+  // Every open line is there, as they are the work and the menu counts them, and the closed ones
+  // of the last two seasons come in pages, newest closed first, for crumbs and orders apart
+  async queue({
+    crumbsPage,
+    ordersPage,
+  }: QueueQueryData): Promise<RequestQueue> {
     const today = todayInKyiv();
-    const requests = await this.requestModel
-      .find(this.visibleSince(today))
-      .sort({ createdAt: -1, _id: -1 })
-      .lean<WithdrawalRequest[]>();
+    const [open, closedCrumbs, closedOrders] = await Promise.all([
+      this.requestModel
+        .find({ status: REQUEST_STATUS.OPEN })
+        .sort({ createdAt: -1, _id: -1 })
+        .lean<WithdrawalRequest[]>(),
+      this.closedPage(false, crumbsPage, today),
+      this.closedPage(true, ordersPage, today),
+    ]);
     const nicknames = [
       ...new Set(
-        requests
-          .filter(
-            ({ status, isOrder }) => status === REQUEST_STATUS.OPEN && !isOrder,
-          )
-          .map(({ nickname }) => nickname),
+        open.filter(({ isOrder }) => !isOrder).map(({ nickname }) => nickname),
       ),
     ];
     const holders = await this.users.nicknamesOf([
-      ...new Set(
-        requests
-          .filter(({ status }) => status === REQUEST_STATUS.OPEN)
-          .map(({ username }) => username),
-      ),
+      ...new Set(open.map(({ username }) => username)),
     ]);
     const ledger = await this.ledgerOf(nicknames, today, holders);
+    const viewOf = (request: WithdrawalRequest) =>
+      this.view(request, this.annotate(request, ledger), true);
+    const groupOf = (
+      isOrder: boolean,
+      closed: Paged<WithdrawalRequest>,
+    ): RequestGroup => ({
+      open: open.filter((request) => !!request.isOrder === isOrder).map(viewOf),
+      closed: { ...closed, data: closed.data.map(viewOf) },
+    });
 
-    return requests.map((request) =>
-      this.view(request, this.annotate(request, ledger), true),
-    );
+    return {
+      crumbs: groupOf(false, closedCrumbs),
+      orders: groupOf(true, closedOrders),
+    };
+  }
+
+  private async closedPage(
+    isOrder: boolean,
+    page: number,
+    today: string,
+  ): Promise<Paged<WithdrawalRequest>> {
+    const filter = {
+      status: { $ne: REQUEST_STATUS.OPEN },
+      closedDay: { $gte: this.historyStart(today) },
+      isOrder: isOrder ? true : { $ne: true },
+    };
+    const [total, data] = await Promise.all([
+      this.requestModel.countDocuments(filter),
+      this.requestModel
+        .find(filter)
+        .sort({ closedAt: -1, _id: -1 })
+        .skip((page - 1) * QUEUE_PER_PAGE)
+        .limit(QUEUE_PER_PAGE)
+        .lean<WithdrawalRequest[]>(),
+    ]);
+
+    return { data, page, perPage: QUEUE_PER_PAGE, total };
   }
 
   fulfil(
@@ -799,12 +842,18 @@ export class RequestsService {
       : { estimate: { amountKop: paidOf(parts), parts }, problem: null };
   }
 
-  // A line stays in the list until the season it was closed in is over
+  // The first day of what the lists still show: a closed line is listed for the season it was
+  // closed in and the next one, and after that only the journal and the audit remember it. It is
+  // never deleted, as the payouts of the journal point to it and the reconciliation reads it.
+  private historyStart(today: string) {
+    return seasonStartDay(seasonOrdinal(today) - (REQUEST_HISTORY_SEASONS - 1));
+  }
+
   private visibleSince(today: string) {
     return {
       $or: [
         { status: REQUEST_STATUS.OPEN },
-        { closedDay: { $gte: seasonStartDay(seasonOrdinal(today)) } },
+        { closedDay: { $gte: this.historyStart(today) } },
       ],
     };
   }

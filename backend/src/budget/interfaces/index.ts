@@ -272,6 +272,17 @@ export interface RequestEstimate {
   parts: WithdrawalPart[];
 }
 
+// One group of the queue: every open line, and a page of the lines closed lately
+export interface RequestGroup {
+  open: RequestView[];
+  closed: Paged<RequestView>;
+}
+
+export interface RequestQueue {
+  crumbs: RequestGroup;
+  orders: RequestGroup;
+}
+
 export interface RequestView {
   _id: string;
   groupId: string;

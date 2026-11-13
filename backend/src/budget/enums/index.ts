@@ -143,4 +143,9 @@ export const ORDER_GENERAL_PERCENT = 10;
 
 export const MAX_AMOUNT_KOP = 1_000_000_000;
 
+// A closed request stays in the lists for the season it was closed in and the one after it
+export const REQUEST_HISTORY_SEASONS = 2;
+
+export const QUEUE_PER_PAGE = 10;
+
 export const MIN_BUDGET_DAY = '2000-01-01';

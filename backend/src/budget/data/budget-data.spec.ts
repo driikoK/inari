@@ -5,6 +5,7 @@ import {
   AuditQueryData,
   CreateIncomesData,
   EntriesQueryData,
+  QueueQueryData,
   UpdateIncomeData,
 } from './index.js';
 
@@ -216,5 +217,24 @@ describe('AuditQueryData', () => {
       [],
     );
     expect(messagesOf(AuditQueryData, { perPage: '51' })).not.toEqual([]);
+  });
+});
+
+describe('QueueQueryData', () => {
+  it('starts both groups of the queue on the first page', () => {
+    expect(QueueQueryData.parse({})).toEqual({ crumbsPage: 1, ordersPage: 1 });
+  });
+
+  it('reads the pages from a query string', () => {
+    expect(QueueQueryData.parse({ crumbsPage: '3', ordersPage: '2' })).toEqual({
+      crumbsPage: 3,
+      ordersPage: 2,
+    });
+  });
+
+  it('refuses a page before the first and one that is not a whole number', () => {
+    expect(messagesOf(QueueQueryData, { crumbsPage: '0' })).not.toEqual([]);
+    expect(messagesOf(QueueQueryData, { ordersPage: '-1' })).not.toEqual([]);
+    expect(messagesOf(QueueQueryData, { crumbsPage: '1.5' })).not.toEqual([]);
   });
 });
