@@ -31,6 +31,13 @@ export class ProjectsController {
     return this.projectsService.findAll();
   }
 
+  @Get('titles')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Every project, to pick the title of a track' })
+  titles() {
+    return this.projectsService.titles();
+  }
+
   @Post()
   @UseGuards(AuthGuard, CuratorGuard)
   @ApiOperation({ summary: 'Start a project, optionally from a proposal' })

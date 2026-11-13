@@ -14,6 +14,7 @@ export interface MemberInfo {
 }
 
 export interface BasicTrackProps {
+  projectId: string;
   titleName: string;
   episode: string;
   onClose: () => void;
@@ -26,10 +27,9 @@ export interface BasicTrackProps {
 export interface CreateTrackType extends Multipliers {
   membersInfo: MemberInfo[];
   currentEpisode: number;
-  nameTitle: string;
-  titleType: string;
-  year: number;
+  projectId: string;
   season: string;
+  year: number;
   note: string;
   isGiveEditorCoins?: boolean;
   isGiveTypesetterCoins?: boolean;
@@ -75,6 +75,7 @@ export interface CreateTrackWithSubsOnlyFormValues
 }
 
 export interface ChooseAnimeFormValues {
+  projectId: string;
   titleName: string;
   episode: number;
   animeType: string;

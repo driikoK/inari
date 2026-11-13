@@ -131,6 +131,7 @@ export const createChooseAnimeForm = (): z.ZodType<
 > => {
   return z
     .object({
+      projectId: requiredString,
       titleName: requiredString,
       episode: z
         .number({ error: REQUIRED_MESSAGE })
@@ -153,6 +154,7 @@ export const createChooseAnimeForm = (): z.ZodType<
 };
 
 export const chooseAnimeInitialFormValues: ChooseAnimeFormValues = {
+  projectId: '',
   titleName: '',
   episode: 1,
   animeType: '',

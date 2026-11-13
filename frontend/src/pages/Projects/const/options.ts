@@ -17,17 +17,16 @@ export const markLabels: Record<PROJECT_MARK, string> = {
 
 export const MIN_DAY = '2000-01-01';
 
-// The backend judges "today" in Kyiv, so the form must too
 export const todayDay = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' });
 
 export const formatDay = (day: string) => day.split('-').reverse().join('.');
 
 export const quotaOf = ({ isOngoing, isSequel, funding }: Project) =>
   [
-    isOngoing ? 'онґоїнґ' : 'стареча',
+    isOngoing ? 'Онґоїнґ' : 'Стареча',
     isSequel && 'продовження',
-    funding === PROPOSAL_FUNDING.PATRON && 'меценатський',
-    funding === PROPOSAL_FUNDING.ORDER && 'замовлення',
+    funding === PROPOSAL_FUNDING.PATRON && 'Меценатський',
+    funding === PROPOSAL_FUNDING.ORDER && 'Замовлення',
   ]
     .filter(Boolean)
     .join(', ');

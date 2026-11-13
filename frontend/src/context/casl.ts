@@ -9,7 +9,6 @@ export enum SUBJECTS {
   RATING_VIEW = 'rating-view',
   PERMISSION_EDIT = 'permissions-edit',
   COOKIES_RATINGS_EDIT = 'cookies-ratings-edit',
-  DELETE_TEAM_ANIME = 'delete-team-anime',
   DELETE_USERS = 'delete-users',
   DELETE_MEMBERS = 'delete-members',
   EDIT_MEMBER_KIND = 'edit-member-kind',

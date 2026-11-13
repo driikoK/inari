@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { SelectWrapper } from './styles';
 import { SelectField } from '@/components';
-import { useAnimesStore, useRolesStore, useMembersStore, useTracksStore } from '@/stores';
+import { useRolesStore, useMembersStore, useTitlesStore, useTracksStore } from '@/stores';
 import { seasonOptions, yearOptions } from '@/utils/constants';
 
 export const CookiesFilters = () => {
@@ -14,8 +14,8 @@ export const CookiesFilters = () => {
   const [selectedYear, setSelectedYear] = useState<string | undefined>(
     appliedFilters.year || undefined,
   );
-  const [selectedAnime, setSelectedAnime] = useState<string | undefined>(
-    appliedFilters.nameTitle || undefined,
+  const [selectedProject, setSelectedProject] = useState<string | undefined>(
+    appliedFilters.projectId || undefined,
   );
   const [selectedRole, setSelectedRole] = useState<string | undefined>(
     appliedFilters.typeRole || undefined,
@@ -24,7 +24,7 @@ export const CookiesFilters = () => {
     appliedFilters.nickname || undefined,
   );
 
-  const animeNames = useAnimesStore((state) => state.animeNames);
+  const titles = useTitlesStore((state) => state.titles);
   const roles = useRolesStore((state) => state.roles);
   const members = useMembersStore((state) => state.members);
 
@@ -32,12 +32,12 @@ export const CookiesFilters = () => {
     getTracks({
       ...appliedFilters,
       season: selectedSeason,
-      nameTitle: selectedAnime,
+      projectId: selectedProject,
       nickname: selectedUser,
       typeRole: selectedRole,
       year: selectedYear,
     });
-  }, [selectedSeason, selectedAnime, selectedRole, selectedUser, selectedSeason, selectedYear]);
+  }, [selectedSeason, selectedProject, selectedRole, selectedUser, selectedSeason, selectedYear]);
 
   return (
     <SelectWrapper>
@@ -52,12 +52,12 @@ export const CookiesFilters = () => {
       />
 
       <SelectField
-        label="Аніме"
-        value={selectedAnime}
-        onChange={setSelectedAnime}
-        options={animeNames.map((anime) => ({
-          value: anime.name,
-          label: anime.name,
+        label="Проєкт"
+        value={selectedProject}
+        onChange={setSelectedProject}
+        options={titles.map((title) => ({
+          value: title._id,
+          label: title.ukrName,
         }))}
       />
 

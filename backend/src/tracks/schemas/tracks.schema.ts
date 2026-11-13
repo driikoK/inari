@@ -4,6 +4,7 @@ import { MEMBER_ROLE } from '../../shared/index.js';
 export const TracksSchema = new mongoose.Schema(
   {
     nickname: String,
+    projectId: { type: String, index: true },
     nameTitle: String,
     titleType: String,
     season: String,

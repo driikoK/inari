@@ -18,7 +18,7 @@ interface TracksWithPagination {
 interface FilterData {
   nickname: string;
   season: string;
-  nameTitle: string;
+  projectId: string;
   typeRole: string;
   year: string;
   page: number;
@@ -26,7 +26,7 @@ interface FilterData {
 }
 
 interface FilterForLastTracks {
-  titleName: string;
+  projectId: string;
   episode: number;
 }
 
@@ -45,6 +45,9 @@ interface Actions {
   getLastTracks: (filter: FilterForLastTracks) => Promise<void>;
   resetLastTracks: () => void;
 }
+
+// Which request for the tracks of the previous episode is the latest one
+let lastTracksRequest = 0;
 
 const useTracksStore = create<State & Actions>((set, get) => ({
   tracks: {
@@ -116,14 +119,19 @@ const useTracksStore = create<State & Actions>((set, get) => ({
   },
 
   getLastTracks: async (filters: FilterForLastTracks) => {
+    const request = ++lastTracksRequest;
+
     set({ isLoading: true });
 
     try {
       const response = await axios.get(`/tracks/last`, { params: filters });
 
-      set({
-        lastTracks: [...response.data],
-      });
+      // The answer of a project or an episode that has been left is not wanted
+      if (request === lastTracksRequest) {
+        set({
+          lastTracks: [...response.data],
+        });
+      }
     } catch (error) {
       throw error;
     } finally {
@@ -131,7 +139,10 @@ const useTracksStore = create<State & Actions>((set, get) => ({
     }
   },
 
-  resetLastTracks: () => set({ lastTracks: [] }),
+  resetLastTracks: () => {
+    lastTracksRequest++;
+    set({ lastTracks: [] });
+  },
 }));
 
 export default useTracksStore;

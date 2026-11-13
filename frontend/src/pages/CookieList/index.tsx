@@ -1,4 +1,4 @@
-import { FunctionComponent, useCallback, useEffect, useState } from 'react';
+import { FunctionComponent, useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
@@ -7,7 +7,7 @@ import { GridActionsCellItem, GridCellParams, GridColDef, GridRowModel } from '@
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { CookiesFilters } from './components/CookiesFilters';
 import {
-  useAnimesStore,
+  useTitlesStore,
   useTracksStore,
   useRolesStore,
   useMembersStore,
@@ -19,6 +19,7 @@ import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/convert
 import { prettifyDate } from '@/utils/dates';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
+import { notifyFailure } from '@/utils/request';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {
@@ -39,7 +40,8 @@ type RowType = {
 const CookieList: FunctionComponent = () => {
   const { tracks, getTracks, deleteTracks, updateTrack, isLoading, appliedFilters } =
     useTracksStore();
-  const getAnimes = useAnimesStore((state) => state.getAnimes);
+  const titles = useTitlesStore((state) => state.titles);
+  const getTitles = useTitlesStore((state) => state.getTitles);
   const { roles, getRoles } = useRolesStore();
   const getMembers = useMembersStore((state) => state.getMembers);
   const { hasAccess } = usePermissions();
@@ -55,7 +57,7 @@ const CookieList: FunctionComponent = () => {
   });
 
   useEffect(() => {
-    getAnimes();
+    getTitles().catch(notifyFailure);
     getRoles();
     getMembers();
   }, []);
@@ -67,6 +69,12 @@ const CookieList: FunctionComponent = () => {
       perPage: paginationModel.pageSize,
     });
   }, [paginationModel]);
+
+  // The name of the project as it is now, the one the track was written under when it is gone
+  const titleNames = useMemo(
+    () => new Map(titles.map(({ _id, ukrName }) => [_id, ukrName])),
+    [titles],
+  );
 
   const booleanCell = {
     sortable: false,
@@ -86,6 +94,7 @@ const CookieList: FunctionComponent = () => {
       field: 'nameTitle',
       headerName: 'Назва тайтлу',
       width: 400,
+      valueGetter: (_, row) => titleNames.get(row.projectId ?? '') ?? row.nameTitle,
     },
     {
       field: 'coins',

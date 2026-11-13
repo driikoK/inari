@@ -20,6 +20,7 @@ import { checkIsOnlyOneEpisode, finalizeMembersInfoArray } from '../helpers';
 import { Button as MuiButton } from '@mui/material';
 
 export const CreateTrackForm: FC<BasicTrackProps> = ({
+  projectId,
   titleName,
   episode,
   onClose,
@@ -131,11 +132,10 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
     const payload: CreateTrackType = {
       ...form,
       membersInfo: finalizeMembersInfoArray(form.membersInfo),
-      nameTitle: titleName,
-      currentEpisode: parseInt(episode),
-      titleType: animeType,
+      projectId,
       season,
       year: Number(year),
+      currentEpisode: parseInt(episode),
       note: form.note || '',
       username: user!.username,
     };

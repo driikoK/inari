@@ -1,15 +1,10 @@
-import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '../../shared/index.js';
+import { MEMBER_ROLE } from '../../shared/index.js';
 import {
   CreateTrackData,
   MemberInfo,
 } from '../../tracks/data/create-track.data.js';
 
 const CREATOR = 'root';
-
-const SEASONS = [SEASON.WINTER, SEASON.SPRING, SEASON.SUMMER, SEASON.FALL];
-const now = new Date();
-const season = SEASONS[Math.floor(now.getMonth() / 3)];
-const year = now.getFullYear();
 
 const crew = (): MemberInfo[] => [
   { nickname: 'Luthien', typeRole: MEMBER_ROLE.SUB, coins: 30 },
@@ -20,16 +15,18 @@ const crew = (): MemberInfo[] => [
   { nickname: 'Sakura', typeRole: MEMBER_ROLE.DIRECTOR, coins: 10 },
 ];
 
+// The track of a project, which is named here by its romaji name
+export interface SeedTrack extends Omit<CreateTrackData, 'projectId'> {
+  title: string;
+}
+
 const track = (
-  nameTitle: string,
+  title: string,
   currentEpisode: number,
-  overrides: Partial<CreateTrackData> = {},
-): CreateTrackData => ({
-  nameTitle,
+  overrides: Partial<SeedTrack> = {},
+): SeedTrack => ({
+  title,
   currentEpisode,
-  titleType: ANIME_TYPE.SERIES,
-  season,
-  year,
   username: CREATOR,
   isOngoing: true,
   isPriority: false,
@@ -38,7 +35,7 @@ const track = (
   ...overrides,
 });
 
-export const tracks: CreateTrackData[] = [
+export const tracks: SeedTrack[] = [
   track('Wind Breaker', 1),
   track('Wind Breaker', 2),
   track('Wind Breaker', 3, { isInTime: false, note: 'Затримка зі звуком' }),

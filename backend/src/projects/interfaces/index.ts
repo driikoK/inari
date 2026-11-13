@@ -31,6 +31,20 @@ export interface ProjectView extends Project {
   mark: PROJECT_MARK;
 }
 
+// What a select needs to pick a title of a track
+export interface ProjectTitle {
+  _id: string;
+  ukrName: string;
+  romajiName: string;
+  codeName?: string;
+  titleType: ANIME_TYPE;
+  isOngoing: boolean;
+  isFinished: boolean;
+  startDate: string;
+  season: SEASON;
+  year: number;
+}
+
 export interface SeasonStats {
   total: number;
   ongoing: number;

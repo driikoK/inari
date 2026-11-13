@@ -1,11 +1,11 @@
 import { randomBytes } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { Inject, Injectable } from '@nestjs/common';
-import type { Mongoose } from 'mongoose';
+import { Types, type Mongoose } from 'mongoose';
 import { nicknames } from './datas/nicknames.data.js';
 import { users as userSeeds } from './datas/users.data.js';
-import { teamAnimes as teamAnimeSeeds } from './datas/team-animes.data.js';
 import { tracks as trackSeeds } from './datas/tracks.data.js';
+import { describeTitlePlan, planTitles } from './titles-plan.js';
 import { MemberData } from '../members/data/member.data.js';
 import { MembersService } from '../members/members.service.js';
 import { UsersService } from '../users/users.service.js';
@@ -114,26 +114,6 @@ export class SeedCommand {
     );
   }
 
-  async teamAnimes() {
-    const existing = new Set(
-      (await this.teamAnimesService.findAll()).map(({ name }) => name),
-    );
-    let created = 0;
-
-    for (const anime of teamAnimeSeeds) {
-      if (existing.has(anime.name)) continue;
-
-      await this.teamAnimesService.create(anime);
-      created++;
-    }
-
-    console.log(
-      `seed:team-animes - created ${created}, skipped ${
-        teamAnimeSeeds.length - created
-      }`,
-    );
-  }
-
   async proposals() {
     const { seasons: existing } = await this.proposalsService.findAll();
     let created = 0;
@@ -226,6 +206,14 @@ export class SeedCommand {
   }
 
   async tracks() {
+    const unlinked = await this.trackService.countUnlinked();
+
+    if (unlinked > 0) {
+      throw new Error(
+        `seed:tracks - ${unlinked} tracks have no project, and this seed finds its tracks by project, so it would write them all again. Run migrate:titles first`,
+      );
+    }
+
     if (!(await this.usersService.findOneByUsername(ROOT_USERNAME))) {
       throw new Error('seed:tracks - root user not found, run seed:root first');
     }
@@ -249,17 +237,36 @@ export class SeedCommand {
       );
     }
 
+    const projectIds = new Map(
+      (await this.projectsService.list()).map(({ _id, romajiName }) => [
+        romajiName,
+        String(_id),
+      ]),
+    );
+    const missingTitles = [
+      ...new Set(trackSeeds.map(({ title }) => title)),
+    ].filter((title) => !projectIds.has(title));
+
+    if (missingTitles.length) {
+      throw new Error(
+        `seed:tracks - projects not found (${missingTitles.join(
+          ', ',
+        )}), run seed:projects first`,
+      );
+    }
+
     let created = 0;
 
-    for (const track of trackSeeds) {
+    for (const { title, ...track } of trackSeeds) {
+      const projectId = projectIds.get(title);
       const existing = await this.trackService.getLastTracks({
-        titleName: track.nameTitle,
+        projectId,
         episode: track.currentEpisode + 1,
       });
       if (existing.length) continue;
 
       await this.trackService.create(
-        JSON.parse(JSON.stringify(track)),
+        JSON.parse(JSON.stringify({ ...track, projectId })),
         SYSTEM_ACTOR,
       );
       created++;
@@ -276,11 +283,91 @@ export class SeedCommand {
     await this.root();
     await this.users();
     await this.nicknames();
-    await this.teamAnimes();
     await this.proposals();
     await this.projects();
     await this.tracks();
     await this.budget();
+  }
+
+  // Turns the titles of the old list, and the titles the tracks were written
+  // under, into projects, and links the tracks to them
+  async migrateTitles(dryRun: boolean) {
+    const label = dryRun ? 'migrate:titles (dry run)' : 'migrate:titles';
+    const [teamAnimes, groups, projects] = await Promise.all([
+      this.teamAnimesService.findAll(),
+      this.trackService.titleGroups(),
+      this.projectsService.list(),
+    ]);
+    const plans = planTitles({
+      teamTitles: teamAnimes.map((anime) => ({
+        name: anime.name,
+        createdAt: (
+          anime as typeof anime & { _id: Types.ObjectId }
+        )._id.getTimestamp(),
+        ...(anime.projectId && { projectId: anime.projectId }),
+      })),
+      groups,
+      projects: projects.map(
+        ({
+          _id,
+          ukrName,
+          romajiName,
+          codeName,
+          titleType,
+          startDate,
+          episodesReleased,
+        }) => ({
+          _id: String(_id),
+          ukrName,
+          romajiName,
+          codeName,
+          titleType,
+          startDate,
+          episodesReleased,
+        }),
+      ),
+      today: todayInKyiv(),
+    });
+    const count = (pick: (plan: (typeof plans)[number]) => boolean) =>
+      plans.filter(pick).length;
+
+    console.log(
+      `${label} - ${plans.length} titles: ${count(({ state }) => state === 'active')} to make active projects, ${count(({ state }) => state === 'finished')} finished projects, ${count(({ action }) => action === 'link')} are projects already, ${count(({ action }) => action === 'moved')} moved by an earlier run, ${count(({ action }) => action === 'ambiguous')} to decide by hand`,
+    );
+    for (const plan of plans) {
+      if (plan.action !== 'moved') console.log(describeTitlePlan(plan));
+    }
+
+    if (dryRun) return;
+
+    let created = 0;
+    let linked = 0;
+
+    for (const plan of plans) {
+      if (plan.action === 'ambiguous' || plan.action === 'moved') continue;
+
+      let projectId = plan.projectId;
+
+      if (plan.action === 'create' && plan.project) {
+        const project = await this.projectsService.create(plan.project);
+
+        projectId = String(project._id);
+        created++;
+      }
+
+      if (projectId) {
+        linked += await this.trackService.linkProject(plan.names, projectId);
+        await this.teamAnimesService.markMoved(plan.names, projectId);
+      }
+
+      if (projectId && plan.raiseTo) {
+        await this.projectsService.markEpisodeReleased(projectId, plan.raiseTo);
+      }
+    }
+
+    console.log(
+      `${label} - created ${created} projects, linked ${linked} tracks`,
+    );
   }
 
   async dropPolls() {

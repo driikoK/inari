@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 
 import { ITeamAnime } from './interfaces/team-anime.interface.js';
-import { CreateTeamAnimeData } from './data/create-team-anime.data.js';
 
+// The old list of titles. Nothing writes to it any more, it is read only by
+// migrate:titles, which moves its titles to the projects.
 @Injectable()
 export class TeamAnimesService {
   constructor(
@@ -15,13 +16,11 @@ export class TeamAnimesService {
     return await this.teamAnimeModel.find().sort({ name: 1 });
   }
 
-  async create(anime: CreateTeamAnimeData): Promise<ITeamAnime> {
-    return this.teamAnimeModel.create({ name: anime.name });
-  }
-
-  async deleteById(id: string): Promise<any> {
-    const result = await this.teamAnimeModel.deleteOne({ _id: id });
-
-    return result.acknowledged;
+  // Says where the titles with these names went, so that a later run leaves them alone
+  async markMoved(names: string[], projectId: string): Promise<void> {
+    await this.teamAnimeModel.updateMany(
+      { name: { $in: names } },
+      { $set: { projectId } },
+    );
   }
 }

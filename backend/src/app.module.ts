@@ -12,7 +12,6 @@ import { BudgetModule } from './budget/budget.module.js';
 import { MembersModule } from './members/members.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { ProposalsModule } from './proposals/proposals.module.js';
-import { TeamAnimesModule } from './team-animes/team-animes.module.js';
 import { LoggerMiddleware } from './middleware/logger.middleware.js';
 import { TracksModule } from './tracks/tracks.module.js';
 import { AuthModule } from './auth/auth.module.js';
@@ -28,7 +27,6 @@ import { EmailModule } from './email/email.module.js';
     ProposalsModule,
     ProjectsModule,
     BudgetModule,
-    TeamAnimesModule,
     TracksModule,
     AuthModule,
     UsersModule,

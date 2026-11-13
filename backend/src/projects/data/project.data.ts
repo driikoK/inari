@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { PROPOSAL_FUNDING } from '../../proposals/enums/index.js';
 import { ANIME_TYPE, MEMBER_ROLE } from '../../shared/index.js';
-import { MIN_PROJECT_DAY } from '../enums/index.js';
+import { MAX_PARTICIPANTS, MIN_PROJECT_DAY } from '../enums/index.js';
 
 const url = z.url({
   protocol: /^https?$/,
@@ -49,7 +49,7 @@ const projectFields = {
     .max(999, 'Кількість серій не може перевищувати 999'),
   participants: z
     .array(participant)
-    .max(50, 'Забагато учасників')
+    .max(MAX_PARTICIPANTS, 'Забагато учасників')
     .refine(
       (list) =>
         new Set(list.map(({ nickname }) => nickname.toLowerCase())).size ===

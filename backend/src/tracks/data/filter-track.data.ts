@@ -5,7 +5,7 @@ export const FilterTrackData = z.object({
   nickname: z.string().optional(),
   season: z.enum(SEASON).optional(),
   year: z.coerce.number().optional(),
-  nameTitle: z.string().optional(),
+  projectId: z.string().optional(),
   typeRole: z.enum(MEMBER_ROLE).optional(),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).default(10),

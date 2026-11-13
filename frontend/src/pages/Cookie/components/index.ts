@@ -1,5 +1,4 @@
-import { CreateAnimeAndMemberDialog } from './CreateAnimeAndMemberDialog';
+import { AddMemberDialog } from './AddMemberDialog';
 import InputCookieDialog from './InputCookieDialog';
-import AddAnimeDialog from './AddAnimeDialog';
 
-export { CreateAnimeAndMemberDialog, InputCookieDialog, AddAnimeDialog };
+export { AddMemberDialog, InputCookieDialog };

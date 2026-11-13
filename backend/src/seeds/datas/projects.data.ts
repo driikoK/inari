@@ -136,5 +136,16 @@ export const projectSeeds = (today: string): SeedProject[] => {
         isInTime: false,
       },
     },
+    {
+      ukrName: 'Синій архів',
+      romajiName: 'Blue Archive',
+      link: 'https://myanimelist.net/anime/54233/Blue_Archive_the_Animation',
+      titleType: ANIME_TYPE.SERIES,
+      isOngoing: false,
+      isSequel: false,
+      startDate: thisSeason,
+      episodesReleased: 1,
+      participants: [{ nickname: 'Luthien', roles: [MEMBER_ROLE.SUB] }],
+    },
   ];
 };

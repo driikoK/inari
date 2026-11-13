@@ -63,7 +63,7 @@ All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`
 
 - `useAuthStore` — login/logout, current user, all users, update/delete user
 - `useProposalsStore` and `useProjectsStore` — seasons with their proposals / the project layout. Every successful mutation refetches the list, so the page shows what the server holds. `ensure()` (in `utils/request.ts`) turns a response-less Axios result into an error, and components call `notifyFailure(error)` from there in `catch`, because the interceptor only toasts errors the server answered
-- `useAnimesStore` / `useTracksStore` — anime/episode data
+- `useTitlesStore` — every project as the select of a title offers it (`GET /projects/titles`, fetched when the track form or the list opens) / `useTracksStore` — tracks and the previous episode of a title
 - `useCoinsStore` — coin values by anime type
 - `useMembersStore` / `useRolesStore` — team members ("nicknames") and roles; `deleteMember` and `updateMemberKind` also update `membersDictionary`, `addMember` needs a `kind`
 Do not write `try { … } catch (e) { throw e }` in a store action, it only adds a lint error. Let the error propagate.
@@ -114,6 +114,12 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 - `src/pages/Home/` (`/home`). A guest sees the greeting and «Увійти» only. A logged-in user sees, top to bottom: the greeting, `AboutBlock` (nine plain lines about the sections, «Видатки» among them for everyone as «Крихти» is, always open, no accordion; the lines of «Лисяча комора» and «Кодекс Інарі» are hidden when their `VITE_*` address is empty), `SectionLinks` (the sidebar items of the user's role without «Головна» and «Налаштування», from `useNavItems`), `StatsGrid` with the cards and the tops.
 - The numbers need no backend of their own: members from `/members` («Учасники»: team and guests by `kind`; the nicknames without a kind are counted only for `EDIT_MEMBER_KIND`, as «не позначено»), the current season of `/budget/summary` (`isCurrent`; «Сезонна банка печива» is `jarKop` with the incomes in the hint, «Видано печива» is the sum of the season's `expenses` lines, i.e. every payout of the season without the transfers to the development of the team, «Топ надходжень» and «Топ видатків» are the five biggest lines) and the current season of `/projects` (`stats`, drawn by the `SeasonStats` of the Projects page). «Топ крихт» is the old leaderboard: all time, every nickname, shown from three members on.
 - All seasonal blocks are for the current season only, there is no picker. `plural` (`utils/plural.ts`) declines «лис» and «гість».
+
+### Crumbs page and the track form
+
+- `src/pages/Cookie/` (`/cookie`) has three cards: add crumbs (`InputCookieDialog`), add a member or a guest (`AddMemberDialog`) and create a project (it opens the `ProjectFormDialog` of the Projects page). Titles are not added from here any more.
+- The first step of the track form (`ChooseAnimeForm`) picks a project from `useTitlesStore`, grouped «Триває» and «Завершені» and found by the Ukrainian, the romaji or the code name. The type is the project's, shown as text. The season is a select of the last three years of seasons (back to the start of the project when it began earlier), newest first, set to the season of the start by default, and the crumbs go to the one picked. The previous episode (`getLastTracks({ projectId, episode })`) only pre-fills the team and the subtitles-only mark. The payload carries `projectId`, `season` and `year`, and the server fills in the title and the type.
+- The list of crumbs filters by project and shows the name the project has now (`titleNames`), falling back to the `nameTitle` the track was written under.
 
 ### Proposals page
 

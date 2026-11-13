@@ -2,40 +2,44 @@ import { FC, useEffect } from 'react';
 import { useForm, FormProvider, Controller, ControllerRenderProps } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 import { zodResolver } from '@hookform/resolvers/zod';
-import toast from 'react-hot-toast';
 
 import {
   Autocomplete,
-  Box,
   Checkbox,
-  FormControl,
   FormControlLabel,
   MenuItem,
   TextField,
+  Typography,
+  createFilterOptions,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 
 import { ChooseAnimeFormValues } from '../types';
 import { DialogFormWrapper, FlexColumn, FlexRow } from '../styles';
-import { titleTypeOptions, chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
+import { chooseAnimeInitialFormValues, createChooseAnimeForm } from '../const';
 import { Button as MuiButton } from '@mui/material';
-import { SelectField, H6, ErrorText } from '@/components';
-import { useAnimesStore, useMembersStore, useTracksStore } from '@/stores';
-import { seasonOptions, yearOptions } from '@/utils/constants';
+import { H6, ErrorText } from '@/components';
+import { useMembersStore, useTitlesStore, useTracksStore } from '@/stores';
+import type { ProjectTitle } from '@/stores/useTitlesStore';
+import { seasonLabel } from '@/pages/Proposals/const/options';
 import { ANIME_TYPE } from '@/types';
-import { usePermissions } from '@/hooks';
-import { SUBJECTS } from '@/context/casl';
+import { todayDay } from '@/pages/Projects/const/options';
+import { convertAnimeTypeEngToUkr } from '@/utils/convert';
+import { trackSeasons } from '../helpers';
 
 interface FormProps {
   saveFormValues: (values: ChooseAnimeFormValues) => void;
   initialValues: ChooseAnimeFormValues | null;
 }
 
+const filterTitles = createFilterOptions<ProjectTitle>({
+  stringify: ({ ukrName, romajiName, codeName }) =>
+    [ukrName, romajiName, codeName].filter(Boolean).join(' '),
+});
+
 export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }) => {
   const getMembers = useMembersStore((state) => state.getMembers);
-  const { animeNames, deleteAnime } = useAnimesStore();
+  const titles = useTitlesStore((state) => state.titles);
   const { resetLastTracks, getLastTracks, lastTracks } = useTracksStore();
-  const { hasAccess } = usePermissions();
 
   useEffect(() => {
     getMembers();
@@ -58,40 +62,31 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     formState: { errors },
   } = methods;
 
-  const watchTitleName = watch('titleName');
+  const watchProjectId = watch('projectId');
   const watchAnimeType = watch('animeType');
+  const watchSeason = watch('season');
+  const watchYear = watch('year');
   const watchEpisode = watch('episode');
 
-  useEffect(() => {
-    if (!watchTitleName) {
-      resetLastTracks();
-      reset(chooseAnimeInitialFormValues);
-      return;
-    }
+  const project = titles.find(({ _id }) => _id === watchProjectId);
+  const seasons = project ? trackSeasons(project, todayDay()) : [];
 
+  // The previous episode, for the team and the subtitles-only mark
+  useEffect(() => {
     const numberEpisode = Number(watchEpisode);
-    if (numberEpisode > 1) {
-      getLastTracks({ titleName: watchTitleName, episode: numberEpisode });
+
+    if (watchProjectId && numberEpisode > 1) {
+      getLastTracks({ projectId: watchProjectId, episode: numberEpisode });
+    } else {
+      resetLastTracks();
     }
-  }, [watchTitleName, watchEpisode]);
+  }, [watchProjectId, watchEpisode]);
 
   useEffect(() => {
-    if (!watchTitleName) return;
+    if (!watchProjectId) return;
 
-    if (!lastTracks.length) {
-      setValue('animeType', '');
-      setValue('season', '');
-      setValue('year', '');
-      setValue('isSubsOnly', false);
-    } else {
-      const existedTrack = lastTracks[0];
-
-      setValue('animeType', existedTrack.titleType);
-      setValue('season', existedTrack.season);
-      setValue('year', existedTrack.year.toString());
-      setValue('isSubsOnly', existedTrack.isSubsOnly);
-    }
-  }, [lastTracks.length, watchTitleName]);
+    setValue('isSubsOnly', !!lastTracks[0]?.isSubsOnly);
+  }, [lastTracks.length, watchProjectId]);
 
   useEffect(() => {
     if (watchAnimeType === ANIME_TYPE.FILM || watchAnimeType === ANIME_TYPE.SHORT_FILM) {
@@ -100,6 +95,23 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
 
     if (watchAnimeType !== ANIME_TYPE.SHORT_FILM) resetField('duration');
   }, [watchAnimeType]);
+
+  // The type of a title is the one of its project, and the season it is offered is the one the project started in
+  const handleProject = (title: ProjectTitle | null) => {
+    // The tracks of the previous project must not decide the team or the subtitles mark of this one
+    resetLastTracks();
+
+    if (!title) {
+      reset(chooseAnimeInitialFormValues);
+      return;
+    }
+
+    setValue('projectId', title._id, { shouldValidate: true });
+    setValue('titleName', title.ukrName, { shouldValidate: true });
+    setValue('animeType', title.titleType, { shouldValidate: true });
+    setValue('season', title.season, { shouldValidate: true });
+    setValue('year', String(title.year), { shouldValidate: true });
+  };
 
   const handleTextInputChange = (
     value: string,
@@ -118,60 +130,46 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
     saveFormValues(form);
   };
 
-  const deleteTeamAnime = async (id: string) => {
-    try {
-      await deleteAnime(id);
-
-      toast.success('Успішно видалено');
-    } catch (error) {}
-  };
-
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmitForm)} style={{ width: '100%' }}>
         <DialogFormWrapper>
-          <H6>Назва тайтлу та номер епізоду:</H6>
+          <H6>Тайтл та номер епізоду:</H6>
 
           <div>
             <FlexRow>
               <Controller
                 control={control}
-                name="titleName"
+                name="projectId"
                 render={({ field }) => (
                   <Autocomplete
-                    options={animeNames}
-                    getOptionLabel={(option) => option.name}
-                    value={animeNames.find((anime) => anime.name === field.value) || null}
-                    onChange={(_, newValue) => {
-                      field.onChange(newValue?.name || '');
-                    }}
+                    options={titles}
+                    filterOptions={filterTitles}
+                    groupBy={({ isFinished }) => (isFinished ? 'Завершені' : 'Триває')}
+                    getOptionLabel={(option) => option.ukrName}
+                    isOptionEqualToValue={(option, value) => option._id === value._id}
+                    value={titles.find(({ _id }) => _id === field.value) ?? null}
+                    onChange={(_, title) => handleProject(title)}
+                    noOptionsText="Такого проєкту немає. Створіть його на сторінці «Крихти»"
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label="Аніме"
-                        placeholder="Вкажіть назву тайтлу"
+                        label="Проєкт"
+                        placeholder="Оберіть проєкт"
                         variant="outlined"
                       />
                     )}
-                    sx={{ minWidth: '85%', maxWidth: '95%' }}
-                    renderOption={(props, option) => (
-                      <MenuItem {...props} key={option._id} value={option._id}>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            width: '100%',
-                          }}
-                        >
-                          {option.name}
-
-                          {hasAccess(SUBJECTS.DELETE_TEAM_ANIME) && (
-                            <DeleteIcon onClick={() => deleteTeamAnime(option._id)} />
-                          )}
-                        </Box>
-                      </MenuItem>
+                    renderOption={({ key, ...props }, option) => (
+                      <li key={key} {...props}>
+                        <div>
+                          <div>{option.ukrName}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                            {option.romajiName}
+                          </div>
+                        </div>
+                      </li>
                     )}
+                    sx={{ minWidth: '85%', maxWidth: '95%' }}
                   />
                 )}
               />
@@ -185,7 +183,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     disabled={
                       watchAnimeType === ANIME_TYPE.FILM ||
                       watchAnimeType === ANIME_TYPE.SHORT_FILM ||
-                      !watchTitleName
+                      !watchProjectId
                     }
                     type="text"
                     onChange={(e) => {
@@ -199,7 +197,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
             <FlexColumn>
               <ErrorMessage
                 errors={errors}
-                name="titleName"
+                name="projectId"
                 render={({ message }) => <ErrorText>{message}</ErrorText>}
               />
               <ErrorMessage
@@ -208,6 +206,35 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                 render={({ message }) => <ErrorText>{message}</ErrorText>}
               />
             </FlexColumn>
+
+            {project && (
+              <>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {convertAnimeTypeEngToUkr(watchAnimeType as ANIME_TYPE)}
+                </Typography>
+
+                <TextField
+                  select
+                  fullWidth
+                  label="У якому сезоні зроблено"
+                  value={`${watchSeason}:${watchYear}`}
+                  onChange={(event) => {
+                    const [season, year] = event.target.value.split(':');
+
+                    setValue('season', season, { shouldValidate: true });
+                    setValue('year', year, { shouldValidate: true });
+                  }}
+                  helperText="Пропонується сезон початку проєкту, крихти підуть у вибраний"
+                  sx={{ mt: 2 }}
+                >
+                  {seasons.map(({ season, year }) => (
+                    <MenuItem key={`${season}:${year}`} value={`${season}:${year}`}>
+                      {seasonLabel(season, year)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </>
+            )}
 
             <FormControlLabel
               label="Тільки субтитри"
@@ -222,33 +249,6 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
               }
             />
           </div>
-
-          <H6>Тип аніме:</H6>
-
-          <FormControl>
-            <Controller
-              control={control}
-              name="animeType"
-              render={({ field }) => (
-                <SelectField
-                  label="Тип"
-                  options={titleTypeOptions.map((type) => ({
-                    value: type.value,
-                    label: type.label,
-                  }))}
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  disabled={!watchTitleName}
-                />
-              )}
-            />
-
-            <ErrorMessage
-              errors={errors}
-              name="animeType"
-              render={({ message }) => <ErrorText>{message}</ErrorText>}
-            />
-          </FormControl>
 
           {watchAnimeType === ANIME_TYPE.SHORT_FILM && (
             <>
@@ -266,7 +266,6 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                       handleTextInputChange(e.target.value, field);
                     }}
                     sx={{ width: '15%' }}
-                    disabled={!watchTitleName}
                   />
                 )}
               />
@@ -278,60 +277,6 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
               />
             </>
           )}
-
-          <H6>У якому сезоні робилося:</H6>
-
-          <FlexRow>
-            <FormControl sx={{ width: '50%' }}>
-              <Controller
-                control={control}
-                name="season"
-                render={({ field }) => (
-                  <SelectField
-                    label="Сезон"
-                    options={seasonOptions.map((season) => ({
-                      value: season.value,
-                      label: season.label,
-                    }))}
-                    value={field.value || ''}
-                    onChange={field.onChange}
-                    disabled={!watchTitleName}
-                  />
-                )}
-              />
-
-              <ErrorMessage
-                errors={errors}
-                name="season"
-                render={({ message }) => <ErrorText>{message}</ErrorText>}
-              />
-            </FormControl>
-
-            <FormControl sx={{ width: '50%' }}>
-              <Controller
-                control={control}
-                name="year"
-                render={({ field }) => (
-                  <SelectField
-                    label="Рік"
-                    options={yearOptions.map((year) => ({
-                      value: year.value,
-                      label: year.label,
-                    }))}
-                    value={field.value || ''}
-                    onChange={field.onChange}
-                    disabled={!watchTitleName}
-                  />
-                )}
-              />
-
-              <ErrorMessage
-                errors={errors}
-                name="year"
-                render={({ message }) => <ErrorText>{message}</ErrorText>}
-              />
-            </FormControl>
-          </FlexRow>
 
           <MuiButton type="submit" variant="contained" fullWidth>
             Далі

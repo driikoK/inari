@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -101,6 +102,344 @@ describe('ProjectsService', () => {
         ['winter', false],
         ['spring', true],
       ]);
+    });
+  });
+
+  describe('titles', () => {
+    it('lists every project for a select: unfinished first, then the newest, with the season of the start', async () => {
+      projects.find.mockReturnValue(
+        leanResult([
+          project({
+            _id: new Types.ObjectId(),
+            ukrName: 'Старий',
+            startDate: '2026-11-02',
+            isFinished: true,
+            endDate: '2027-01-20',
+          }),
+          project({ ukrName: 'Давній', startDate: '2027-01-10' }),
+          project({
+            _id: new Types.ObjectId(),
+            ukrName: 'Свіжий',
+            codeName: 'fresh',
+            startDate: '2027-04-02',
+          }),
+        ]),
+      );
+
+      const titles = await service.titles();
+
+      expect(titles.map(({ ukrName }) => ukrName)).toEqual([
+        'Свіжий',
+        'Давній',
+        'Старий',
+      ]);
+      expect(titles[0]).toEqual({
+        _id: expect.any(String),
+        ukrName: 'Свіжий',
+        romajiName: 'Wind Breaker',
+        codeName: 'fresh',
+        titleType: ANIME_TYPE.SERIES,
+        isOngoing: true,
+        isFinished: false,
+        startDate: '2027-04-02',
+        season: 'spring',
+        year: 2027,
+      });
+      expect(titles[1]).not.toHaveProperty('codeName');
+      expect(titles[2]).toMatchObject({ season: 'fall', year: 2026 });
+    });
+  });
+
+  describe('list', () => {
+    it('gives every project once, with no layout by season', async () => {
+      projects.find.mockReturnValue(
+        leanResult([project({ startDate: '2027-01-15' })]),
+      );
+
+      const list = await service.list();
+
+      expect(list).toHaveLength(1);
+      expect(list[0].ukrName).toBe('Вітробой');
+    });
+  });
+
+  describe('addParticipants', () => {
+    const dub = MEMBER_ROLE.DUB;
+    const sound = MEMBER_ROLE.SOUND;
+    const person = (nickname: string, ...roles: MEMBER_ROLE[]) => ({
+      nickname,
+      roles,
+    });
+    const written = () =>
+      projects.updateOne.mock.calls.map(([filter, update, options]) => ({
+        filter,
+        update,
+        options,
+      }));
+
+    beforeEach(() => {
+      projects.updateOne.mockResolvedValue({ matchedCount: 1 } as any);
+    });
+
+    it('adds the role to a nickname that is in the team already, in one write', async () => {
+      existing(project({ participants: [person('Аня', dub)] }));
+
+      await service.addParticipants(String(projectId), [
+        { nickname: 'Аня', role: sound },
+      ]);
+
+      expect(written()).toEqual([
+        {
+          filter: { _id: projectId },
+          update: {
+            $addToSet: { 'participants.$[p0].roles': { $each: [sound] } },
+          },
+          options: { arrayFilters: [{ 'p0.nickname': 'Аня' }] },
+        },
+      ]);
+    });
+
+    it('writes nothing when everybody is in the team with the role already', async () => {
+      existing(
+        project({
+          participants: [person('Аня', dub, sound), person('Борис', dub)],
+        }),
+      );
+
+      await service.addParticipants(String(projectId), [
+        { nickname: 'Аня', role: dub },
+        { nickname: 'Аня', role: sound },
+        { nickname: 'Борис', role: dub },
+      ]);
+
+      expect(projects.updateOne).not.toHaveBeenCalled();
+    });
+
+    it('finds a nickname that is in the team in another case and keeps the spelling the team has', async () => {
+      existing(project({ participants: [person('Аня', dub)] }));
+
+      await service.addParticipants(String(projectId), [
+        { nickname: ' аня ', role: sound },
+      ]);
+
+      expect(written()).toHaveLength(1);
+      expect(written()[0].options).toEqual({
+        arrayFilters: [{ 'p0.nickname': 'Аня' }],
+      });
+      expect(written()[0].update).not.toHaveProperty('$push');
+    });
+
+    it('puts a new nickname into the team with its role, never past a full team', async () => {
+      existing(project());
+
+      await service.addParticipants(String(projectId), [
+        { nickname: 'Борис', role: dub },
+      ]);
+
+      expect(written()).toEqual([
+        {
+          filter: {
+            _id: projectId,
+            'participants.nickname': { $nin: ['Борис'] },
+          },
+          update: {
+            $push: {
+              participants: {
+                $each: [person('Борис', dub)],
+                $slice: 50,
+              },
+            },
+          },
+          options: undefined,
+        },
+      ]);
+    });
+
+    it('joins the roles of one person from the tracks and spends two writes however many people there are', async () => {
+      existing(project({ participants: [person('Аня', dub)] }));
+
+      await service.addParticipants(String(projectId), [
+        { nickname: 'Аня', role: sound },
+        { nickname: 'Борис', role: dub },
+        { nickname: 'борис', role: sound },
+        { nickname: 'Віка', role: dub },
+        { nickname: 'Аня', role: sound },
+      ]);
+
+      const [gain, join] = written();
+
+      expect(written()).toHaveLength(2);
+      expect(gain.update).toEqual({
+        $addToSet: { 'participants.$[p0].roles': { $each: [sound] } },
+      });
+      expect(join.update).toEqual({
+        $push: {
+          participants: {
+            $each: [person('Борис', dub, sound), person('Віка', dub)],
+            $slice: 50,
+          },
+        },
+      });
+    });
+
+    it('skips a blank nickname', async () => {
+      existing(project());
+
+      await service.addParticipants(String(projectId), [
+        { nickname: '  ', role: dub },
+      ]);
+
+      expect(projects.updateOne).not.toHaveBeenCalled();
+    });
+
+    it('adds only as many new people as the team has room for, and says who was left out', async () => {
+      const team = Array.from({ length: 49 }, (_, index) =>
+        person(`Нік${index}`, dub),
+      );
+      existing(project({ participants: team }));
+      const warn = vi
+        .spyOn(Logger.prototype, 'warn')
+        .mockImplementation(() => undefined);
+
+      await service.addParticipants(String(projectId), [
+        { nickname: 'Перший', role: dub },
+        { nickname: 'Другий', role: dub },
+        { nickname: 'Третій', role: dub },
+      ]);
+
+      expect(written()[0].update).toEqual({
+        $push: {
+          participants: { $each: [person('Перший', dub)], $slice: 50 },
+        },
+      });
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('Другий, Третій'),
+      );
+    });
+
+    it('adds nobody to a full team but still gives its people the new roles', async () => {
+      const team = Array.from({ length: 50 }, (_, index) =>
+        person(`Нік${index}`, dub),
+      );
+      existing(project({ participants: team }));
+      vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+
+      await service.addParticipants(String(projectId), [
+        { nickname: 'Нік3', role: sound },
+        { nickname: 'Новачок', role: dub },
+      ]);
+
+      expect(written()).toHaveLength(1);
+      expect(written()[0].update).toEqual({
+        $addToSet: { 'participants.$[p0].roles': { $each: [sound] } },
+      });
+    });
+
+    it('reads the team again and adds the role when somebody else put the same new person there first', async () => {
+      projects.findById
+        .mockReturnValueOnce(leanResult(project()))
+        .mockReturnValueOnce(
+          leanResult(project({ participants: [person('Аня', dub)] })),
+        );
+      projects.updateOne
+        .mockResolvedValueOnce({ matchedCount: 0 } as any)
+        .mockResolvedValueOnce({ matchedCount: 1 } as any);
+
+      await service.addParticipants(String(projectId), [
+        { nickname: 'Аня', role: sound },
+      ]);
+
+      expect(projects.findById).toHaveBeenCalledTimes(2);
+      expect(written()[1]).toMatchObject({
+        update: {
+          $addToSet: { 'participants.$[p0].roles': { $each: [sound] } },
+        },
+        options: { arrayFilters: [{ 'p0.nickname': 'Аня' }] },
+      });
+    });
+
+    it('gives up with 409 when the team keeps changing under it', async () => {
+      existing(project());
+      projects.updateOne.mockResolvedValue({ matchedCount: 0 } as any);
+
+      await expect(
+        service.addParticipants(String(projectId), [
+          { nickname: 'Аня', role: dub },
+        ]),
+      ).rejects.toThrow(ConflictException);
+      expect(projects.updateOne).toHaveBeenCalledTimes(3);
+    });
+
+    it('never takes anybody off', async () => {
+      existing(project({ participants: [person('Аня', dub)] }));
+
+      await service.addParticipants(String(projectId), [
+        { nickname: 'Аня', role: sound },
+        { nickname: 'Борис', role: dub },
+      ]);
+
+      const operators = written().flatMap(({ update }) =>
+        Object.keys(update as object),
+      );
+
+      expect(operators).not.toContain('$pull');
+      expect(operators).not.toContain('$set');
+    });
+
+    it('answers 404 for a project that does not exist', async () => {
+      existing(null);
+
+      await expect(
+        service.addParticipants(String(projectId), [
+          { nickname: 'Аня', role: dub },
+        ]),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('markEpisodeReleased', () => {
+    it('raises the released episodes of a series to the episode of the track', async () => {
+      await service.markEpisodeReleased(String(projectId), 5);
+
+      expect(projects.updateOne).toHaveBeenCalledWith(
+        {
+          _id: String(projectId),
+          titleType: ANIME_TYPE.SERIES,
+          episodesReleased: { $lt: 5 },
+        },
+        { $set: { episodesReleased: 5 } },
+      );
+    });
+
+    it('only ever raises the count, and leaves the films alone', async () => {
+      await service.markEpisodeReleased(String(projectId), 2);
+
+      const [filter, update] = projects.updateOne.mock.calls[0] as [
+        { titleType: string; episodesReleased: { $lt: number } },
+        object,
+      ];
+
+      expect(filter.episodesReleased).toEqual({ $lt: 2 });
+      expect(filter.titleType).toBe(ANIME_TYPE.SERIES);
+      expect(Object.keys(update)).toEqual(['$set']);
+    });
+  });
+
+  describe('findOne', () => {
+    it('answers the project', async () => {
+      existing(project());
+
+      await expect(service.findOne(String(projectId))).resolves.toMatchObject({
+        ukrName: 'Вітробой',
+      });
+    });
+
+    it('answers 404 for a project that does not exist', async () => {
+      existing(null);
+
+      await expect(service.findOne(String(projectId))).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

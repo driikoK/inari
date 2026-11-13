@@ -5,7 +5,6 @@ import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
 import { TeamAnimesService } from './team-animes.service.js';
 import { ITeamAnime } from './interfaces/team-anime.interface.js';
-import { CreateTeamAnimeData } from './data/create-team-anime.data.js';
 
 describe('TeamAnimesService', () => {
   let teamAnimesService: TeamAnimesService;
@@ -46,36 +45,14 @@ describe('TeamAnimesService', () => {
     });
   });
 
-  describe('create', () => {
-    it('should create and return a team anime', async () => {
-      const newAnime = {
-        name: 'New awesome anime',
-      };
+  describe('markMoved', () => {
+    it('says which project the titles with these names went to', async () => {
+      await teamAnimesService.markMoved(['Wind Breaker', 'wind breaker'], 'p1');
 
-      model.create.mockImplementationOnce(() =>
-        Promise.resolve(mockTeamAnime as any),
+      expect(model.updateMany).toHaveBeenCalledWith(
+        { name: { $in: ['Wind Breaker', 'wind breaker'] } },
+        { $set: { projectId: 'p1' } },
       );
-
-      const result = await teamAnimesService.create(
-        newAnime as CreateTeamAnimeData,
-      );
-
-      expect(result).toEqual(mockTeamAnime);
-    });
-  });
-
-  describe('deleteById', () => {
-    it('should delete and return boolean value', async () => {
-      model.deleteOne.mockResolvedValue({
-        acknowledged: true,
-        deletedCount: 1,
-      });
-
-      const result = await teamAnimesService.deleteById(mockTeamAnime._id);
-
-      expect(model.deleteOne).toHaveBeenCalledWith({ _id: mockTeamAnime._id });
-
-      expect(result).toEqual(true);
     });
   });
 });

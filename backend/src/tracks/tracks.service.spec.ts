@@ -9,6 +9,8 @@ import type { CrumbsChange } from '../budget/crumbs.js';
 import { AUDIT_KIND } from '../budget/enums/index.js';
 import { DictionariesService } from '../dictionaries/dictionaries.service.js';
 import { MembersService } from '../members/members.service.js';
+import type { Project } from '../projects/interfaces/index.js';
+import { ProjectsService } from '../projects/projects.service.js';
 import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '../shared/index.js';
 import { UsersService } from '../users/users.service.js';
 import type { CreateTrackData } from './data/create-track.data.js';
@@ -23,6 +25,7 @@ describe('TrackService', () => {
   let members: DeepMocked<MembersService>;
   let crumbAudit: DeepMocked<CrumbAuditService>;
   let users: DeepMocked<UsersService>;
+  let projects: DeepMocked<ProjectsService>;
 
   const stored = (extra: Partial<ITrack> = {}) =>
     ({
@@ -65,6 +68,7 @@ describe('TrackService', () => {
           provide: CrumbAuditService,
           useValue: createMock<CrumbAuditService>(),
         },
+        { provide: ProjectsService, useValue: createMock<ProjectsService>() },
       ],
     }).compile();
 
@@ -73,6 +77,7 @@ describe('TrackService', () => {
     members = module.get(MembersService);
     crumbAudit = module.get(CrumbAuditService);
     users = module.get(UsersService);
+    projects = module.get(ProjectsService);
   });
 
   afterEach(() => {
@@ -146,20 +151,24 @@ describe('TrackService', () => {
   });
 
   describe('create', () => {
+    const projectId = String(new Types.ObjectId());
     const track = (): CreateTrackData => ({
       membersInfo: [
         { nickname: 'Аня', typeRole: MEMBER_ROLE.DUB, coins: 10 },
         { nickname: 'Борис', typeRole: MEMBER_ROLE.SOUND, coins: 5 },
       ],
       currentEpisode: 3,
-      nameTitle: 'Вітробой',
-      titleType: ANIME_TYPE.SERIES,
-      season: SEASON.SPRING,
-      year: 2027,
+      projectId,
       username: 'root',
     });
 
     beforeEach(() => {
+      projects.findOne.mockResolvedValue({
+        _id: projectId,
+        ukrName: 'Вітробой',
+        titleType: ANIME_TYPE.SERIES,
+        startDate: '2027-04-15',
+      } as unknown as Project);
       users.findOneByUsername.mockResolvedValue({ username: 'root' } as any);
       members.findMember.mockResolvedValue({} as any);
       model.create.mockImplementation((async (doc: object) => ({
@@ -224,6 +233,140 @@ describe('TrackService', () => {
       expect(items[0].entryId).toEqual(expect.any(String));
     });
 
+    it('takes the title and the type from the project, not from the request, and the season of its start when none is named', async () => {
+      await service.create(
+        {
+          ...track(),
+          nameTitle: 'Чужа назва',
+          titleType: ANIME_TYPE.FILM,
+        } as CreateTrackData,
+        'boss',
+      );
+
+      expect(projects.findOne).toHaveBeenCalledWith(projectId);
+      expect(model.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId,
+          nameTitle: 'Вітробой',
+          titleType: ANIME_TYPE.SERIES,
+          season: SEASON.SPRING,
+          year: 2027,
+        }),
+      );
+    });
+
+    describe('the season a track names', () => {
+      beforeEach(() => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2027-09-10T12:00:00Z'));
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('gets the crumbs when it is a season up to now', async () => {
+        await service.create(
+          { ...track(), season: SEASON.SUMMER, year: 2027 },
+          'boss',
+        );
+
+        expect(model.create).toHaveBeenCalledWith(
+          expect.objectContaining({ season: SEASON.SUMMER, year: 2027 }),
+        );
+        expect(members.changeCoins).toHaveBeenCalledWith(
+          'Аня',
+          expect.objectContaining({ season: SEASON.SUMMER, year: 2027 }),
+        );
+      });
+
+      it('can be the season of the start of the project itself', async () => {
+        await service.create(
+          { ...track(), season: SEASON.SPRING, year: 2027 },
+          'boss',
+        );
+
+        expect(model.create).toHaveBeenCalledWith(
+          expect.objectContaining({ season: SEASON.SPRING, year: 2027 }),
+        );
+      });
+
+      it('may be earlier than the start of the project, for work done before it was entered', async () => {
+        await service.create(
+          { ...track(), season: SEASON.WINTER, year: 2027 },
+          'boss',
+        );
+
+        expect(model.create).toHaveBeenCalledWith(
+          expect.objectContaining({ season: SEASON.WINTER, year: 2027 }),
+        );
+      });
+
+      it('cannot be in the future', async () => {
+        await expect(
+          service.create(
+            { ...track(), season: SEASON.FALL, year: 2027 },
+            'boss',
+          ),
+        ).rejects.toThrow('в майбутньому');
+
+        expect(model.create).not.toHaveBeenCalled();
+        expect(members.changeCoins).not.toHaveBeenCalled();
+      });
+    });
+
+    it('writes nothing when the project does not exist', async () => {
+      projects.findOne.mockRejectedValue(new Error('Проєкт не знайдено'));
+
+      await expect(service.create(track(), 'boss')).rejects.toThrow(
+        'Проєкт не знайдено',
+      );
+
+      expect(model.create).not.toHaveBeenCalled();
+      expect(members.changeCoins).not.toHaveBeenCalled();
+    });
+
+    it('puts every nickname with its role into the team of the project', async () => {
+      await service.create(track(), 'boss');
+
+      expect(projects.addParticipants).toHaveBeenCalledWith(projectId, [
+        { nickname: 'Аня', role: MEMBER_ROLE.DUB },
+        { nickname: 'Борис', role: MEMBER_ROLE.SOUND },
+      ]);
+    });
+
+    it('counts the episode of the track as released', async () => {
+      await service.create(track(), 'boss');
+
+      expect(projects.markEpisodeReleased).toHaveBeenCalledWith(projectId, 3);
+    });
+
+    it('keeps the track when the team of the project could not be updated, and still counts the episode', async () => {
+      projects.addParticipants.mockRejectedValue(new Error('db down'));
+
+      await expect(service.create(track(), 'boss')).resolves.toBe('Success');
+
+      expect(crumbAudit.record).toHaveBeenCalledTimes(1);
+      expect(projects.markEpisodeReleased).toHaveBeenCalledWith(projectId, 3);
+    });
+
+    it('keeps the track when the released episodes could not be raised', async () => {
+      projects.markEpisodeReleased.mockRejectedValue(new Error('db down'));
+
+      await expect(service.create(track(), 'boss')).resolves.toBe('Success');
+
+      expect(projects.addParticipants).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves the team of the project alone when the track fails', async () => {
+      members.changeCoins.mockRejectedValue(new Error('db down'));
+
+      await expect(service.create(track(), 'boss')).rejects.toThrow('db down');
+
+      expect(projects.addParticipants).not.toHaveBeenCalled();
+      expect(projects.markEpisodeReleased).not.toHaveBeenCalled();
+    });
+
     it('refuses a removed nickname and writes nothing', async () => {
       members.findMember.mockResolvedValue({ deletedAt: new Date() } as any);
 
@@ -266,6 +409,177 @@ describe('TrackService', () => {
       );
       expect(model.deleteOne).toHaveBeenCalledTimes(2);
       expect(crumbAudit.record).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getLastTracks', () => {
+    it('finds the tracks of the previous episode of the project', async () => {
+      const sort = vi.fn().mockResolvedValue([stored()]);
+
+      model.find.mockReturnValue({ sort } as any);
+
+      await expect(
+        service.getLastTracks({ projectId: id, episode: 4 }),
+      ).resolves.toEqual([stored()]);
+      expect(model.find).toHaveBeenCalledWith({
+        projectId: id,
+        currentEpisode: 3,
+      });
+    });
+  });
+
+  describe('titleGroups', () => {
+    const firstAt = new Date('2026-04-02');
+    const lastAt = new Date('2026-06-20');
+    const titles = (extra: object = {}) => [
+      {
+        _id: 'Вітробой',
+        titleType: ANIME_TYPE.SERIES,
+        season: SEASON.SPRING,
+        year: 2026,
+        isOngoing: true,
+        maxEpisode: 12,
+        firstAt,
+        lastAt,
+        tracks: 30,
+        unlinked: 30,
+        projectId: null,
+        ...extra,
+      },
+    ];
+    const people = [
+      {
+        _id: { nameTitle: 'Вітробой', nickname: 'Аня', role: MEMBER_ROLE.DUB },
+        tracks: 12,
+      },
+      {
+        _id: {
+          nameTitle: 'Вітробой',
+          nickname: 'Аня',
+          role: MEMBER_ROLE.SOUND,
+        },
+        tracks: 2,
+      },
+      {
+        _id: { nameTitle: 'Інше', nickname: 'Борис', role: MEMBER_ROLE.SUB },
+        tracks: 5,
+      },
+    ];
+
+    it('groups the tracks by the title they were written under and counts the tracks of every nickname and role', async () => {
+      model.aggregate
+        .mockResolvedValueOnce(titles())
+        .mockResolvedValueOnce(people);
+
+      await expect(service.titleGroups()).resolves.toEqual([
+        {
+          nameTitle: 'Вітробой',
+          titleType: ANIME_TYPE.SERIES,
+          season: SEASON.SPRING,
+          year: 2026,
+          isOngoing: true,
+          maxEpisode: 12,
+          firstAt,
+          lastAt,
+          tracks: 30,
+          unlinked: 30,
+          members: [
+            { nickname: 'Аня', role: MEMBER_ROLE.DUB, tracks: 12 },
+            { nickname: 'Аня', role: MEMBER_ROLE.SOUND, tracks: 2 },
+          ],
+        },
+      ]);
+    });
+
+    it('does not collect a member for every track, but one per nickname and role', async () => {
+      model.aggregate
+        .mockResolvedValueOnce(titles())
+        .mockResolvedValueOnce(people);
+
+      await service.titleGroups();
+
+      const [, members] = model.aggregate.mock.calls.map(
+        ([pipeline]) => pipeline as object[],
+      );
+
+      expect(members[1]).toEqual({
+        $group: {
+          _id: {
+            nameTitle: '$nameTitle',
+            nickname: '$nickname',
+            role: '$typeRole',
+          },
+          tracks: { $sum: 1 },
+        },
+      });
+      expect(JSON.stringify(model.aggregate.mock.calls[0])).not.toContain(
+        '$push',
+      );
+    });
+
+    it('dates a track that has no createdAt by its id, and goes oldest first by that date', async () => {
+      model.aggregate.mockResolvedValueOnce(titles()).mockResolvedValueOnce([]);
+
+      await service.titleGroups();
+
+      const [pipeline] = model.aggregate.mock.calls[0] as [
+        Record<string, any>[],
+      ];
+
+      expect(pipeline[0]).toEqual({
+        $match: { nameTitle: { $type: 'string' } },
+      });
+      expect(pipeline[1]).toEqual({
+        $addFields: { at: { $ifNull: ['$createdAt', { $toDate: '$_id' }] } },
+      });
+      expect(pipeline[2]).toEqual({ $sort: { at: 1 } });
+      expect(pipeline[3].$group.firstAt).toEqual({ $first: '$at' });
+      expect(pipeline[3].$group.lastAt).toEqual({ $last: '$at' });
+    });
+
+    it('tells which project a title is linked to when some of its tracks are', async () => {
+      model.aggregate
+        .mockResolvedValueOnce(titles({ projectId: 'p1', unlinked: 2 }))
+        .mockResolvedValueOnce([]);
+
+      const [group] = await service.titleGroups();
+
+      expect(group).toMatchObject({
+        projectId: 'p1',
+        unlinked: 2,
+        members: [],
+      });
+    });
+  });
+
+  describe('countUnlinked', () => {
+    it('counts the tracks written before they had a project', async () => {
+      model.countDocuments.mockResolvedValue(7 as any);
+
+      await expect(service.countUnlinked()).resolves.toBe(7);
+      expect(model.countDocuments).toHaveBeenCalledWith({
+        projectId: { $exists: false },
+      });
+    });
+  });
+
+  describe('linkProject', () => {
+    const projectId = String(new Types.ObjectId());
+
+    it('links only the tracks that have no project yet, and does not touch their update time', async () => {
+      model.updateMany.mockResolvedValue({ modifiedCount: 4 } as any);
+
+      await expect(
+        service.linkProject(['Вітробой', 'вітробой '], projectId),
+      ).resolves.toBe(4);
+      expect(model.updateMany).toHaveBeenCalledWith(
+        {
+          nameTitle: { $in: ['Вітробой', 'вітробой '] },
+          projectId: { $exists: false },
+        },
+        { $set: { projectId } },
+        { timestamps: false },
+      );
     });
   });
 

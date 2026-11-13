@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const LastTracksData = z.object({
-  titleName: z.string().meta({ example: 'Кохання на кінчиках пальців' }),
+  projectId: z.string().min(1).meta({ example: '61c0ccf11d7bf83d153d7c06' }),
   episode: z.coerce
     .number()
     .int()

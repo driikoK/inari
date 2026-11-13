@@ -23,6 +23,7 @@ import { useCoinsByDuration, useWatchCheckboxValues, useWatchNicknames } from '.
 import { checkIsOnlyOneEpisode, finalizeMembersInfoArray } from '../helpers';
 
 export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
+  projectId,
   titleName,
   episode,
   onClose,
@@ -122,11 +123,10 @@ export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
     const payload: CreateTrackType = {
       ...form,
       membersInfo: finalizeMembersInfoArray(form.membersInfo),
-      nameTitle: titleName,
-      currentEpisode: parseInt(episode),
-      titleType: animeType,
+      projectId,
       season,
       year: Number(year),
+      currentEpisode: parseInt(episode),
       note: form.note || '',
       username: user!.username,
       isSubsOnly: true,

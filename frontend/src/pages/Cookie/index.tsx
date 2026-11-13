@@ -3,7 +3,8 @@ import { FC, FunctionComponent, useEffect, useState } from 'react';
 import Skeleton from '@mui/material/Skeleton';
 
 import { Container, ElementContainer, ElementImage, ElementContent, ElementTitle } from './styles';
-import { CreateAnimeAndMemberDialog, InputCookieDialog } from '@/pages/Cookie/components';
+import { AddMemberDialog, InputCookieDialog } from '@/pages/Cookie/components';
+import { ProjectFormDialog } from '@/pages/Projects/components/ProjectFormDialog';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
 import s from './Cookie.module.scss';
@@ -11,17 +12,20 @@ import s from './Cookie.module.scss';
 const IMAGES = {
   cookie: '/cookie.png',
   foxes: '/foxes.png',
+  fox: '/fox.jpg',
 };
 
 const Cookie: FunctionComponent = () => {
   const [openCookieDialog, setOpenCookieDialog] = useState(false);
-  const [openAddUsersAndTitlesDialog, setOpenAddUsersAndTitlesDialog] = useState(false);
+  const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
+  const [openProjectDialog, setOpenProjectDialog] = useState(false);
   const [imageLoaded, setImageLoaded] = useState({
     cookie: false,
     foxes: false,
+    fox: false,
   });
 
-  const isAllImagesLoaded = imageLoaded.cookie && imageLoaded.foxes;
+  const isAllImagesLoaded = imageLoaded.cookie && imageLoaded.foxes && imageLoaded.fox;
 
   const { hasAccess } = usePermissions();
 
@@ -34,13 +38,14 @@ const Cookie: FunctionComponent = () => {
   useEffect(() => {
     preloadImage('cookie', IMAGES.cookie);
     preloadImage('foxes', IMAGES.foxes);
+    preloadImage('fox', IMAGES.fox);
   }, []);
 
   return (
     <div className={s.page}>
       <div className={s.header}>
         <div className={s.headerTitle}>Крихти</div>
-        <div className={s.headerSubtitle}>Записуй крихти та додавай учасників і тайтли</div>
+        <div className={s.headerSubtitle}>Записуй крихти, додавай учасників і створюй проєкти</div>
       </div>
 
       <Container>
@@ -57,10 +62,20 @@ const Cookie: FunctionComponent = () => {
         {hasAccess(SUBJECTS.ADD_MEMBERS) && (
           <Card
             isLoaded={isAllImagesLoaded}
-            onClick={() => setOpenAddUsersAndTitlesDialog(true)}
+            onClick={() => setOpenAddMemberDialog(true)}
             imgUrl={IMAGES.foxes}
-            title="Додати в лисятник"
-            description="Новий учасник або тайтл"
+            title="Додати учасника"
+            description="Новий учасник або гість"
+          />
+        )}
+
+        {hasAccess(SUBJECTS.MANAGE_PROJECTS) && (
+          <Card
+            isLoaded={isAllImagesLoaded}
+            onClick={() => setOpenProjectDialog(true)}
+            imgUrl={IMAGES.fox}
+            title="Створити проєкт"
+            description="Новий тайтл для запису крихт"
           />
         )}
       </Container>
@@ -68,12 +83,10 @@ const Cookie: FunctionComponent = () => {
       {openCookieDialog && (
         <InputCookieDialog onClose={() => setOpenCookieDialog(false)} open={openCookieDialog} />
       )}
-      {openAddUsersAndTitlesDialog && (
-        <CreateAnimeAndMemberDialog
-          onClose={() => setOpenAddUsersAndTitlesDialog(false)}
-          open={openAddUsersAndTitlesDialog}
-        />
+      {openAddMemberDialog && (
+        <AddMemberDialog onClose={() => setOpenAddMemberDialog(false)} open={openAddMemberDialog} />
       )}
+      {openProjectDialog && <ProjectFormDialog open onClose={() => setOpenProjectDialog(false)} />}
     </div>
   );
 };

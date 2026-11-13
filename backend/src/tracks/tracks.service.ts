@@ -18,6 +18,14 @@ import {
 } from '../budget/crumbs.js';
 import { AUDIT_KIND } from '../budget/enums/index.js';
 import { MembersService } from '../members/members.service.js';
+import type { Project } from '../projects/interfaces/index.js';
+import {
+  ordinalOf,
+  seasonOfDay,
+  seasonOrdinal,
+  todayInKyiv,
+} from '../projects/layout.js';
+import { ProjectsService } from '../projects/projects.service.js';
 import { MEMBER_ROLE, pick, type SEASON } from '../shared/index.js';
 import { DictionariesService } from '../dictionaries/dictionaries.service.js';
 import { UsersService } from '../users/users.service.js';
@@ -30,9 +38,14 @@ import {
   Multipliers,
   NicknameCoins,
   SeasonCoins,
+  TitleGroup,
 } from './interfaces/track.interface.js';
 import { MULTIPLIER } from './enums/types.enum.js';
 import { LastTracksData } from './data/last-tracks.js';
+
+// A track as it is written: the title comes from its project
+type NewTrack = CreateTrackData &
+  Pick<ITrack, 'nameTitle' | 'titleType' | 'season' | 'year'>;
 
 @Injectable()
 export class TrackService {
@@ -44,6 +57,7 @@ export class TrackService {
     private readonly dictionariesService: DictionariesService,
     private readonly usersService: UsersService,
     private readonly crumbAudit: CrumbAuditService,
+    private readonly projectsService: ProjectsService,
   ) {}
 
   async findAll(filter: FilterTrackData): Promise<ITracksWithPagination> {
@@ -212,7 +226,7 @@ export class TrackService {
   }
 
   private getCoinsWithMultipliers(
-    multipliers: Omit<CreateTrackData, 'membersInfo'>,
+    multipliers: Omit<NewTrack, 'membersInfo'>,
     member: MemberInfo,
   ) {
     if (member.isGuest && member.coins) member.coins = member.coins / 2;
@@ -226,7 +240,7 @@ export class TrackService {
     return member;
   }
 
-  private addAdditionalCoinsToTranslator(track: CreateTrackData, role: string) {
+  private addAdditionalCoinsToTranslator(track: NewTrack, role: string) {
     const subIndex = track.membersInfo.findIndex(
       (member) => member.typeRole === MEMBER_ROLE.SUB,
     );
@@ -235,13 +249,21 @@ export class TrackService {
       this.dictionariesService.getCoins()[track.titleType][role];
   }
 
-  async create(track: CreateTrackData, actor: string): Promise<string> {
+  async create(input: CreateTrackData, actor: string): Promise<string> {
     const currentUser = await this.usersService.findOneByUsername(
-      track.username,
+      input.username,
     );
 
     if (!currentUser)
       throw new HttpException('Такого юзера не існує', HttpStatus.BAD_REQUEST);
+
+    const project = await this.projectsService.findOne(input.projectId);
+    const track: NewTrack = {
+      ...input,
+      nameTitle: project.ukrName,
+      titleType: project.titleType,
+      ...this.seasonOfTrack(input, project),
+    };
 
     for (const { nickname } of track.membersInfo) {
       const member = await this.membersService.findMember(nickname);
@@ -331,7 +353,57 @@ export class TrackService {
       done.map(({ item }) => item),
     );
 
+    await this.updateProject(track);
+
     return 'Success';
+  }
+
+  // The season the work was done in. A track that names none gets the season of
+  // the start of the project, and one that names a season may take any season
+  // up to the current one, since a project can be entered long after the work.
+  private seasonOfTrack(
+    { season, year }: CreateTrackData,
+    { startDate }: Project,
+  ) {
+    if (!season || !year) return seasonOfDay(startDate);
+
+    if (ordinalOf(season, year) > seasonOrdinal(todayInKyiv())) {
+      throw new HttpException(
+        'Сезон не може бути в майбутньому',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return { season, year };
+  }
+
+  // The tracks are already written, so a failure here is only logged. The team
+  // gets everybody on the track, and the episode counts as released.
+  private async updateProject({
+    projectId,
+    currentEpisode,
+    membersInfo,
+  }: NewTrack) {
+    const attempt = async (what: string, run: () => Promise<void>) => {
+      try {
+        await run();
+      } catch (error) {
+        this.logger.error(`Не вдалося ${what} проєкту ${projectId}`, error);
+      }
+    };
+
+    await attempt('додати учасників у команду', () =>
+      this.projectsService.addParticipants(
+        projectId,
+        membersInfo.map(({ nickname, typeRole }) => ({
+          nickname,
+          role: typeRole,
+        })),
+      ),
+    );
+    await attempt('підняти кількість випущених серій', () =>
+      this.projectsService.markEpisodeReleased(projectId, currentEpisode),
+    );
   }
 
   async getCoinsBySeason(): Promise<SeasonCoins[]> {
@@ -375,13 +447,97 @@ export class TrackService {
   }
 
   async getLastTracks(data: LastTracksData): Promise<ITrack[]> {
-    const { titleName, episode } = data;
-    const queryFilter = { nameTitle: titleName, currentEpisode: episode - 1 };
+    const { projectId, episode } = data;
+    const queryFilter = { projectId, currentEpisode: episode - 1 };
 
     const tracks = await this.trackModel
       .find(queryFilter)
       .sort({ createdAt: -1 });
 
     return tracks;
+  }
+
+  // One entry per title text the tracks were written under, oldest track first.
+  // A track with no createdAt (kept from before timestamps) is dated by its _id.
+  async titleGroups(): Promise<TitleGroup[]> {
+    const [groups, members] = await Promise.all([
+      this.trackModel.aggregate<
+        Omit<TitleGroup, 'nameTitle' | 'members'> & { _id: string }
+      >([
+        { $match: { nameTitle: { $type: 'string' } } },
+        {
+          $addFields: {
+            at: { $ifNull: ['$createdAt', { $toDate: '$_id' }] },
+          },
+        },
+        { $sort: { at: 1 } },
+        {
+          $group: {
+            _id: '$nameTitle',
+            titleType: { $first: '$titleType' },
+            season: { $first: '$season' },
+            year: { $first: '$year' },
+            isOngoing: { $last: '$isOngoing' },
+            maxEpisode: { $max: '$currentEpisode' },
+            firstAt: { $first: '$at' },
+            lastAt: { $last: '$at' },
+            tracks: { $sum: 1 },
+            unlinked: {
+              $sum: { $cond: [{ $ifNull: ['$projectId', false] }, 0, 1] },
+            },
+            projectId: { $max: '$projectId' },
+          },
+        },
+      ]),
+      this.trackModel.aggregate<{
+        _id: { nameTitle: string; nickname: string; role: MEMBER_ROLE };
+        tracks: number;
+      }>([
+        { $match: { nameTitle: { $type: 'string' } } },
+        {
+          $group: {
+            _id: {
+              nameTitle: '$nameTitle',
+              nickname: '$nickname',
+              role: '$typeRole',
+            },
+            tracks: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+
+    const membersOf = new Map<string, TitleGroup['members']>();
+
+    for (const { _id, tracks } of members) {
+      const list = membersOf.get(_id.nameTitle) ?? [];
+
+      list.push({ nickname: _id.nickname, role: _id.role, tracks });
+      membersOf.set(_id.nameTitle, list);
+    }
+
+    return groups.map(({ _id, projectId, ...group }) => ({
+      nameTitle: _id,
+      ...group,
+      ...(projectId && { projectId }),
+      members: membersOf.get(_id) ?? [],
+    }));
+  }
+
+  // Tracks that were written before they had a project
+  countUnlinked(): Promise<number> {
+    return this.trackModel.countDocuments({ projectId: { $exists: false } });
+  }
+
+  // Links the tracks written under these title texts to a project. The tracks
+  // that already have one are left alone, so it can be run again.
+  async linkProject(nameTitles: string[], projectId: string): Promise<number> {
+    const result = await this.trackModel.updateMany(
+      { nameTitle: { $in: nameTitles }, projectId: { $exists: false } },
+      { $set: { projectId } },
+      { timestamps: false },
+    );
+
+    return result.modifiedCount;
   }
 }

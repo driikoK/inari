@@ -32,10 +32,7 @@ const messagesOf = (schema: z.ZodType, input: unknown) => {
 const track = {
   membersInfo: [{ nickname: 'a', typeRole: 'dubs', coins: 5 }],
   currentEpisode: 1,
-  nameTitle: 'T',
-  titleType: 'series',
-  season: 'winter',
-  year: 2025,
+  projectId: 'p1',
   username: 'u',
 };
 
@@ -78,12 +75,12 @@ describe('request DTO schemas', () => {
     });
 
     it('require the last-tracks episode to be at least 2', () => {
-      expect(LastTracksData.parse({ titleName: 'T', episode: '2' })).toEqual({
-        titleName: 'T',
+      expect(LastTracksData.parse({ projectId: 'p1', episode: '2' })).toEqual({
+        projectId: 'p1',
         episode: 2,
       });
       expect(
-        messagesOf(LastTracksData, { titleName: 'T', episode: '1' }),
+        messagesOf(LastTracksData, { projectId: 'p1', episode: '1' }),
       ).toEqual(['Епізод мусить бути мінімум 2']);
     });
   });
@@ -425,6 +422,44 @@ describe('request DTO schemas', () => {
   });
 
   describe('CreateTrackData', () => {
+    it('needs the project of the title, and takes neither a name nor a type of the title', () => {
+      expect(
+        CreateTrackData.safeParse({ ...track, projectId: '' }).success,
+      ).toBe(false);
+
+      const { projectId, ...withoutProject } = track;
+
+      expect(CreateTrackData.safeParse(withoutProject).success).toBe(false);
+      expect(
+        CreateTrackData.parse({
+          ...track,
+          nameTitle: 'Чужа назва',
+          titleType: 'film',
+        }),
+      ).toEqual(CreateTrackData.parse(track));
+    });
+
+    it('takes a season only together with a year', () => {
+      expect(
+        CreateTrackData.safeParse({ ...track, season: 'summer', year: 2027 })
+          .success,
+      ).toBe(true);
+      expect(
+        CreateTrackData.safeParse({ ...track, season: null, year: null })
+          .success,
+      ).toBe(true);
+      expect(
+        messagesOf(CreateTrackData, { ...track, season: 'summer' }),
+      ).toEqual(['Вкажіть сезон і рік разом']);
+      expect(messagesOf(CreateTrackData, { ...track, year: 2027 })).toEqual([
+        'Вкажіть сезон і рік разом',
+      ]);
+      expect(
+        CreateTrackData.safeParse({ ...track, season: 'monsoon', year: 2027 })
+          .success,
+      ).toBe(false);
+    });
+
     it('accepts a minimal track and null optionals', () => {
       expect(CreateTrackData.safeParse(track).success).toBe(true);
       expect(
