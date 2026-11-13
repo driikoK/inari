@@ -50,7 +50,7 @@ const PREVIEW_DELAY = 300;
 
 const REQUISITE_LABEL: Record<EXPENSE_KIND, string> = {
   [EXPENSE_KIND.CARD]: 'Номер карти',
-  [EXPENSE_KIND.DONATION]: 'Номер карти або посилання на банку',
+  [EXPENSE_KIND.DONATION]: 'Карта або посилання',
   [EXPENSE_KIND.DEVELOPMENT]: '',
 };
 
@@ -102,14 +102,14 @@ const SectionFields: FC<SectionFieldsProps> = ({ kind, isOrder, line }) => {
       <div style={{ fontWeight: 600 }}>{title}</div>
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 160px' }}>
+        <div style={{ flex: kind === EXPENSE_KIND.DEVELOPMENT ? '1 1 160px' : '0 0 180px' }}>
           <Controller
             control={control}
             name={name('amount')}
             render={({ field }) => (
               <TextField
                 {...field}
-                label={isOrder ? 'Сума' : 'Кількість крихт'}
+                label={isOrder ? 'Сума' : 'Кількість'}
                 fullWidth
                 slotProps={{
                   htmlInput: { inputMode: 'decimal' },
@@ -130,7 +130,7 @@ const SectionFields: FC<SectionFieldsProps> = ({ kind, isOrder, line }) => {
         </div>
 
         {kind !== EXPENSE_KIND.DEVELOPMENT && (
-          <div style={{ flex: '2 1 240px' }}>
+          <div style={{ flex: '1 1 240px' }}>
             <Controller
               control={control}
               name={name('requisite')}
