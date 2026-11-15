@@ -5,6 +5,8 @@ import { Icon } from './Icon';
 import Layout from './Layout';
 import Sidebar from './Sidebar';
 import SelectField from './SelectField';
+import { SearchSelect } from './SearchSelect';
+import { SeasonFilter } from './SeasonFilter';
 import { ConfirmTableChangeDialog } from './ConfirmTableChangeDialog';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { RequireAccess } from './RequireAccess';
@@ -22,6 +24,8 @@ export {
   Layout,
   Sidebar,
   SelectField,
+  SearchSelect,
+  SeasonFilter,
   H5,
   H6,
   ErrorText,

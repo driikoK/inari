@@ -50,25 +50,18 @@ const CookieList: FunctionComponent = () => {
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RowType | null>(null);
-  // ** From docs https://mui.com/x/react-data-grid/pagination/
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10,
-  });
+  // The page and the filters are one thing in the store, so a filter can send the page back to the
+  // first one and the table follows
+  const page = appliedFilters.page ?? 1;
+  const perPage = appliedFilters.perPage ?? 10;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, when the page opens, with the filters and the page the store remembers
   useEffect(() => {
     getTitles().catch(notifyFailure);
     getRoles();
     getMembers();
+    getTracks({ ...appliedFilters, page, perPage }).catch(notifyFailure);
   }, []);
-
-  useEffect(() => {
-    getTracks({
-      ...appliedFilters,
-      page: paginationModel.page + 1,
-      perPage: paginationModel.pageSize,
-    });
-  }, [paginationModel]);
 
   // The name of the project as it is now, the one the track was written under when it is gone
   const titleNames = useMemo(
@@ -300,8 +293,14 @@ const CookieList: FunctionComponent = () => {
         rowCount={tracks.total}
         loading={isLoading}
         paginationMode="server"
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
+        paginationModel={{ page: page - 1, pageSize: perPage }}
+        onPaginationModelChange={(model) =>
+          getTracks({
+            ...appliedFilters,
+            page: model.page + 1,
+            perPage: model.pageSize,
+          }).catch(notifyFailure)
+        }
       />
 
       <ConfirmTableChangeDialog

@@ -30,21 +30,5 @@ export const seasonOptions = [
   { label: 'Осінь', value: 'fall' },
 ];
 
-export const yearOptions = [
-  {
-    label: '2024',
-    value: '2024',
-  },
-  {
-    label: '2025',
-    value: '2025',
-  },
-  {
-    label: '2026',
-    value: '2026',
-  },
-  {
-    label: '2027',
-    value: '2027',
-  },
-];
+// The year of the first season of the team that has data, where the list of seasons starts
+export const FIRST_SEASON_YEAR = 2024;

@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 
 import { SelectWrapper } from './styles';
-import { NicknameFilter } from '../NicknameFilter';
-import { SelectField } from '@/components';
+import { SearchSelect, SeasonFilter, SelectField } from '@/components';
 import { useMembersStore } from '@/stores';
-import { memberKindOptions, seasonOptions, yearOptions } from '@/utils/constants';
+import { memberKindOptions } from '@/utils/constants';
 
 export const RatingFilters = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>();
@@ -15,20 +14,6 @@ export const RatingFilters = () => {
   const getMembers = useMembersStore((state) => state.getMembers);
   const membersDictionary = useMembersStore((state) => state.membersDictionary);
 
-  const seasonsOfTheYear = seasonOptions.reduce(
-    (acc, season) => {
-      yearOptions.forEach((year) => {
-        acc.push({
-          label: `${season.label} ${year.label}`,
-          value: `${season.value} ${year.value}`,
-        });
-      });
-
-      return acc;
-    },
-    [] as { label: string; value: string }[],
-  );
-
   useEffect(() => {
     getMembers({
       id: selectedUser,
@@ -37,19 +22,6 @@ export const RatingFilters = () => {
       year: selectedYear,
     });
   }, [selectedKind, selectedUser, selectedSeason, selectedYear]);
-
-  const handleSeasonChange = (season: string = '') => {
-    if (!season) {
-      setSelectedSeason(undefined);
-      setSelectedYear(undefined);
-      return;
-    }
-
-    const [seasonName, seasonYear] = season.split(' ');
-
-    setSelectedSeason(seasonName || '');
-    setSelectedYear(Number(seasonYear) || undefined);
-  };
 
   return (
     <SelectWrapper>
@@ -60,23 +32,24 @@ export const RatingFilters = () => {
         options={memberKindOptions}
       />
 
-      <NicknameFilter
+      <SearchSelect
+        label="Нікнейм"
         value={selectedUser}
         onChange={setSelectedUser}
+        noOptionsText="Нікнейм не знайдено"
         options={membersDictionary.map((member) => ({
           value: member._id,
           label: member.nickname,
         }))}
       />
 
-      <SelectField
-        label="Сезон"
-        value={selectedYear && selectedSeason ? `${selectedSeason} ${selectedYear}` : ''}
-        onChange={handleSeasonChange}
-        options={seasonsOfTheYear.map((season) => ({
-          value: season.value,
-          label: season.label,
-        }))}
+      <SeasonFilter
+        season={selectedSeason}
+        year={selectedYear}
+        onChange={(season, year) => {
+          setSelectedSeason(season);
+          setSelectedYear(year);
+        }}
       />
     </SelectWrapper>
   );

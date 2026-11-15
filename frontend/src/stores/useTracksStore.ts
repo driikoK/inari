@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import axios from '@/api';
 import { TrackType } from '@/types';
 import { CreateTrackType } from '@/pages/Cookie/components/InputCookieDialog/types';
+import { ensure } from '@/utils/request';
 
 interface UpdateTrackData {
   coins: number;
@@ -15,7 +16,8 @@ interface TracksWithPagination {
   perPage: number;
 }
 
-interface FilterData {
+// What the list of tracks is asked for: the filters, and the page of the result
+export interface TrackFilters {
   nickname: string;
   season: string;
   projectId: string;
@@ -33,12 +35,12 @@ interface FilterForLastTracks {
 interface State {
   tracks: TracksWithPagination;
   isLoading: boolean;
-  appliedFilters: Partial<FilterData>;
+  appliedFilters: Partial<TrackFilters>;
   lastTracks: TrackType[];
 }
 
 interface Actions {
-  getTracks: (filters?: Partial<FilterData>) => Promise<void>;
+  getTracks: (filters?: Partial<TrackFilters>) => Promise<void>;
   addTracks: (newTracks: CreateTrackType) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;
   updateTrack: (id: string, track: UpdateTrackData) => Promise<TrackType>;
@@ -48,6 +50,9 @@ interface Actions {
 
 // Which request for the tracks of the previous episode is the latest one
 let lastTracksRequest = 0;
+// Which request for the list is the latest one: the answers of the filters that were changed
+// quickly one after another do not come in order, and only the last one is what was asked for
+let latestTracksRequest = 0;
 
 const useTracksStore = create<State & Actions>((set, get) => ({
   tracks: {
@@ -60,21 +65,17 @@ const useTracksStore = create<State & Actions>((set, get) => ({
   appliedFilters: {},
   lastTracks: [],
 
-  getTracks: async (filters?: Partial<FilterData>) => {
-    set({ isLoading: true, appliedFilters: filters });
+  getTracks: async (filters?: Partial<TrackFilters>) => {
+    const request = ++latestTracksRequest;
+
+    set({ isLoading: true, appliedFilters: filters ?? {} });
 
     try {
-      const response = await axios.get(`/tracks`, { params: filters });
+      const response = ensure(await axios.get(`/tracks`, { params: filters }));
 
-      set({
-        tracks: {
-          ...response.data,
-        },
-      });
-    } catch (error) {
-      throw error;
+      if (request === latestTracksRequest) set({ tracks: { ...response.data } });
     } finally {
-      set({ isLoading: false });
+      if (request === latestTracksRequest) set({ isLoading: false });
     }
   },
 

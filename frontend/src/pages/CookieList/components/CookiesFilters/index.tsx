@@ -1,91 +1,59 @@
-import { useEffect, useState } from 'react';
-
 import { SelectWrapper } from './styles';
-import { SelectField } from '@/components';
-import { useRolesStore, useMembersStore, useTitlesStore, useTracksStore } from '@/stores';
-import { seasonOptions, yearOptions } from '@/utils/constants';
+import { SearchSelect, SeasonFilter, SelectField } from '@/components';
+import { useMembersStore, useRolesStore, useTitlesStore, useTracksStore } from '@/stores';
+import type { TrackFilters } from '@/stores/useTracksStore';
+import { notifyFailure } from '@/utils/request';
 
+// The filters are what the store has applied, so they are still there when the admin comes back to
+// the page, and what is on the screen is always what was asked of the server.
 export const CookiesFilters = () => {
   const { getTracks, appliedFilters } = useTracksStore();
-
-  const [selectedSeason, setSelectedSeason] = useState<string | undefined>(
-    appliedFilters.season || undefined,
-  );
-  const [selectedYear, setSelectedYear] = useState<string | undefined>(
-    appliedFilters.year || undefined,
-  );
-  const [selectedProject, setSelectedProject] = useState<string | undefined>(
-    appliedFilters.projectId || undefined,
-  );
-  const [selectedRole, setSelectedRole] = useState<string | undefined>(
-    appliedFilters.typeRole || undefined,
-  );
-  const [selectedUser, setSelectedUser] = useState<string | undefined>(
-    appliedFilters.nickname || undefined,
-  );
-
   const titles = useTitlesStore((state) => state.titles);
   const roles = useRolesStore((state) => state.roles);
-  const members = useMembersStore((state) => state.members);
+  const membersDictionary = useMembersStore((state) => state.membersDictionary);
 
-  useEffect(() => {
-    getTracks({
-      ...appliedFilters,
-      season: selectedSeason,
-      projectId: selectedProject,
-      nickname: selectedUser,
-      typeRole: selectedRole,
-      year: selectedYear,
-    });
-  }, [selectedSeason, selectedProject, selectedRole, selectedUser, selectedSeason, selectedYear]);
+  // A new filter starts from the first page: the page the admin was on may not exist in the shorter
+  // result, and would show nothing.
+  const apply = (changes: Partial<TrackFilters>) =>
+    getTracks({ ...appliedFilters, ...changes, page: 1 }).catch(notifyFailure);
 
   return (
     <SelectWrapper>
-      <SelectField
+      <SearchSelect
         label="Нікнейм"
-        value={selectedUser}
-        onChange={setSelectedUser}
-        options={members.map((member) => ({
-          value: member.nickname,
-          label: member.nickname,
-        }))}
+        value={appliedFilters.nickname}
+        onChange={(nickname) => apply({ nickname })}
+        noOptionsText="Нікнейм не знайдено"
+        options={membersDictionary.map(({ nickname }) => ({ value: nickname, label: nickname }))}
       />
 
-      <SelectField
+      <SearchSelect
         label="Проєкт"
-        value={selectedProject}
-        onChange={setSelectedProject}
-        options={titles.map((title) => ({
-          value: title._id,
-          label: title.ukrName,
+        value={appliedFilters.projectId}
+        onChange={(projectId) => apply({ projectId })}
+        noOptionsText="Проєкт не знайдено"
+        options={titles.map(({ _id, ukrName, romajiName, codeName, isFinished }) => ({
+          value: _id,
+          label: ukrName,
+          hint: romajiName !== ukrName ? romajiName : undefined,
+          keywords: codeName,
+          group: isFinished ? 'Завершені' : 'Триває',
         }))}
       />
 
       <SelectField
         label="Роль"
-        value={selectedRole}
-        onChange={setSelectedRole}
+        value={appliedFilters.typeRole}
+        onChange={(typeRole) => apply({ typeRole })}
         options={roles.map((role) => ({ value: role.value, label: role.label }))}
       />
 
-      <SelectField
-        label="Сезон"
-        value={selectedSeason}
-        onChange={setSelectedSeason}
-        options={seasonOptions.map((season) => ({
-          value: season.value,
-          label: season.label,
-        }))}
-      />
-
-      <SelectField
-        label="Рік"
-        value={selectedYear}
-        onChange={setSelectedYear}
-        options={yearOptions.map((year) => ({
-          value: year.value,
-          label: year.label,
-        }))}
+      <SeasonFilter
+        season={appliedFilters.season}
+        year={appliedFilters.year}
+        onChange={(season, year) =>
+          apply({ season, year: year === undefined ? undefined : String(year) })
+        }
       />
     </SelectWrapper>
   );
