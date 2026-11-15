@@ -12,7 +12,7 @@ import s from './Cookie.module.scss';
 const IMAGES = {
   cookie: '/cookie.png',
   foxes: '/foxes.png',
-  fox: '/fox.jpg',
+  project: '/general.png',
 };
 
 const Cookie: FunctionComponent = () => {
@@ -22,10 +22,10 @@ const Cookie: FunctionComponent = () => {
   const [imageLoaded, setImageLoaded] = useState({
     cookie: false,
     foxes: false,
-    fox: false,
+    project: false,
   });
 
-  const isAllImagesLoaded = imageLoaded.cookie && imageLoaded.foxes && imageLoaded.fox;
+  const isAllImagesLoaded = imageLoaded.cookie && imageLoaded.foxes && imageLoaded.project;
 
   const { hasAccess } = usePermissions();
 
@@ -38,7 +38,7 @@ const Cookie: FunctionComponent = () => {
   useEffect(() => {
     preloadImage('cookie', IMAGES.cookie);
     preloadImage('foxes', IMAGES.foxes);
-    preloadImage('fox', IMAGES.fox);
+    preloadImage('project', IMAGES.project);
   }, []);
 
   return (
@@ -73,7 +73,7 @@ const Cookie: FunctionComponent = () => {
           <Card
             isLoaded={isAllImagesLoaded}
             onClick={() => setOpenProjectDialog(true)}
-            imgUrl={IMAGES.fox}
+            imgUrl={IMAGES.project}
             title="Створити проєкт"
             description="Новий тайтл для запису крихт"
           />
