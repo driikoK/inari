@@ -1,4 +1,5 @@
 import { MemberType } from '@/types';
+import { crumbsWord } from '@/utils/plural';
 import styles from '../Home.module.scss';
 import { FunctionComponent } from 'react';
 
@@ -39,7 +40,7 @@ export const LeaderBoard: FunctionComponent<{ sortedMembers: MemberType[] }> = (
           <div className={styles.leaderboardCoins} style={{ color: podiumColors[i] }}>
             {member.coins}
           </div>
-          <div className={styles.leaderboardUnit}>крихт</div>
+          <div className={styles.leaderboardUnit}>{crumbsWord(member.coins)}</div>
         </div>
       ))}
     </div>

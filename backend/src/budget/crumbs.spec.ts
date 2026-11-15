@@ -109,6 +109,25 @@ describe('snapshots', () => {
     expect(text).toBe('«Вітробой» еп. 3, Аня (dub), 12 крихт');
   });
 
+  it('puts the word in the form the crumbs ask for', () => {
+    const textFor = (coins: number) =>
+      describeTrack(
+        trackSnapshot({
+          nickname: 'Аня',
+          nameTitle: 'Вітробой',
+          currentEpisode: 3,
+          typeRole: 'dub',
+          season: SEASON.SPRING,
+          year: 2027,
+          coins,
+        }),
+      );
+
+    expect(textFor(1)).toBe('«Вітробой» еп. 3, Аня (dub), 1 крихта');
+    expect(textFor(3)).toBe('«Вітробой» еп. 3, Аня (dub), 3 крихти');
+    expect(textFor(2.5)).toBe('«Вітробой» еп. 3, Аня (dub), 2,5 крихти');
+  });
+
   it('shows the role by a label when it is given one', () => {
     const snapshot = trackSnapshot({
       nickname: 'Аня',

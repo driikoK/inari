@@ -27,7 +27,7 @@ describe('TrackService', () => {
   let users: DeepMocked<UsersService>;
   let projects: DeepMocked<ProjectsService>;
 
-  const stored = (extra: Partial<ITrack> = {}) =>
+  const stored = (extra: Partial<ITrack> & { _id?: string } = {}) =>
     ({
       _id: id,
       nickname: 'Аня',
@@ -82,6 +82,28 @@ describe('TrackService', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('findAll', () => {
+    it('pages the newest first, and tracks of one moment by their id, so no page repeats or loses one', async () => {
+      const query = {
+        sort: vi.fn().mockReturnThis(),
+        skip: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockResolvedValue([]),
+      };
+
+      model.find.mockReturnValue(query as any);
+      model.countDocuments.mockResolvedValue(37 as any);
+
+      await expect(
+        service.findAll({ page: 3, perPage: 10, nickname: 'Аня' }),
+      ).resolves.toEqual({ data: [], page: 3, perPage: 10, total: 37 });
+
+      expect(model.find).toHaveBeenCalledWith({ nickname: 'Аня' });
+      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1, _id: -1 });
+      expect(query.skip).toHaveBeenCalledWith(20);
+      expect(query.limit).toHaveBeenCalledWith(10);
+    });
   });
 
   describe('getCoinsBySeason', () => {
@@ -751,6 +773,217 @@ describe('TrackService', () => {
       model.findById.mockResolvedValue(null as any);
 
       await expect(service.delete(id, 'boss')).rejects.toThrow('Трек не існує');
+    });
+  });
+
+  describe('bulkDelete', () => {
+    const [first, second, third, fourth] = Array.from({ length: 4 }, () =>
+      String(new Types.ObjectId()),
+    );
+
+    // Аня has two tracks in the spring and one in the summer, Борис one in the spring
+    const tracks = () => [
+      stored({ _id: first, nickname: 'Аня', coins: 12 }),
+      stored({ _id: second, nickname: 'Аня', coins: 8 }),
+      stored({ _id: third, nickname: 'Аня', season: SEASON.SUMMER, coins: 5 }),
+      stored({ _id: fourth, nickname: 'Борис', coins: 10 }),
+    ];
+
+    beforeEach(() => {
+      model.find.mockResolvedValue(tracks() as any);
+      model.deleteMany.mockResolvedValue({ deletedCount: 4 } as any);
+      members.getAllRoles.mockReturnValue([]);
+      members.changeCoins
+        .mockResolvedValueOnce(
+          changeOf({ delta: -20, coins: 80, seasonCoins: 20 }),
+        )
+        .mockResolvedValueOnce(
+          changeOf({
+            season: SEASON.SUMMER,
+            delta: -5,
+            coins: 75,
+            seasonCoins: 0,
+          }),
+        )
+        .mockResolvedValueOnce(
+          changeOf({
+            nickname: 'Борис',
+            delta: -10,
+            coins: 40,
+            seasonCoins: 10,
+          }),
+        );
+    });
+
+    it('takes one sum off every nickname and season, then removes all the tracks', async () => {
+      await service.bulkDelete([first, second, third, fourth], 'boss');
+
+      expect(members.changeCoins.mock.calls).toEqual([
+        [
+          'Аня',
+          { season: SEASON.SPRING, year: 2027, delta: -20, actor: 'boss' },
+        ],
+        [
+          'Аня',
+          { season: SEASON.SUMMER, year: 2027, delta: -5, actor: 'boss' },
+        ],
+        [
+          'Борис',
+          { season: SEASON.SPRING, year: 2027, delta: -10, actor: 'boss' },
+        ],
+      ]);
+      expect(model.deleteMany).toHaveBeenCalledWith({
+        _id: { $in: [first, second, third, fourth] },
+      });
+      expect(members.changeCoins.mock.invocationCallOrder[2]).toBeLessThan(
+        model.deleteMany.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('says how many tracks went and how many crumbs came off', async () => {
+      await expect(
+        service.bulkDelete([first, second, third, fourth], 'boss'),
+      ).resolves.toEqual({ deleted: 4, skipped: 0, coins: 35 });
+    });
+
+    it('audits it as one operation with a row for every track, the balances running down to the final one', async () => {
+      await service.bulkDelete([first, second, third, fourth], 'boss');
+
+      expect(crumbAudit.record).toHaveBeenCalledTimes(1);
+
+      const [kind, actor, description, items] = crumbAudit.record.mock.calls[0];
+
+      expect(kind).toBe(AUDIT_KIND.TRACK_DELETED);
+      expect(actor).toBe('boss');
+      expect(description).toBe('Видалено 4 треки, 35 крихт');
+      expect(
+        items.map(({ entryId, change }) => [
+          entryId,
+          change.nickname,
+          change.season,
+          change.delta,
+          change.coins,
+          change.seasonCoins,
+        ]),
+      ).toEqual([
+        [first, 'Аня', SEASON.SPRING, -12, 88, 28],
+        [second, 'Аня', SEASON.SPRING, -8, 80, 20],
+        [third, 'Аня', SEASON.SUMMER, -5, 75, 0],
+        [fourth, 'Борис', SEASON.SPRING, -10, 40, 10],
+      ]);
+      expect(items.every(({ after }) => after === null)).toBe(true);
+      expect(items[0].before).toMatchObject({
+        type: 'track',
+        nickname: 'Аня',
+        coins: 12,
+      });
+    });
+
+    it('puts the words of the audit in the form the numbers ask for', async () => {
+      model.find.mockResolvedValue([stored({ _id: first, coins: 1 })] as any);
+      model.deleteMany.mockResolvedValue({ deletedCount: 1 } as any);
+      members.changeCoins.mockReset();
+      members.changeCoins.mockResolvedValue(changeOf({ delta: -1 }));
+
+      await service.bulkDelete([first], 'boss');
+
+      expect(crumbAudit.record.mock.calls[0][2]).toBe(
+        'Видалено 1 трек, 1 крихта',
+      );
+    });
+
+    it('takes every id once', async () => {
+      await service.bulkDelete([first, first, second], 'boss');
+
+      expect(model.find).toHaveBeenCalledWith({
+        _id: { $in: [first, second] },
+      });
+    });
+
+    it('skips the tracks that are gone already and counts them', async () => {
+      model.find.mockResolvedValue([tracks()[0], tracks()[3]] as any);
+      model.deleteMany.mockResolvedValue({ deletedCount: 2 } as any);
+      members.changeCoins.mockReset();
+      members.changeCoins.mockResolvedValue(changeOf());
+
+      await expect(
+        service.bulkDelete([first, second, third, fourth], 'boss'),
+      ).resolves.toEqual({ deleted: 2, skipped: 2, coins: 22 });
+
+      expect(model.deleteMany).toHaveBeenCalledWith({
+        _id: { $in: [first, fourth] },
+      });
+    });
+
+    it('does nothing when none of the tracks is there', async () => {
+      model.find.mockResolvedValue([] as any);
+
+      await expect(
+        service.bulkDelete([first, second], 'boss'),
+      ).resolves.toEqual({ deleted: 0, skipped: 2, coins: 0 });
+
+      expect(members.changeCoins).not.toHaveBeenCalled();
+      expect(model.deleteMany).not.toHaveBeenCalled();
+      expect(crumbAudit.record).not.toHaveBeenCalled();
+    });
+
+    it('removes nothing and gives back what was taken when a nickname has too few crumbs', async () => {
+      members.changeCoins.mockReset();
+      members.changeCoins
+        .mockResolvedValueOnce(
+          changeOf({ delta: -20, coins: 80, seasonCoins: 20 }),
+        )
+        .mockRejectedValueOnce(new ConflictException('мало'));
+
+      await expect(
+        service.bulkDelete([first, second, third, fourth], 'boss'),
+      ).rejects.toThrow('мало');
+
+      expect(members.changeCoins).toHaveBeenCalledTimes(3);
+      expect(members.changeCoins).toHaveBeenLastCalledWith(
+        'Аня',
+        { season: SEASON.SPRING, year: 2027, delta: 20, actor: 'boss' },
+        { guard: false },
+      );
+      expect(model.deleteMany).not.toHaveBeenCalled();
+      expect(crumbAudit.record).not.toHaveBeenCalled();
+    });
+
+    it('gives every sum back, the last one first, when the tracks could not be removed', async () => {
+      model.deleteMany.mockRejectedValue(new Error('db down') as never);
+
+      await expect(
+        service.bulkDelete([first, second, third, fourth], 'boss'),
+      ).rejects.toThrow('db down');
+
+      expect(members.changeCoins.mock.calls.slice(3)).toEqual([
+        [
+          'Борис',
+          { season: SEASON.SPRING, year: 2027, delta: 10, actor: 'boss' },
+          { guard: false },
+        ],
+        [
+          'Аня',
+          { season: SEASON.SUMMER, year: 2027, delta: 5, actor: 'boss' },
+          { guard: false },
+        ],
+        [
+          'Аня',
+          { season: SEASON.SPRING, year: 2027, delta: 20, actor: 'boss' },
+          { guard: false },
+        ],
+      ]);
+      expect(crumbAudit.record).not.toHaveBeenCalled();
+    });
+
+    it('logs it when another admin removed one of the tracks at the same moment', async () => {
+      model.deleteMany.mockResolvedValue({ deletedCount: 3 } as any);
+
+      await service.bulkDelete([first, second, third, fourth], 'boss');
+
+      expect(Logger.prototype.error).toHaveBeenCalledWith(
+        expect.stringContaining('3 треків із 4'),
+      );
     });
   });
 });

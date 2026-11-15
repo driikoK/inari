@@ -2,7 +2,7 @@ import { FC } from 'react';
 
 import type { RequestView, WithdrawalPart } from '@/stores/useBudgetStore';
 import { REQUEST_STATUS } from '@/types';
-import { formatCrumbs, formatKop, partText, requestStatusLabel } from '../const/options';
+import { crumbsWithUnit, formatKop, partText, requestStatusLabel } from '../const/options';
 import styles from './Requests.module.scss';
 
 const CHIP: Record<REQUEST_STATUS, string> = {
@@ -33,7 +33,7 @@ export const RequestAmount: FC<{ request: RequestView }> = ({ request }) => {
 
   return (
     <>
-      <div>{isOrder ? formatKop(amountKop ?? 0) : `${formatCrumbs(crumbs ?? 0)} крихт`}</div>
+      <div>{isOrder ? formatKop(amountKop ?? 0) : crumbsWithUnit(crumbs ?? 0)}</div>
 
       {!isOrder && isOpen && estimate && (
         <>

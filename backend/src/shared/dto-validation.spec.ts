@@ -19,6 +19,10 @@ import {
   FinishProjectData,
   UpdateProjectData,
 } from '../projects/data/index.js';
+import {
+  BulkDeleteTracksData,
+  MAX_BULK_DELETE,
+} from '../tracks/data/bulk-delete-tracks.data.js';
 import { CreateTrackData } from '../tracks/data/create-track.data.js';
 import { FilterTrackData } from '../tracks/data/filter-track.data.js';
 import { LastTracksData } from '../tracks/data/last-tracks.js';
@@ -482,6 +486,43 @@ describe('request DTO schemas', () => {
         [message],
       );
     });
+  });
+
+  describe('BulkDeleteTracksData', () => {
+    const objectId = 'a'.repeat(24);
+
+    it('takes a list of ids and drops everything else', () => {
+      expect(
+        BulkDeleteTracksData.parse({ ids: [objectId], nickname: 'a' }),
+      ).toEqual({ ids: [objectId] });
+    });
+
+    it('needs at least one id', () => {
+      expect(messagesOf(BulkDeleteTracksData, { ids: [] })).toEqual([
+        'Виберіть хоча б один трек',
+      ]);
+      expect(BulkDeleteTracksData.safeParse({}).success).toBe(false);
+    });
+
+    it('takes at most as many as one operation of the audit may hold', () => {
+      const ids = (count: number) => Array(count).fill(objectId);
+
+      expect(
+        BulkDeleteTracksData.safeParse({ ids: ids(MAX_BULK_DELETE) }).success,
+      ).toBe(true);
+      expect(
+        messagesOf(BulkDeleteTracksData, { ids: ids(MAX_BULK_DELETE + 1) }),
+      ).toEqual([`Не більше ${MAX_BULK_DELETE} треків за раз`]);
+    });
+
+    it.each(['nope', '', 'a'.repeat(23), 'g'.repeat(24), { $ne: null }])(
+      'rejects %o as an id',
+      (id) => {
+        expect(BulkDeleteTracksData.safeParse({ ids: [id] }).success).toBe(
+          false,
+        );
+      },
+    );
   });
 
   describe('credentials', () => {

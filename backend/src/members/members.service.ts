@@ -19,7 +19,12 @@ import { type CrumbsChange, memberSnapshot } from '../budget/crumbs.js';
 import { AUDIT_KIND } from '../budget/enums/index.js';
 import { seasonOfDay, todayInKyiv } from '../projects/layout.js';
 import { MemberData } from './data/member.data.js';
-import { MEMBER_KIND, MEMBER_ROLE, type SEASON } from '../shared/index.js';
+import {
+  MEMBER_KIND,
+  MEMBER_ROLE,
+  plural,
+  type SEASON,
+} from '../shared/index.js';
 import { CoinsTotalFilterData } from './data/coins-total.data.js';
 import { MemberFilterData, UNMARKED_KIND } from './data/filter-members.data.js';
 import { UpdateMemberData } from './data/update-member.data.js';
@@ -153,7 +158,7 @@ export class MembersService {
       await this.crumbAudit.record(
         AUDIT_KIND.MEMBER_CREATED,
         actor,
-        `Додано нікнейм ${member.nickname} з ${formatCrumbs(coins)} крихтами`,
+        `Додано нікнейм ${member.nickname} з ${formatCrumbs(coins)} ${plural(coins, ['крихтою', 'крихтами', 'крихтами'])}`,
         [
           {
             change: {

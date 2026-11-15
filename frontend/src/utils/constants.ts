@@ -32,3 +32,5 @@ export const seasonOptions = [
 
 // The year of the first season of the team that has data, where the list of seasons starts
 export const FIRST_SEASON_YEAR = 2024;
+
+export const MAX_BULK_DELETE = 100;

@@ -13,6 +13,7 @@ import { CheckboxWrapper } from '../styles';
 import { CoinsType } from '@/types';
 import { useAuthStore, useMembersStore, useTracksStore } from '@/stores';
 import { H6, P, Subtitle } from '@/components';
+import { crumbsWord } from '@/utils/plural';
 import useCoinsCalculation from '../hooks/useCoinsCalculation';
 import { startNameForMemberField } from '../const';
 import { useCoinsByDuration, useWatchCheckboxValues, useWatchNicknames } from '../hooks';
@@ -207,7 +208,9 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
             />
           </div>
 
-          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForDubs} крихт`}</Subtitle>
+          <Subtitle sx={{ textAlign: 'center' }}>
+            Доступно {coinsForDubs} {crumbsWord(Number(coinsForDubs))}
+          </Subtitle>
 
           <CoinsCalculator coinsForDubs={isDoubleDubs ? coins.dub.double : coins.dub.multi} />
           <FormField
@@ -217,7 +220,9 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
             maxLength={10}
           />
 
-          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForReleasers} крихт`}</Subtitle>
+          <Subtitle sx={{ textAlign: 'center' }}>
+            Доступно {coinsForReleasers} {crumbsWord(Number(coinsForReleasers))}
+          </Subtitle>
           <FormField
             name={`${startNameForMemberField}.releasers`}
             label="Релізери"
@@ -225,7 +230,9 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
             maxLength={2}
           />
 
-          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForFixers} крихт`}</Subtitle>
+          <Subtitle sx={{ textAlign: 'center' }}>
+            Доступно {coinsForFixers} {crumbsWord(Number(coinsForFixers))}
+          </Subtitle>
           <FormField
             name={`${startNameForMemberField}.fixers`}
             label="Контроль якості"

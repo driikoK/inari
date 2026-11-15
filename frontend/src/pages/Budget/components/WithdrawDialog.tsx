@@ -22,6 +22,7 @@ import useBudgetStore, {
   type RequestPreview,
 } from '@/stores/useBudgetStore';
 import { EXPENSE_KIND } from '@/types';
+import { crumbsWord } from '@/utils/plural';
 import { notifyFailure } from '@/utils/request';
 import {
   expenseKindOptions,
@@ -106,21 +107,23 @@ const SectionFields: FC<SectionFieldsProps> = ({ kind, isOrder, line }) => {
           <Controller
             control={control}
             name={name('amount')}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label={isOrder ? 'Сума' : 'Кількість'}
-                fullWidth
-                slotProps={{
-                  htmlInput: { inputMode: 'decimal' },
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">{isOrder ? 'грн' : 'крихт'}</InputAdornment>
-                    ),
-                  },
-                }}
-              />
-            )}
+            render={({ field }) => {
+              // The word follows the number as it is typed: «1 крихта», «12,5 крихти», «5 крихт»
+              const typed = Number(String(field.value ?? '').replace(',', '.'));
+              const unit = isOrder ? 'грн' : Number.isFinite(typed) ? crumbsWord(typed) : 'крихт';
+
+              return (
+                <TextField
+                  {...field}
+                  label={isOrder ? 'Сума' : 'Кількість'}
+                  fullWidth
+                  slotProps={{
+                    htmlInput: { inputMode: 'decimal' },
+                    input: { endAdornment: <InputAdornment position="end">{unit}</InputAdornment> },
+                  }}
+                />
+              );
+            }}
           />
           <ErrorMessage
             name={name('amount')}
@@ -247,7 +250,8 @@ export const WithdrawDialog: FC<WithdrawDialogProps> = ({ summary, onClose }) =>
 
             {!isOrder && withdrawal && (
               <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                Можна вивести зараз: <b>{formatCrumbs(withdrawal.availableCrumbs)}</b> крихт
+                Можна вивести зараз: <b>{formatCrumbs(withdrawal.availableCrumbs)}</b>{' '}
+                {crumbsWord(withdrawal.availableCrumbs)}
                 {withdrawal.reservedCrumbs > 0 &&
                   ` (ще ${formatCrumbs(withdrawal.reservedCrumbs)} уже в запитах)`}
                 . Виводяться крихти завершених сезонів, найстаріші першими, за коефіцієнтом свого

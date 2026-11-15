@@ -1,4 +1,4 @@
-import type { SEASON } from '../shared/index.js';
+import { plural, type SEASON } from '../shared/index.js';
 import {
   DIRECTION_LABEL,
   ENTRY_TYPE,
@@ -27,6 +27,21 @@ export const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
 export const formatCrumbs = (value: number) =>
   round3(value).toLocaleString('uk-UA', { maximumFractionDigits: 3 });
+
+// «1 крихта», «2 крихти», «5 крихт», «11 крихт», «21 крихта». A number with a
+// fraction takes «крихти», as in «1,5 крихти», and the sign does not count. The
+// fraction is judged the way formatCrumbs shows it, so what shows as «5» is
+// «5 крихт».
+export const crumbsWord = (value: number) => {
+  const shown = round3(Math.abs(value));
+
+  return Number.isInteger(shown)
+    ? plural(shown, ['крихта', 'крихти', 'крихт'])
+    : 'крихти';
+};
+
+export const formatCrumbsWithUnit = (value: number) =>
+  `${formatCrumbs(value)} ${crumbsWord(value)}`;
 
 const COEFFICIENT_TICKS = 10000;
 
@@ -328,7 +343,7 @@ export const describeEntry = (entry: EntrySnapshot) => {
         entry.section === EXPENSE_SECTION.CRUMBS &&
         entry.crumbSeason &&
         entry.crumbYear !== undefined
-          ? `Крихти ${seasonLabel(entry.crumbSeason, entry.crumbYear)}${entry.crumbs === undefined ? '' : `, ${formatCrumbs(entry.crumbs)} крихт`}`
+          ? `Крихти ${seasonLabel(entry.crumbSeason, entry.crumbYear)}${entry.crumbs === undefined ? '' : `, ${formatCrumbsWithUnit(entry.crumbs)}`}`
           : entry.section === EXPENSE_SECTION.SUPPORT && entry.direction
             ? `Печивко підтримки → ${DIRECTION_LABEL[entry.direction]}`
             : `Тістечка замовлень → ${entry.title || NO_TITLE}`;

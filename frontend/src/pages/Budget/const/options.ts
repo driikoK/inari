@@ -21,6 +21,7 @@ import {
   SUPPORT_DIRECTION,
 } from '@/types';
 import { seasonOptions } from '@/utils/constants';
+import { crumbsWord } from '@/utils/plural';
 
 export const MAX_KOP = 1_000_000_000;
 
@@ -125,6 +126,12 @@ export const formatSignedCrumbs = (crumbs: number) => {
   return `${crumbs > 0 ? '+' : '−'}${formatCrumbs(Math.abs(crumbs))}`;
 };
 
+// The crumbs with the word in the form the number asks for: «1 крихта», «3 крихти», «5 крихт»
+export const crumbsWithUnit = (crumbs: number) => `${formatCrumbs(crumbs)} ${crumbsWord(crumbs)}`;
+
+export const signedCrumbsWithUnit = (crumbs: number) =>
+  `${formatSignedCrumbs(crumbs)} ${crumbsWord(crumbs)}`;
+
 // How the crumbs of one season were or would be paid
 export const partText = ({ season, year, crumbs, coefficient, amountKop }: WithdrawalPart) =>
   `${seasonLabel(season, year)}: ${formatCrumbs(crumbs)} × ${formatRate(coefficient)} = ${formatKop(amountKop)}`;
@@ -133,13 +140,13 @@ export const partText = ({ season, year, crumbs, coefficient, amountKop }: Withd
 export const formatReconcileValue = (unit?: AUDIT_UNIT, value?: number) => {
   if (!unit || value === undefined) return '—';
 
-  return unit === AUDIT_UNIT.MONEY ? formatKop(value) : `${formatCrumbs(value)} крихт`;
+  return unit === AUDIT_UNIT.MONEY ? formatKop(value) : crumbsWithUnit(value);
 };
 
 export const formatReconcileDifference = (unit?: AUDIT_UNIT, value?: number) => {
   if (!unit || value === undefined) return '—';
 
-  return unit === AUDIT_UNIT.MONEY ? formatSignedKop(value) : `${formatSignedCrumbs(value)} крихт`;
+  return unit === AUDIT_UNIT.MONEY ? formatSignedKop(value) : signedCrumbsWithUnit(value);
 };
 
 export const formatDateTime = (value: string, timeStyle: 'short' | 'medium' = 'short') =>
@@ -267,7 +274,7 @@ const expenseSource = ({
   if (section === EXPENSE_SECTION.CRUMBS && crumbSeason && crumbYear !== undefined) {
     return [
       `Крихти: ${seasonLabel(crumbSeason, crumbYear)}`,
-      crumbs !== undefined && `${formatCrumbs(crumbs)} крихт`,
+      crumbs !== undefined && crumbsWithUnit(crumbs),
     ]
       .filter(Boolean)
       .join(', ');
@@ -312,7 +319,7 @@ const describeCrumbs = (snapshot: CrumbSnapshot, roleLabel: (role: string) => st
       `«${nameTitle}» еп. ${currentEpisode}`,
       nickname,
       roleLabel(typeRole),
-      `${formatCrumbs(coins)} крихт`,
+      crumbsWithUnit(coins),
       seasonLabel(season, year),
     ].join(' · ');
   }
@@ -323,7 +330,7 @@ const describeCrumbs = (snapshot: CrumbSnapshot, roleLabel: (role: string) => st
 
   return [
     snapshot.nickname,
-    `${formatCrumbs(snapshot.coins)} крихт`,
+    crumbsWithUnit(snapshot.coins),
     bySeason && `за сезонами — ${bySeason}`,
   ]
     .filter(Boolean)
