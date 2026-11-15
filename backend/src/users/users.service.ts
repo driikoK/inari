@@ -90,7 +90,16 @@ export class UsersService {
     role,
   }: CreateUserDto): Promise<string> {
     const hash = await bcrypt.hash(password, 10);
-    await this.userModel.create({ username, password: hash, role, email });
+
+    try {
+      await this.userModel.create({ username, password: hash, role, email });
+    } catch (error) {
+      if ((error as { code?: number }).code === DUPLICATE_KEY) {
+        throw new HttpException('Такий нікнейм вже існує', HttpStatus.CONFLICT);
+      }
+
+      throw error;
+    }
 
     return 'Created';
   }

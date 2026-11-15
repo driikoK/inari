@@ -29,11 +29,9 @@ export class AuthService {
     }
 
     // ** Root will be the first user with admin role to give roles other users
-    if (username === 'root') {
-      this.usersService.create({ ...signUpDto, role: ROLE.ADMIN });
-    } else {
-      this.usersService.create({ ...signUpDto, role: ROLE.MEMBER });
-    }
+    const role = username === 'root' ? ROLE.ADMIN : ROLE.MEMBER;
+
+    await this.usersService.create({ ...signUpDto, role });
 
     return true;
   }

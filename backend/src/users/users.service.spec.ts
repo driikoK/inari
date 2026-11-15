@@ -7,6 +7,7 @@ import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 import { IMember } from '../members/interfaces/members.interface.js';
 import { MembersService } from '../members/members.service.js';
 import { MEMBER_KIND } from '../shared/index.js';
+import { ROLE } from './enums/index.js';
 import { IUser } from './interfaces/user.interface.js';
 import { UsersService } from './users.service.js';
 
@@ -35,6 +36,46 @@ describe('UsersService', () => {
     service = module.get(UsersService);
     model = module.get('USER_MODEL');
     membersService = module.get(MembersService);
+  });
+
+  describe('create', () => {
+    const data = {
+      username: 'dixy',
+      password: 'secret',
+      email: 'dixy@example.com',
+      role: ROLE.MEMBER,
+    };
+
+    it('saves the account with a hash in place of the password', async () => {
+      model.create.mockResolvedValue({} as any);
+
+      await expect(service.create(data)).resolves.toBe('Created');
+
+      const [saved] = model.create.mock.calls[0] as [Record<string, string>];
+
+      expect(saved).toMatchObject({
+        username: 'dixy',
+        email: 'dixy@example.com',
+        role: ROLE.MEMBER,
+      });
+      expect(saved.password).not.toBe('secret');
+      expect(saved.password).toMatch(/^\$2[aby]\$/);
+    });
+
+    it('turns the unique index refusal of a parallel sign-up of the same name into a conflict', async () => {
+      model.create.mockRejectedValue({ code: 11000 });
+
+      await expect(service.create(data)).rejects.toMatchObject({
+        status: HttpStatus.CONFLICT,
+        message: 'Такий нікнейм вже існує',
+      });
+    });
+
+    it('lets any other failure through as it is', async () => {
+      model.create.mockRejectedValue(new Error('db down'));
+
+      await expect(service.create(data)).rejects.toThrow('db down');
+    });
   });
 
   describe('setNickname', () => {
