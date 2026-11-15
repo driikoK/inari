@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import axios from '@/api';
 import { TrackType } from '@/types';
 import { CreateTrackType } from '@/pages/Cookie/components/InputCookieDialog/types';
-import { ensure } from '@/utils/request';
+import { ensure, notifyFailure } from '@/utils/request';
 
 interface UpdateTrackData {
   coins: number;
@@ -27,6 +27,12 @@ export interface TrackFilters {
   perPage: number;
 }
 
+export interface BulkDeleteResult {
+  deleted: number;
+  skipped: number;
+  coins: number;
+}
+
 interface FilterForLastTracks {
   projectId: string;
   episode: number;
@@ -43,6 +49,7 @@ interface Actions {
   getTracks: (filters?: Partial<TrackFilters>) => Promise<void>;
   addTracks: (newTracks: CreateTrackType) => Promise<void>;
   deleteTracks: (id: string) => Promise<void>;
+  deleteTracksBulk: (ids: string[]) => Promise<BulkDeleteResult>;
   updateTrack: (id: string, track: UpdateTrackData) => Promise<TrackType>;
   getLastTracks: (filter: FilterForLastTracks) => Promise<void>;
   resetLastTracks: () => void;
@@ -95,6 +102,28 @@ const useTracksStore = create<State & Actions>((set, get) => ({
     } catch (error) {
       throw error;
     }
+  },
+  deleteTracksBulk: async (ids: string[]) => {
+    const { data } = ensure(await axios.post<BulkDeleteResult>('/tracks/bulk-delete', { ids }));
+
+    // The tracks are gone whatever happens to the list, so a list that cannot be read again is
+    // only told, not a failure of the delete
+    try {
+      const { appliedFilters, getTracks } = get();
+      await getTracks(appliedFilters);
+
+      // A page whose tracks all went is not there any more, so the last one that is left shows
+      const { total, perPage } = get().tracks;
+      const lastPage = Math.max(1, Math.ceil(total / perPage));
+
+      if ((appliedFilters.page ?? 1) > lastPage) {
+        await getTracks({ ...appliedFilters, page: lastPage });
+      }
+    } catch (error) {
+      notifyFailure(error);
+    }
+
+    return data;
   },
   updateTrack: async (id: string, track: UpdateTrackData) => {
     try {

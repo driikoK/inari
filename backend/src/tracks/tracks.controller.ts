@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TrackService } from './tracks.service.js';
+import { BulkDeleteTracksData } from './data/bulk-delete-tracks.data.js';
 import { CreateTrackData } from './data/create-track.data.js';
 import { FilterTrackData } from './data/filter-track.data.js';
 import { UpdateTrackData } from './data/update-track.data.js';
@@ -57,6 +58,15 @@ export class TracksController {
     @CurrentUser() user: ValidatedUser,
   ) {
     return this.trackService.delete(id, user.username);
+  }
+
+  @Post('bulk-delete')
+  @UseGuards(AuthGuard, AdminGuard)
+  bulkDelete(
+    @Body({ schema: BulkDeleteTracksData }) data: BulkDeleteTracksData,
+    @CurrentUser() user: ValidatedUser,
+  ) {
+    return this.trackService.bulkDelete(data.ids, user.username);
   }
 
   @Get('last')

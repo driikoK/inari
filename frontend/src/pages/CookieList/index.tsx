@@ -2,9 +2,17 @@ import { FunctionComponent, useCallback, useEffect, useMemo, useState } from 're
 import toast from 'react-hot-toast';
 
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import { GridActionsCellItem, GridCellParams, GridColDef, GridRowModel } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridCellParams,
+  GridColDef,
+  GridRowId,
+  GridRowModel,
+  GridRowSelectionModel,
+} from '@mui/x-data-grid';
 
 import { PageContainer, Title, TitleWrapper } from './styles';
+import { BulkDeleteBar } from './components/BulkDeleteBar';
 import { CookiesFilters } from './components/CookiesFilters';
 import {
   useTitlesStore,
@@ -14,9 +22,16 @@ import {
   useAuthStore,
 } from '@/stores';
 import { ANIME_TYPE, TrackType } from '@/types';
-import { CustomTable, ConfirmTableChangeDialog, TextWrapTableCell } from '@/components';
-import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/convert';
+import {
+  CustomTable,
+  ConfirmDeleteDialog,
+  ConfirmTableChangeDialog,
+  TextWrapTableCell,
+} from '@/components';
+import { MAX_BULK_DELETE } from '@/utils/constants';
+import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr, formatCoins } from '@/utils/convert';
 import { prettifyDate } from '@/utils/dates';
+import { plural } from '@/utils/plural';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
 import { notifyFailure } from '@/utils/request';
@@ -37,9 +52,18 @@ type RowType = {
   isSubsOnly: string;
 } & Omit<TrackType, 'isOngoing' | 'isPriority' | 'isInTime' | 'isGuest' | 'isSubsOnly'>;
 
+const trackWord = (count: number) => plural(count, ['трек', 'треки', 'треків']);
+
 const CookieList: FunctionComponent = () => {
-  const { tracks, getTracks, deleteTracks, updateTrack, isLoading, appliedFilters } =
-    useTracksStore();
+  const {
+    tracks,
+    getTracks,
+    deleteTracks,
+    deleteTracksBulk,
+    updateTrack,
+    isLoading,
+    appliedFilters,
+  } = useTracksStore();
   const titles = useTitlesStore((state) => state.titles);
   const getTitles = useTitlesStore((state) => state.getTitles);
   const { roles, getRoles } = useRolesStore();
@@ -50,6 +74,12 @@ const CookieList: FunctionComponent = () => {
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RowType | null>(null);
+  // What is ticked for a bulk delete stays when the page or the filters change, so it can be more
+  // than the table shows
+  const [selectedIds, setSelectedIds] = useState<GridRowId[]>([]);
+  const [openBulkDialog, setOpenBulkDialog] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const canDelete = hasAccess(SUBJECTS.COOKIES_LIST_DELETE);
   // The page and the filters are one thing in the store, so a filter can send the page back to the
   // first one and the table follows
   const page = appliedFilters.page ?? 1;
@@ -176,7 +206,7 @@ const CookieList: FunctionComponent = () => {
       width: 200,
       resizable: false,
     },
-    ...(hasAccess(SUBJECTS.COOKIES_LIST_DELETE)
+    ...(canDelete
       ? [
           {
             field: 'actions',
@@ -231,11 +261,42 @@ const CookieList: FunctionComponent = () => {
   const handleDeleteYes = async () => {
     try {
       await deleteTracks(selectedItem?._id as string);
+      setSelectedIds((ids) => ids.filter((id) => id !== selectedItem?._id));
       toast.success('Успішно видалено');
     } catch (error) {
     } finally {
       setOpenDeleteDialog(false);
       setSelectedItem(null);
+    }
+  };
+
+  const handleSelection = (model: GridRowSelectionModel) => {
+    if (model.length > MAX_BULK_DELETE) {
+      toast.error(`Не більше ${MAX_BULK_DELETE} треків за раз`, { id: 'bulk-delete-limit' });
+
+      return;
+    }
+
+    setSelectedIds([...model]);
+  };
+
+  const handleBulkDelete = async () => {
+    setIsBulkDeleting(true);
+
+    try {
+      const { deleted, skipped, coins } = await deleteTracksBulk(selectedIds as string[]);
+      const gone = skipped > 0 ? `, ${skipped} ${trackWord(skipped)} уже не було` : '';
+
+      setSelectedIds([]);
+      toast.success(
+        `Видалено ${deleted} ${trackWord(deleted)}, списано ${formatCoins(coins)} крихт${gone}`,
+      );
+    } catch (error) {
+      // The server's refusal was shown by the request itself, the selection stays to be changed
+      notifyFailure(error);
+    } finally {
+      setIsBulkDeleting(false);
+      setOpenBulkDialog(false);
     }
   };
 
@@ -286,9 +347,23 @@ const CookieList: FunctionComponent = () => {
 
       <CookiesFilters />
 
+      {canDelete && selectedIds.length > 0 && (
+        <BulkDeleteBar
+          count={selectedIds.length}
+          disabled={isBulkDeleting}
+          onClear={() => setSelectedIds([])}
+          onDelete={() => setOpenBulkDialog(true)}
+        />
+      )}
+
       <CustomTable
         rows={rows}
         columns={columns}
+        checkboxSelection={canDelete}
+        keepNonExistentRowsSelected
+        hideFooterSelectedRowCount
+        rowSelectionModel={selectedIds}
+        onRowSelectionModelChange={handleSelection}
         processRowUpdate={processRowUpdate}
         rowCount={tracks.total}
         loading={isLoading}
@@ -308,6 +383,15 @@ const CookieList: FunctionComponent = () => {
         handleYes={handleDeleteYes}
         handleNo={handleDeleteNo}
         open={openDeleteDialog}
+      />
+      <ConfirmDeleteDialog
+        open={openBulkDialog}
+        title={`Видалити ${selectedIds.length} ${trackWord(selectedIds.length)}?`}
+        message="Крихти цих записів буде списано з нікнеймів. Якщо в когось за сезон поточного запису вже менше крихт (їх виведено), не видалиться жоден запис. Видалене можна відновити лише з бекапу."
+        isLoading={isBulkDeleting}
+        autoFocusCancel
+        onConfirm={handleBulkDelete}
+        onCancel={() => setOpenBulkDialog(false)}
       />
       <ConfirmTableChangeDialog
         computeMutation={computeMutation}

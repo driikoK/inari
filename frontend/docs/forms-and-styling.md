@@ -16,7 +16,7 @@ Part of the frontend guide, see [CLAUDE.md](../CLAUDE.md).
 
 ## Deleting things
 
-Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` with a `GridActionsCellItem` and `DeleteOutlined` icon) shown only when `hasAccess(SUBJECTS.DELETE_*)`, a `memberToDelete`/`userToDelete` state, and `ConfirmDeleteDialog` (`src/components/ConfirmDeleteDialog`) with a message that says what is kept or lost. The Axios interceptor already toasts the server's error, so the `catch` can be empty with a comment saying so.
+Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` with a `GridActionsCellItem` and `DeleteOutlined` icon) shown only when `hasAccess(SUBJECTS.DELETE_*)`, a `memberToDelete`/`userToDelete` state, and `ConfirmDeleteDialog` (`src/components/ConfirmDeleteDialog`) with a message that says what is kept or lost. The Axios interceptor already toasts the server's error, so the `catch` can be empty with a comment saying so. `autoFocusCancel` puts the focus on «Скасувати» for what cannot be taken back (the bulk delete of tracks uses it). It is set when the dialog has finished opening, because the dialog takes the focus itself first and an `autoFocus` on the button loses to it.
 
 ## Styling
 

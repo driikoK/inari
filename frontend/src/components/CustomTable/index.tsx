@@ -51,6 +51,11 @@ export const CustomTable = <T extends GridValidRowModel>({
           MuiTablePagination: {
             labelRowsPerPage: 'Рядків на сторінці',
           },
+          checkboxSelectionHeaderName: 'Вибір',
+          checkboxSelectionSelectAllRows: 'Вибрати всі рядки сторінки',
+          checkboxSelectionUnselectAllRows: 'Зняти вибір зі сторінки',
+          checkboxSelectionSelectRow: 'Вибрати рядок',
+          checkboxSelectionUnselectRow: 'Зняти вибір з рядка',
         }}
         {...props}
       />

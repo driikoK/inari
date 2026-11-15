@@ -14,7 +14,7 @@ describe('TracksController', () => {
     ]);
   });
 
-  it.each(['updateTrack', 'deleteTrack'] as const)(
+  it.each(['updateTrack', 'deleteTrack', 'bulkDelete'] as const)(
     '%s is for admins only, like the cookie list in the app',
     (handler) => {
       expect(guardsOf(TracksController.prototype[handler])).toEqual([

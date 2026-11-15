@@ -48,6 +48,14 @@ export interface NicknameCoins extends SeasonCoins {
   nickname: string;
 }
 
+// What a bulk delete did: the tracks it removed, the ones that were gone
+// already, and the crumbs it took off the nicknames
+export interface BulkDeleteResult {
+  deleted: number;
+  skipped: number;
+  coins: number;
+}
+
 export interface ITracksWithPagination {
   data: ITrack[];
   total: number;

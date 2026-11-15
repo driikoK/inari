@@ -1,4 +1,4 @@
-import { isValidObjectId, Model } from 'mongoose';
+import { HydratedDocument, isValidObjectId, Model } from 'mongoose';
 import {
   HttpException,
   HttpStatus,
@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 
-import { formatCrumbs } from '../budget/calc.js';
+import { formatCrumbs, round3 } from '../budget/calc.js';
 import { CrumbAuditService } from '../budget/crumb-audit.service.js';
 import {
   type CrumbAuditItem,
@@ -26,13 +26,14 @@ import {
   todayInKyiv,
 } from '../projects/layout.js';
 import { ProjectsService } from '../projects/projects.service.js';
-import { MEMBER_ROLE, pick, type SEASON } from '../shared/index.js';
+import { MEMBER_ROLE, pick, plural, type SEASON } from '../shared/index.js';
 import { DictionariesService } from '../dictionaries/dictionaries.service.js';
 import { UsersService } from '../users/users.service.js';
 import { UpdateTrackData } from './data/update-track.data.js';
 import { CreateTrackData, MemberInfo } from './data/create-track.data.js';
 import { FilterTrackData } from './data/filter-track.data.js';
 import {
+  BulkDeleteResult,
   ITrack,
   ITracksWithPagination,
   Multipliers,
@@ -63,9 +64,12 @@ export class TrackService {
   async findAll(filter: FilterTrackData): Promise<ITracksWithPagination> {
     const { page = 1, perPage = 10, ...queryFilter } = filter;
 
+    // Tracks written in one moment share their time, and a page that cuts
+    // through them would repeat a track on the next page and lose another, so
+    // the id decides between them
     const tracks = await this.trackModel
       .find(queryFilter)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .skip((page - 1) * perPage)
       .limit(perPage);
 
@@ -145,6 +149,134 @@ export class TrackService {
       `Видалено трек ${describeTrack(before, (role) => this.roleLabel(role))}`,
       [{ change, entryId: id, before, after: null }],
     );
+  }
+
+  // Everything or nothing. The crumbs come off first, one sum for every
+  // nickname and season, so when a nickname has too few of them in a season
+  // nothing is removed and what was already taken is given back. A track that
+  // is gone already is skipped, its crumbs went with it. The one race left is
+  // the same as in deleting one track: another admin removing the same track at
+  // the same moment, which is logged.
+  async bulkDelete(ids: string[], actor: string): Promise<BulkDeleteResult> {
+    const wanted = [...new Set(ids)];
+    const found = await this.trackModel.find({ _id: { $in: wanted } });
+    const byId = new Map(found.map((track) => [String(track._id), track]));
+    const tracks = wanted.flatMap((id) => byId.get(id) ?? []);
+    const skipped = wanted.length - tracks.length;
+
+    if (tracks.length === 0) return { deleted: 0, skipped, coins: 0 };
+
+    const taken = await this.takeCrumbs(tracks, actor);
+
+    try {
+      const { deletedCount } = await this.trackModel.deleteMany({
+        _id: { $in: tracks.map((track) => track._id) },
+      });
+
+      if (deletedCount !== tracks.length) {
+        this.logger.error(
+          `Масове видалення прибрало ${deletedCount} треків із ${tracks.length}, крихти списано за всі`,
+        );
+      }
+    } catch (error) {
+      await this.giveBack(
+        taken.map(({ change }) => change),
+        actor,
+      );
+
+      throw error;
+    }
+
+    const coins = round3(tracks.reduce((sum, track) => sum + track.coins, 0));
+
+    await this.crumbAudit.record(
+      AUDIT_KIND.TRACK_DELETED,
+      actor,
+      `Видалено ${tracks.length} ${plural(tracks.length, ['трек', 'треки', 'треків'])}, ${formatCrumbs(coins)} крихт`,
+      taken.flatMap(({ tracks: group, change }) =>
+        this.auditRows(group, change),
+      ),
+    );
+
+    return { deleted: tracks.length, skipped, coins };
+  }
+
+  // One change for every nickname and season of the tracks
+  private async takeCrumbs(tracks: HydratedDocument<ITrack>[], actor: string) {
+    const groups = new Map<string, HydratedDocument<ITrack>[]>();
+
+    for (const track of tracks) {
+      const key = `${track.nickname}|${track.season}|${track.year}`;
+
+      groups.set(key, [...(groups.get(key) ?? []), track]);
+    }
+
+    const taken: {
+      tracks: HydratedDocument<ITrack>[];
+      change: CrumbsChange;
+    }[] = [];
+
+    try {
+      for (const group of groups.values()) {
+        const [{ nickname, season, year }] = group;
+        const sum = round3(
+          group.reduce((total, { coins }) => total + coins, 0),
+        );
+        const change = await this.membersService.changeCoins(nickname, {
+          season,
+          year,
+          delta: -sum,
+          actor,
+        });
+
+        taken.push({ tracks: group, change });
+      }
+    } catch (error) {
+      await this.giveBack(
+        taken.map(({ change }) => change),
+        actor,
+      );
+
+      throw error;
+    }
+
+    return taken;
+  }
+
+  private async giveBack(changes: CrumbsChange[], actor: string) {
+    for (const change of [...changes].reverse()) {
+      await this.revert(change, actor);
+    }
+  }
+
+  // A row for every track. The nickname lost the crumbs of the whole group in
+  // one change, so the balance after a track is the final one plus the crumbs
+  // of the tracks that come after it, and the rows of a nickname add up.
+  private auditRows(
+    tracks: HydratedDocument<ITrack>[],
+    { nickname, season, year, coins, seasonCoins }: CrumbsChange,
+  ): CrumbAuditItem[] {
+    const rows: CrumbAuditItem[] = [];
+    let later = 0;
+
+    for (const track of [...tracks].reverse()) {
+      rows.unshift({
+        change: {
+          nickname,
+          season,
+          year,
+          delta: -track.coins,
+          coins: round3(coins + later),
+          seasonCoins: round3(seasonCoins + later),
+        },
+        entryId: String(track._id),
+        before: trackSnapshot(track),
+        after: null,
+      });
+      later += track.coins;
+    }
+
+    return rows;
   }
 
   private calculateAdditionalCoins = (

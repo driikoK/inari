@@ -33,6 +33,18 @@ export function splitOptionals<K extends string>(
   return { set, unset };
 }
 
+// «1 трек», «2 треки», «5 треків», «11 треків», «21 трек»
+export const plural = (
+  count: number,
+  [one, few, many]: [one: string, few: string, many: string],
+) => {
+  if (count % 100 >= 11 && count % 100 <= 14) return many;
+  if (count % 10 === 1) return one;
+  if (count % 10 >= 2 && count % 10 <= 4) return few;
+
+  return many;
+};
+
 export const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
