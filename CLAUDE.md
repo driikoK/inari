@@ -45,5 +45,5 @@ Use npm everywhere (Node 24, npm 11), never yarn. Do not commit `.env` files.
 
 ## Working in this repo
 
-- Prefer evidence over assumption: this codebase has patterns that look wrong but are intentional (for example members are hidden with `deletedAt`, not removed). Read the app's `CLAUDE.md` before changing behaviour.
+- Prefer evidence over assumption: this codebase has patterns that look wrong but are intentional (for example members are hidden with `deletedAt`, not removed). Read the app's `CLAUDE.md` and the file of its `docs/` for the area before changing behaviour.
 - Authorization is enforced only where the backend says so. The frontend's permission checks hide UI and are not a security boundary.
