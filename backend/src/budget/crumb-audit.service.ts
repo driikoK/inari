@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { SEASON } from '../shared/index.js';
 import { BudgetAuditService } from './budget-audit.service.js';
-import { formatCrumbs } from './calc.js';
+import { formatCrumbsWithUnit } from './calc.js';
 import {
   type CrumbAuditItem,
   type CrumbsOpening,
@@ -25,7 +25,7 @@ export class CrumbAuditService {
     const head = this.auditService.operation(
       AUDIT_KIND.CRUMBS_INITIAL,
       actor,
-      `Початковий стан: ${nickname} — ${formatCrumbs(opening.coins)} крихт`,
+      `Початковий стан: ${nickname} — ${formatCrumbsWithUnit(opening.coins)}`,
     );
 
     await this.auditService.record([

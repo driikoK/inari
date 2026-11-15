@@ -8,12 +8,13 @@ import useRolesStore from '@/stores/useRolesStore';
 import { AUDIT_UNIT } from '@/types';
 import {
   auditKindLabel,
+  crumbsWithUnit,
   describeSnapshot,
   formatCrumbs,
   formatDateTime,
   formatKop,
-  formatSignedCrumbs,
   formatSignedKop,
+  signedCrumbsWithUnit,
 } from '../const/options';
 import styles from './AuditOperationCard.module.scss';
 
@@ -61,10 +62,10 @@ export const AuditOperationCard: FC<AuditOperationCardProps> = ({ operation }) =
                 <td
                   className={`${styles.number} ${row.deltaCrumbs < 0 ? styles.minus : styles.plus}`}
                 >
-                  {formatSignedCrumbs(row.deltaCrumbs)} крихт
+                  {signedCrumbsWithUnit(row.deltaCrumbs)}
                 </td>
                 <td className={styles.number}>
-                  {formatCrumbs(row.balanceAfterCrumbs)} крихт
+                  {crumbsWithUnit(row.balanceAfterCrumbs)}
                   <div className={styles.sub}>
                     {seasonLabel(row.season, row.year)}:{' '}
                     {formatCrumbs(row.seasonBalanceAfterCrumbs)}

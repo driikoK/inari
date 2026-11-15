@@ -2,10 +2,12 @@ import { SEASON } from '../shared/index.js';
 import {
   balancesOf,
   coefficientOf,
+  crumbsWord,
   describeEntry,
   diffEffects,
   effectsOf,
   findOverdraft,
+  formatCrumbsWithUnit,
   formatKop,
   kopOfCrumbs,
   negate,
@@ -121,6 +123,56 @@ describe('formatKop', () => {
   it('shows hryvnias with two digits', () => {
     expect(formatKop(150000).replace(/\s/g, ' ')).toBe('1 500,00 грн');
     expect(formatKop(5)).toBe('0,05 грн');
+  });
+});
+
+describe('crumbsWord', () => {
+  it.each([
+    [0, 'крихт'],
+    [1, 'крихта'],
+    [2, 'крихти'],
+    [4, 'крихти'],
+    [5, 'крихт'],
+    [11, 'крихт'],
+    [12, 'крихт'],
+    [14, 'крихт'],
+    [21, 'крихта'],
+    [22, 'крихти'],
+    [101, 'крихта'],
+    [111, 'крихт'],
+  ])('puts %i in the form «%s»', (value, word) => {
+    expect(crumbsWord(value)).toBe(word);
+  });
+
+  it('takes «крихти» after a fraction, whatever its last digit is', () => {
+    for (const value of [0.5, 1.5, 2.5, 5.25, 11.5, 21.5]) {
+      expect(crumbsWord(value)).toBe('крихти');
+    }
+  });
+
+  it('does not count the sign', () => {
+    expect(crumbsWord(-1)).toBe('крихта');
+    expect(crumbsWord(-5)).toBe('крихт');
+    expect(crumbsWord(-2.5)).toBe('крихти');
+  });
+
+  it('judges the number the way it is shown, to three digits', () => {
+    expect(crumbsWord(5.0000001)).toBe('крихт');
+    expect(crumbsWord(1.0004)).toBe('крихта');
+    expect(crumbsWord(1.0006)).toBe('крихти');
+  });
+});
+
+describe('formatCrumbsWithUnit', () => {
+  it.each([
+    [0, '0 крихт'],
+    [1, '1 крихта'],
+    [3, '3 крихти'],
+    [21, '21 крихта'],
+    [12.5, '12,5 крихти'],
+    [1200, '1 200 крихт'],
+  ])('writes %f as «%s»', (value, text) => {
+    expect(formatCrumbsWithUnit(value).replace(/\s/g, ' ')).toBe(text);
   });
 });
 

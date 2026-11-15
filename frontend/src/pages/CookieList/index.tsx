@@ -31,7 +31,7 @@ import {
 import { MAX_BULK_DELETE } from '@/utils/constants';
 import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr, formatCoins } from '@/utils/convert';
 import { prettifyDate } from '@/utils/dates';
-import { plural } from '@/utils/plural';
+import { crumbsWord, plural } from '@/utils/plural';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
 import { notifyFailure } from '@/utils/request';
@@ -289,7 +289,7 @@ const CookieList: FunctionComponent = () => {
 
       setSelectedIds([]);
       toast.success(
-        `Видалено ${deleted} ${trackWord(deleted)}, списано ${formatCoins(coins)} крихт${gone}`,
+        `Видалено ${deleted} ${trackWord(deleted)}, списано ${formatCoins(coins)} ${crumbsWord(coins)}${gone}`,
       );
     } catch (error) {
       // The server's refusal was shown by the request itself, the selection stays to be changed

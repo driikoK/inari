@@ -879,6 +879,19 @@ describe('TrackService', () => {
       });
     });
 
+    it('puts the words of the audit in the form the numbers ask for', async () => {
+      model.find.mockResolvedValue([stored({ _id: first, coins: 1 })] as any);
+      model.deleteMany.mockResolvedValue({ deletedCount: 1 } as any);
+      members.changeCoins.mockReset();
+      members.changeCoins.mockResolvedValue(changeOf({ delta: -1 }));
+
+      await service.bulkDelete([first], 'boss');
+
+      expect(crumbAudit.record.mock.calls[0][2]).toBe(
+        'Видалено 1 трек, 1 крихта',
+      );
+    });
+
     it('takes every id once', async () => {
       await service.bulkDelete([first, first, second], 'boss');
 

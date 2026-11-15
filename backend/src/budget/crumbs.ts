@@ -1,5 +1,10 @@
 import type { SEASON } from '../shared/index.js';
-import { formatCrumbs, normalizeName, round3 } from './calc.js';
+import {
+  formatCrumbs,
+  formatCrumbsWithUnit,
+  normalizeName,
+  round3,
+} from './calc.js';
 import { AUDIT_UNIT, SIDE_KIND } from './enums/index.js';
 import type {
   CrumbAuditRow,
@@ -81,7 +86,7 @@ export const describeTrack = (
   { nickname, nameTitle, currentEpisode, typeRole, coins }: TrackSnapshot,
   roleLabel: (role: string) => string = (role) => role,
 ) =>
-  `«${nameTitle}» еп. ${currentEpisode}, ${nickname} (${roleLabel(typeRole)}), ${formatCrumbs(coins)} крихт`;
+  `«${nameTitle}» еп. ${currentEpisode}, ${nickname} (${roleLabel(typeRole)}), ${formatCrumbsWithUnit(coins)}`;
 
 export const crumbRow = (
   head: OperationHead,

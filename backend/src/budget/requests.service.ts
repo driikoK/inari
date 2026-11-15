@@ -23,6 +23,7 @@ import { BudgetService } from './budget.service.js';
 import {
   created,
   formatCrumbs,
+  formatCrumbsWithUnit,
   formatKop,
   round3,
   seasonLabel,
@@ -387,7 +388,7 @@ export class RequestsService {
     await this.budget.commit(
       AUDIT_KIND.REQUEST_FULFILLED,
       actor,
-      `Виконано запит: ${nickname} — ${KIND_LABEL[kind]}, ${formatCrumbs(wanted)} крихт → ${formatKop(paidKop)}`,
+      `Виконано запит: ${nickname} — ${KIND_LABEL[kind]}, ${formatCrumbsWithUnit(wanted)} →${formatKop(paidKop)}`,
       entries.map(created),
       async () => {
         const claimed = await this.claim(request, actor, { paidKop, parts });
@@ -665,7 +666,7 @@ export class RequestsService {
         order: null,
         problem:
           info.availableCrumbs > 0
-            ? `Для виводу доступно лише ${formatCrumbs(info.availableCrumbs)} крихт, а ви просите ${formatCrumbs(asked)}`
+            ? `Для виводу доступно лише ${formatCrumbsWithUnit(info.availableCrumbs)}, а ви просите ${formatCrumbs(asked)}`
             : nothingToWithdraw(
                 lockedSeasonsOf(member.seasons, ledger.rates, today),
                 info.reservedCrumbs > 0 && info.shares.length > 0,
@@ -837,7 +838,7 @@ export class RequestsService {
     return missingCrumbs > 0
       ? {
           estimate: null,
-          problem: `Доступно лише ${formatCrumbs((request.crumbs ?? 0) - missingCrumbs)} крихт`,
+          problem: `Доступно лише ${formatCrumbsWithUnit((request.crumbs ?? 0) - missingCrumbs)}`,
         }
       : { estimate: { amountKop: paidOf(parts), parts }, problem: null };
   }

@@ -17,6 +17,7 @@ import { CheckboxWrapper } from '../styles';
 import { CoinsType } from '@/types';
 import { useAuthStore, useMembersStore, useTracksStore } from '@/stores';
 import { Button, H6, P, Subtitle } from '@/components';
+import { crumbsWord } from '@/utils/plural';
 import useCoinsCalculation from '../hooks/useCoinsCalculation';
 import { startNameForMemberField } from '../const';
 import { useCoinsByDuration, useWatchCheckboxValues, useWatchNicknames } from '../hooks';
@@ -198,7 +199,9 @@ export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
             />
           </div>
 
-          <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForReleasers} крихт`}</Subtitle>
+          <Subtitle sx={{ textAlign: 'center' }}>
+            Доступно {coinsForReleasers} {crumbsWord(Number(coinsForReleasers))}
+          </Subtitle>
           <FormField
             name={`${startNameForMemberField}.releasers`}
             label="Релізери"

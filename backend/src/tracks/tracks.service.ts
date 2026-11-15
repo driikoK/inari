@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 
-import { formatCrumbs, round3 } from '../budget/calc.js';
+import { formatCrumbs, formatCrumbsWithUnit, round3 } from '../budget/calc.js';
 import { CrumbAuditService } from '../budget/crumb-audit.service.js';
 import {
   type CrumbAuditItem,
@@ -192,7 +192,7 @@ export class TrackService {
     await this.crumbAudit.record(
       AUDIT_KIND.TRACK_DELETED,
       actor,
-      `Видалено ${tracks.length} ${plural(tracks.length, ['трек', 'треки', 'треків'])}, ${formatCrumbs(coins)} крихт`,
+      `Видалено ${tracks.length} ${plural(tracks.length, ['трек', 'треки', 'треків'])}, ${formatCrumbsWithUnit(coins)}`,
       taken.flatMap(({ tracks: group, change }) =>
         this.auditRows(group, change),
       ),
@@ -349,7 +349,7 @@ export class TrackService {
       await this.crumbAudit.record(
         AUDIT_KIND.TRACK_UPDATED,
         actor,
-        `Змінено трек «${after.nameTitle}» еп. ${after.currentEpisode}, ${after.nickname}: ${formatCrumbs(before.coins)} → ${formatCrumbs(after.coins)} крихт`,
+        `Змінено трек «${after.nameTitle}» еп. ${after.currentEpisode}, ${after.nickname}: ${formatCrumbs(before.coins)} → ${formatCrumbsWithUnit(after.coins)}`,
         [{ change, entryId: id, before, after }],
       );
     }

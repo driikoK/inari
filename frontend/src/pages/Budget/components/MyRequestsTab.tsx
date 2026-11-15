@@ -8,7 +8,13 @@ import { seasonLabel } from '@/pages/Proposals/const/options';
 import useBudgetStore, { type RequestView } from '@/stores/useBudgetStore';
 import { REQUEST_STATUS } from '@/types';
 import { notifyFailure } from '@/utils/request';
-import { expenseKindLabel, formatCrumbs, formatRate, requestDate } from '../const/options';
+import {
+  crumbsWithUnit,
+  expenseKindLabel,
+  formatCrumbs,
+  formatRate,
+  requestDate,
+} from '../const/options';
 import { RequestAmount, StatusChip } from './RequestParts';
 import { StatCard } from './StatCard';
 import cards from './cards.module.scss';
@@ -82,7 +88,7 @@ export const MyRequestsTab: FC = () => {
           {shares
             .map(
               ({ season, year, crumbs, coefficient }) =>
-                `${seasonLabel(season, year)} — ${formatCrumbs(crumbs)} крихт по ${formatRate(coefficient)}`,
+                `${seasonLabel(season, year)} — ${crumbsWithUnit(crumbs)} по ${formatRate(coefficient)}`,
             )
             .join('; ')}
           .
