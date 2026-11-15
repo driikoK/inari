@@ -9,7 +9,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TrackService } from './tracks.service.js';
 import { CreateTrackData } from './data/create-track.data.js';
 import { FilterTrackData } from './data/filter-track.data.js';
@@ -20,9 +19,7 @@ import { CuratorGuard } from '../auth/curator.guard.js';
 import type { ValidatedUser } from '../users/interfaces/user.interface.js';
 import { LastTracksData } from './data/last-tracks.js';
 
-@ApiTags('Tracks')
 @Controller('tracks')
-@ApiBearerAuth()
 export class TracksController {
   constructor(private readonly trackService: TrackService) {}
 

@@ -5,7 +5,7 @@ Part of the backend guide, see [CLAUDE.md](../CLAUDE.md).
 ## Validation (Zod)
 
 - Request shapes live in `*/data/*.data.ts` as a Zod schema plus its type under the same name: `export const X = z.object({...}); export type X = z.infer<typeof X>;`.
-- Controllers attach them: `@Body({ schema: X }) dto: X` or `@Query({ schema: X }) q: X`. `main.ts` registers the global `StandardSchemaValidationPipe`, and Swagger builds the docs from the same schemas, so there are no `@ApiProperty`/`@ApiBody` decorators.
+- Controllers attach them: `@Body({ schema: X }) dto: X` or `@Query({ schema: X }) q: X`. `main.ts` registers the global `StandardSchemaValidationPipe`.
 - The pipe returns the parsed value: unknown keys are stripped, query strings are coerced (`z.coerce.number()`), defaults apply. Declare every field a service uses.
 - Optional body fields that clients may send as `null` use `.nullish()`. Messages that the frontend shows in a toast are Ukrainian. `z.number({ error })` replaces the message of every issue, so give range checks their own messages.
 

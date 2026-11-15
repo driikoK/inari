@@ -7,7 +7,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
 import type { ValidatedUser } from '../users/interfaces/user.interface.js';
@@ -18,24 +17,18 @@ import {
 } from './data/index.js';
 import { RequestsService } from './requests.service.js';
 
-@ApiTags('Budget requests')
 @Controller('budget/requests')
-@ApiBearerAuth()
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
   @Get('mine')
   @UseGuards(AuthGuard)
-  @ApiOperation({
-    summary: 'Crumbs the user can withdraw and their own requests',
-  })
   mine(@CurrentUser() user: ValidatedUser) {
     return this.requestsService.mine(user);
   }
 
   @Post('preview')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'What a request would be paid, without saving it' })
   preview(
     @Body({ schema: CreateRequestData }) data: CreateRequestData,
     @CurrentUser() user: ValidatedUser,
@@ -45,7 +38,6 @@ export class RequestsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Ask for crumbs to be paid out' })
   create(
     @Body({ schema: CreateRequestData }) data: CreateRequestData,
     @CurrentUser() user: ValidatedUser,
@@ -61,26 +53,18 @@ export class RequestsController {
 
   @Get('open-count')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({
-    summary: 'How many lines wait for the admin, for the counter in the menu',
-  })
   openCount() {
     return this.requestsService.openCount();
   }
 
   @Get()
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({
-    summary:
-      'The queue of requests: every open line, and pages of the closed ones, for crumbs and for orders',
-  })
   queue(@Query({ schema: QueueQueryData }) query: QueueQueryData) {
     return this.requestsService.queue(query);
   }
 
   @Post(':id/fulfil')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Pay a request out, which fixes its sums' })
   fulfil(
     @Param('id') id: string,
     @Body({ schema: FulfilRequestData }) data: FulfilRequestData,

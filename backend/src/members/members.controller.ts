@@ -1,4 +1,3 @@
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -22,9 +21,7 @@ import type { ValidatedUser } from '../users/interfaces/user.interface.js';
 import { UpdateMemberData } from './data/update-member.data.js';
 import { UpdateMemberKindData } from './data/update-member-kind.data.js';
 
-@ApiTags('Members')
 @Controller('members')
-@ApiBearerAuth()
 export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 

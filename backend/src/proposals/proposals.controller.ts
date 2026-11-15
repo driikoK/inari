@@ -9,7 +9,6 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
 import type { ValidatedUser } from '../users/interfaces/user.interface.js';
@@ -22,15 +21,12 @@ import {
 } from './data/index.js';
 import { ProposalsService } from './proposals.service.js';
 
-@ApiTags('Proposals')
 @Controller('proposals')
-@ApiBearerAuth()
 export class ProposalsController {
   constructor(private readonly proposalsService: ProposalsService) {}
 
   @Get()
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Seasons with their proposals' })
   findAll() {
     return this.proposalsService.findAll();
   }
@@ -81,7 +77,6 @@ export class ProposalsController {
 
   @Put(':id/join')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Join with roles, or withdraw with an empty list' })
   join(
     @Param('id') id: string,
     @CurrentUser() user: ValidatedUser,
@@ -92,7 +87,6 @@ export class ProposalsController {
 
   @Put(':id/participants/:userName')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Change roles of a participant, or remove them' })
   setParticipantRoles(
     @Param('id') id: string,
     @Param('userName') userName: string,

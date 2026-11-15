@@ -8,7 +8,6 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { CuratorGuard } from '../auth/curator.guard.js';
 import {
@@ -18,29 +17,24 @@ import {
 } from './data/index.js';
 import { ProjectsService } from './projects.service.js';
 
-@ApiTags('Projects')
 @Controller('projects')
-@ApiBearerAuth()
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Seasons with the projects on their layout' })
   findAll() {
     return this.projectsService.findAll();
   }
 
   @Get('titles')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Every project, to pick the title of a track' })
   titles() {
     return this.projectsService.titles();
   }
 
   @Post()
   @UseGuards(AuthGuard, CuratorGuard)
-  @ApiOperation({ summary: 'Start a project, optionally from a proposal' })
   create(@Body({ schema: CreateProjectData }) project: CreateProjectData) {
     return this.projectsService.create(project);
   }

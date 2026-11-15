@@ -9,7 +9,7 @@ Inari is an internal tool for an anime dubbing/fansub team. The UI and the error
 
 ```bash
 cd backend  && docker compose up -d      # MongoDB (needs backend/.env)
-cd backend  && npm run start:dev         # API on :8000, Swagger at /api-docs
+cd backend  && npm run start:dev         # API on :8000
 cd frontend && npm start                 # app on :5173
 ```
 

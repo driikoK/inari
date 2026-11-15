@@ -9,7 +9,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from '../auth/admin.guard.js';
 import { AuthGuard, CurrentUser } from '../auth/auth.guard.js';
 import type { ValidatedUser } from '../users/interfaces/user.interface.js';
@@ -25,9 +24,7 @@ import {
   UpdateSupportData,
 } from './data/index.js';
 
-@ApiTags('Budget')
 @Controller('budget')
-@ApiBearerAuth()
 export class BudgetController {
   constructor(
     private readonly budgetService: BudgetService,
@@ -36,21 +33,18 @@ export class BudgetController {
 
   @Get('summary')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Totals of the team budget, in kopiykas' })
   summary() {
     return this.budgetService.getSummary();
   }
 
   @Get('entries')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'The journal: every record, newest first' })
   entries(@Query({ schema: EntriesQueryData }) query: EntriesQueryData) {
     return this.budgetService.findEntries(query);
   }
 
   @Post('incomes')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Add several incomes with one date and season' })
   createIncomes(
     @Body({ schema: CreateIncomesData }) data: CreateIncomesData,
     @CurrentUser() user: ValidatedUser,
@@ -70,9 +64,6 @@ export class BudgetController {
 
   @Post('expenses')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({
-    summary: 'Pay out of the budget: card, donation, development',
-  })
   createExpenses(
     @Body({ schema: CreateExpensesData }) data: CreateExpensesData,
     @CurrentUser() user: ValidatedUser,
@@ -92,16 +83,12 @@ export class BudgetController {
 
   @Post('support/preview')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({
-    summary: 'What new support budgets would take out of a season jar',
-  })
   previewSupport(@Body({ schema: UpdateSupportData }) data: UpdateSupportData) {
     return this.budgetService.previewSupport(data);
   }
 
   @Put('support')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Set the budget of the support directions' })
   updateSupport(
     @Body({ schema: UpdateSupportData }) data: UpdateSupportData,
     @CurrentUser() user: ValidatedUser,
@@ -117,7 +104,6 @@ export class BudgetController {
 
   @Get('audit')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Append-only history of every money operation' })
   audit(@Query({ schema: AuditQueryData }) query: AuditQueryData) {
     return this.auditService.find(query);
   }

@@ -16,13 +16,11 @@ npm run lint                # Biome lint, shared config ../biome.json
 npm run format              # Biome format --write
 ```
 
-Swagger UI is at `http://localhost:8000/api-docs` (JSON at `/api-docs-json`).
-
 Seeds (`npm run seed:all | seed:root | seed:users | seed:nicknames | seed:proposals | seed:projects | seed:tracks | seed:budget | seed:clear`) are idempotent, except that `seed:tracks` refuses to run while there are tracks with no project (it finds its tracks by project and would write them all again), so run `migrate:titles` first on such a database. The npm scripts run `nest build` first, which wipes `dist/`, so while `start:dev` is running use `node dist/cli.js seed:root` instead. `seed:root` needs `ROOT_PASSWORD` (a random one is printed when it is empty). `npm run migrate:titles` is a one-off move of every title into the projects (see [titles-are-projects.md](titles-are-projects.md)). `--dry-run` is taken only by the commands that declare it (`migrate:titles`), `cli.ts` refuses it for any other command, `drop:polls` included, so a flag that would be ignored never lets a command that writes run when the operator wanted to look. `npm run drop:polls` is a one-off cleanup: it drops the `votes` and `poll_animes` collections that the removed voting left in a database (a missing one is skipped), so run it once per database, and only on one you mean to clean.
 
 ## Stack
 
-NestJS 12 on Fastify, ESM only (`"type": "module"`), Mongoose, Zod 4 for validation, `@nestjs/config`, Vitest 5 with `@golevelup/ts-vitest`, Biome. Node >= 22.12 (developed on 24). TypeScript is 6.x because `@nestjs/schematics` needs >= 6 and `@nestjs/swagger` does not accept 7 yet.
+NestJS 12 on Fastify, ESM only (`"type": "module"`), Mongoose, Zod 4 for validation, `@nestjs/config`, Vitest 5 with `@golevelup/ts-vitest`, Biome. Node >= 22.12 (developed on 24). TypeScript is 6.x because `@nestjs/schematics` needs >= 6.
 
 ## ESM and build rules
 

@@ -16,11 +16,8 @@ import type { ValidatedUser } from './interfaces/user.interface.js';
 import { UsersService } from './users.service.js';
 import { UpdateUserData } from './data/update-user.data.js';
 import { UpdateUserNicknameData } from './data/update-user-nickname.data.js';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Users')
 @Controller('users')
-@ApiBearerAuth()
 export class UsersController {
   constructor(
     private readonly userService: UsersService,
