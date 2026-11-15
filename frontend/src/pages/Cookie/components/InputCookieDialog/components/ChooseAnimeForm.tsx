@@ -226,6 +226,9 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                   }}
                   helperText="Пропонується сезон початку проєкту, крихти підуть у вибраний"
                   sx={{ mt: 2 }}
+                  slotProps={{
+                    select: { MenuProps: { PaperProps: { style: { maxHeight: 220 } } } },
+                  }}
                 >
                   {seasons.map(({ season, year }) => (
                     <MenuItem key={`${season}:${year}`} value={`${season}:${year}`}>
