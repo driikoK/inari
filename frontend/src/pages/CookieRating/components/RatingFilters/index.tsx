@@ -4,13 +4,7 @@ import { SelectWrapper } from './styles';
 import { NicknameFilter } from '../NicknameFilter';
 import { SelectField } from '@/components';
 import { useMembersStore } from '@/stores';
-import {
-  memberKindOptions,
-  seasonOptions,
-  UNMARKED_KIND,
-  UNMARKED_KIND_LABEL,
-  yearOptions,
-} from '@/utils/constants';
+import { memberKindOptions, seasonOptions, yearOptions } from '@/utils/constants';
 
 export const RatingFilters = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>();
@@ -63,7 +57,7 @@ export const RatingFilters = () => {
         label="Тип"
         value={selectedKind}
         onChange={setSelectedKind}
-        options={[...memberKindOptions, { value: UNMARKED_KIND, label: UNMARKED_KIND_LABEL }]}
+        options={memberKindOptions}
       />
 
       <NicknameFilter

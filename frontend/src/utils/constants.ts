@@ -21,7 +21,6 @@ export const memberKindOptions: { label: string; value: MemberKind }[] = [
   { label: 'Гість', value: 'guest' },
 ];
 
-export const UNMARKED_KIND = 'unmarked';
 export const UNMARKED_KIND_LABEL = 'Не вказано';
 
 export const seasonOptions = [

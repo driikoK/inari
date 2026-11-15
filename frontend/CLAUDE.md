@@ -92,7 +92,7 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 
 ### Nickname kind (team member / guest)
 
-- `MemberType.kind` is `'team' | 'guest'`, and missing for nicknames that were never marked. Show that as «Не вказано» (editable) or a dash (read-only), never as an error. The filter value for it is `UNMARKED_KIND` in `utils/constants.ts`, the same string the backend expects.
+- `MemberType.kind` is `'team' | 'guest'`, and missing for nicknames that were never marked. Show that as «Не вказано» (editable) or a dash (read-only), never as an error. The «Тип» filter of the Rating offers only «Учасник команди» and «Гість», and no choice shows everybody, the unmarked included; the backend still takes `kind=unmarked` (`GET /members`), but nothing in the frontend asks for it.
 - Both "add nickname" dialogs use `MemberKindToggle` with nothing preselected, and save stays disabled until a kind is chosen.
 - The Rating page has a `Тип` column (`MemberKindCell`): a select for admins (`EDIT_MEMBER_KIND`), plain text for everyone else. It saves through `updateMemberKind`, never through `updateMember`, because a season-filtered row holds the season's coins and would overwrite the total.
 - In the track form a row's «Гість» box follows the kind of its nickname, whether the nickname was picked or prefilled from the previous episode (an effect in `FormField`'s `InputFields`, keyed on the nickname and its kind). The box stays editable until the nickname changes, and `isGuest` is still sent per track line.
