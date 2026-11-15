@@ -1,11 +1,14 @@
-import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { usersProviders } from './users.provider';
-import { DatabaseModule } from '@db/database.module';
-import { UsersController } from './users.controller';
+import { Global, Module } from '@nestjs/common';
+import { UsersService } from './users.service.js';
+import { usersProviders } from './users.provider.js';
+import { DatabaseModule } from '../database/database.module.js';
+import { MembersModule } from '../members/members.module.js';
+import { ProposalsModule } from '../proposals/proposals.module.js';
+import { UsersController } from './users.controller.js';
 
+@Global()
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, MembersModule, ProposalsModule],
   providers: [UsersService, ...usersProviders],
   exports: [UsersService],
   controllers: [UsersController],

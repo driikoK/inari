@@ -97,6 +97,44 @@
   font-weight: 600 !important;
 }
 
+.label {
+  flex: 1;
+  text-align: left;
+}
+
+// The counter of what waits in a section: a pill after the name, or on the icon in the narrow menu
+.badge {
+  margin-left: 8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.badgeCollapsed {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  margin-left: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  line-height: 18px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.iconWithBadge {
+  position: relative;
+  display: inline-flex;
+}
+
 .bottomSection {
   padding: 12px 8px;
   border-top: 1px solid var(--border);

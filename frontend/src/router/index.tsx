@@ -1,11 +1,13 @@
 import { lazy, Suspense } from 'react';
 import { RouteObject, useRoutes } from 'react-router-dom';
-import { FallbackComponent, Layout } from '@/components';
+import { FallbackComponent, Layout, RequireAccess } from '@/components';
 import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
 
-const Vote = lazy(() => import('../pages/Vote'));
-const Result = lazy(() => import('../pages/Result'));
+const Proposals = lazy(() => import('../pages/Proposals'));
+const Projects = lazy(() => import('../pages/Projects'));
+const Budget = lazy(() => import('../pages/Budget'));
+const Expenses = lazy(() => import('../pages/Expenses'));
 const Sheet = lazy(() => import('../pages/Sheet'));
 const Cookie = lazy(() => import('../pages/Cookie'));
 const Home = lazy(() => import('../pages/Home'));
@@ -35,24 +37,33 @@ const useConditionalRoutes = () => {
           path: 'login',
           element: <Auth />,
         },
-        ...conditionalRoutes(process.env.VITE_FEATURE_POLL === 'true', {
-          path: 'vote',
-          element: <Vote />,
+        {
+          path: 'proposals',
+          element: <Proposals />,
+        },
+        {
+          path: 'projects',
+          element: <Projects />,
+        },
+        {
+          path: 'budget',
+          element: <Budget />,
+        },
+        ...conditionalRoutes(hasAccess(SUBJECTS.MANAGE_BUDGET), {
+          path: 'budget/expenses',
+          element: <Expenses />,
         }),
-        ...conditionalRoutes(
-          hasAccess(SUBJECTS.SHOW_RESULTS) || process.env.VITE_FEATURE_RESULTS === 'true',
-          {
-            path: 'result',
-            element: <Result />,
-          },
-        ),
         ...conditionalRoutes(!!process.env.VITE_SHEET_EMBED_URL, {
           path: 'sheet',
           element: <Sheet />,
         }),
         {
           path: 'cookie',
-          element: <Cookie />,
+          element: (
+            <RequireAccess subjects={[SUBJECTS.ADD_COOKIES, SUBJECTS.ADD_MEMBERS]}>
+              <Cookie />
+            </RequireAccess>
+          ),
         },
         {
           path: 'cookie/rating',

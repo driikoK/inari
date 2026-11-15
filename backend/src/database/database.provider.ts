@@ -1,19 +1,23 @@
-import * as mongoose from 'mongoose';
-import config from 'src/config';
-
-mongoose.set('debug', true);
+import { ConfigService } from '@nestjs/config';
+import mongoose from 'mongoose';
+import type { AppConfig } from '../config/configuration.js';
 
 export const databaseProviders = [
   {
     provide: 'DATABASE_CONNECTION',
-    useFactory: (): Promise<typeof mongoose> =>
-      mongoose.connect(
-        `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.dbName}`,
-        {
-          user: config.mongo.user,
-          pass: config.mongo.password,
-          authSource: 'admin',
-        },
-      ),
+    inject: [ConfigService],
+    useFactory: (
+      config: ConfigService<AppConfig, true>,
+    ): Promise<typeof mongoose> => {
+      const { host, port, dbName, user, password } = config.get('mongo', {
+        infer: true,
+      });
+
+      return mongoose.connect(`mongodb://${host}:${port}/${dbName}`, {
+        user,
+        pass: password,
+        authSource: 'admin',
+      });
+    },
   },
 ];

@@ -5,12 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 
-import { UsersService } from '@users/users.service';
-import { ROLE } from '@users/enums';
-import { EmailService } from 'src/email/email.service';
-import { SignUpData } from './data/sign-up.data';
+import { UsersService } from '../users/users.service.js';
+import { ROLE } from '../users/enums/index.js';
+import { EmailService } from '../email/email.service.js';
+import { SignUpData } from './data/sign-up.data.js';
 
 @Injectable()
 export class AuthService {
@@ -29,11 +29,9 @@ export class AuthService {
     }
 
     // ** Root will be the first user with admin role to give roles other users
-    if (username === 'root') {
-      this.usersService.create({ ...signUpDto, role: ROLE.ADMIN });
-    } else {
-      this.usersService.create({ ...signUpDto, role: ROLE.MEMBER });
-    }
+    const role = username === 'root' ? ROLE.ADMIN : ROLE.MEMBER;
+
+    await this.usersService.create({ ...signUpDto, role });
 
     return true;
   }
@@ -48,7 +46,7 @@ export class AuthService {
     return bcrypt.compare(password, user.password).then(async (result) => {
       if (result) {
         return {
-          accessToken: await this.jwtService.signAsync({ username, password }),
+          accessToken: await this.jwtService.signAsync({ username }),
         };
       } else {
         throw new HttpException('Невірний пароль', HttpStatus.BAD_REQUEST);

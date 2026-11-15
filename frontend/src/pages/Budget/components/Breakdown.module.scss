@@ -1,0 +1,75 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    padding: 6px 8px;
+    text-align: right;
+    font-weight: 500;
+    color: var(--text-muted);
+
+    &:first-child {
+      text-align: left;
+    }
+  }
+
+  td {
+    padding: 8px;
+    text-align: right;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+    white-space: nowrap;
+
+    &:first-child {
+      text-align: left;
+      white-space: normal;
+    }
+  }
+}
+
+.total td {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+}
+
+.empty {
+  padding: 8px 0;
+  color: var(--text-muted);
+}
+
+.note {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.expenses {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expense {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.expenseHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--accent);
+}

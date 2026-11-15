@@ -1,7 +1,7 @@
 import { FC, useEffect, useMemo } from 'react';
 import { useForm, FormProvider, Controller, UseFormWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Box, Checkbox, FormControlLabel, TextField } from '@mui/material';
 
@@ -20,6 +20,7 @@ import { checkIsOnlyOneEpisode, finalizeMembersInfoArray } from '../helpers';
 import { Button as MuiButton } from '@mui/material';
 
 export const CreateTrackForm: FC<BasicTrackProps> = ({
+  projectId,
   titleName,
   episode,
   onClose,
@@ -90,7 +91,7 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
 
   const methods = useForm<CreateTrackFormValues>({
     defaultValues,
-    resolver: yupResolver(createTrackFormSchema(coins)),
+    resolver: zodResolver(createTrackFormSchema(coins)),
     criteriaMode: 'all',
     mode: 'onChange',
   });
@@ -131,11 +132,10 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
     const payload: CreateTrackType = {
       ...form,
       membersInfo: finalizeMembersInfoArray(form.membersInfo),
-      nameTitle: titleName,
-      currentEpisode: parseInt(episode),
-      titleType: animeType,
+      projectId,
       season,
       year: Number(year),
+      currentEpisode: parseInt(episode),
       note: form.note || '',
       username: user!.username,
     };
@@ -161,7 +161,7 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
         >
           <H6 sx={{ textAlign: 'center' }}>{titleName}</H6>
 
-          <FormField name={`${startNameForMemberField}.sound`} label="Звукореж" isDisabled />
+          <FormField name={`${startNameForMemberField}.sound`} label="Звукорежисер" isDisabled />
           <FormField name={`${startNameForMemberField}.director`} label="Куратор" isDisabled />
           <FormField name={`${startNameForMemberField}.sub`} label="Перекладач" isDisabled />
 
@@ -228,7 +228,7 @@ export const CreateTrackForm: FC<BasicTrackProps> = ({
           <Subtitle sx={{ textAlign: 'center' }}>{`Доступно ${coinsForFixers} крихт`}</Subtitle>
           <FormField
             name={`${startNameForMemberField}.fixers`}
-            label="Фіксери"
+            label="Контроль якості"
             isArray
             maxLength={2}
           />

@@ -5,12 +5,12 @@
       "type": "node",
       "request": "launch",
       "name": "Launch via NPM",
-      "runtimeExecutable": "yarn",
-      "runtimeArgs": ["start:dev"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:dev"],
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}/backend",
       "env": {
-        "PORT": "8002"
+        "PORT": "8000"
       }
     }
   ]

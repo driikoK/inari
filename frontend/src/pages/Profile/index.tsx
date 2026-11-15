@@ -6,6 +6,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { useAuthStore } from '@/stores';
 import { userRoleOptions } from '@/utils/constants';
 import { ROLE } from '@/context/casl';
+import { CoinsBalance } from './components/CoinsBalance';
 import styles from './Profile.module.scss';
 
 const ROLE_COLOR: Record<string, string> = {
@@ -38,7 +39,9 @@ const Profile = () => {
 
       <article className={styles.card}>
         <section className={styles.avatarRow}>
-          <span className={styles.avatar} aria-hidden="true">{avatarLetter}</span>
+          <span className={styles.avatar} aria-hidden="true">
+            {avatarLetter}
+          </span>
           <div className={styles.avatarInfo}>
             <h2 className={styles.username}>{user?.username}</h2>
             <span
@@ -57,7 +60,9 @@ const Profile = () => {
         <hr className={styles.divider} />
 
         <section className={styles.fieldRow}>
-          <label className={styles.fieldLabel} htmlFor="profile-email">Email</label>
+          <label className={styles.fieldLabel} htmlFor="profile-email">
+            Email
+          </label>
           <div className={styles.emailRow}>
             <TextField
               id="profile-email"
@@ -78,6 +83,8 @@ const Profile = () => {
             </Button>
           </div>
         </section>
+
+        <CoinsBalance />
       </article>
     </main>
   );

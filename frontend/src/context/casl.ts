@@ -9,11 +9,13 @@ export enum SUBJECTS {
   RATING_VIEW = 'rating-view',
   PERMISSION_EDIT = 'permissions-edit',
   COOKIES_RATINGS_EDIT = 'cookies-ratings-edit',
-  ADD_POLL_ANIME = 'add-poll-anime',
-  DELETE_POLL_ANIME = 'delete-poll-anime',
-  DELETE_TEAM_ANIME = 'delete-team-anime',
-  SHOW_RESULTS = 'show-results',
-  CLEAR_RESULTS = 'clear-results',
+  DELETE_USERS = 'delete-users',
+  DELETE_MEMBERS = 'delete-members',
+  EDIT_MEMBER_KIND = 'edit-member-kind',
+  VIEW_COINS_TOTAL = 'view-coins-total',
+  MANAGE_PROPOSALS = 'manage-proposals',
+  MANAGE_PROJECTS = 'manage-projects',
+  MANAGE_BUDGET = 'manage-budget',
 }
 
 export enum ROLE {
@@ -29,6 +31,7 @@ const DIRECTOR_PERMISSIONS: SUBJECTS[] = [
   SUBJECTS.ADD_MEMBERS,
   SUBJECTS.COOKIES_LIST_VIEW,
   SUBJECTS.RATING_VIEW,
+  SUBJECTS.MANAGE_PROJECTS,
 ];
 
 const MEMBER_PERMISSIONS: SUBJECTS[] = [SUBJECTS.COOKIES_LIST_VIEW, SUBJECTS.RATING_VIEW];

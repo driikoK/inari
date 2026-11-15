@@ -6,13 +6,35 @@ export function pick<T extends object, K extends keyof T>(
   obj: T,
   keys: K[],
 ): PickType<T, K> {
-  return keys.reduce((acc, key) => {
-    if (key in obj) {
-      acc[key] = obj[key];
-    }
-    return acc;
-  }, {} as PickType<T, K>);
+  return keys.reduce(
+    (acc, key) => {
+      if (key in obj) {
+        acc[key] = obj[key];
+      }
+      return acc;
+    },
+    {} as PickType<T, K>,
+  );
 }
+
+export function splitOptionals<K extends string>(
+  fields: Record<K, string | null | undefined>,
+) {
+  const set: Partial<Record<K, string>> = {};
+  const unset: Partial<Record<K, ''>> = {};
+
+  for (const key of Object.keys(fields) as K[]) {
+    const value = fields[key];
+
+    if (typeof value === 'string' && value.trim() !== '') set[key] = value;
+    else unset[key] = '';
+  }
+
+  return { set, unset };
+}
+
+export const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export function omit<T extends object, K extends keyof T>(
   obj: T,

@@ -1,10 +1,11 @@
-import { ROLE } from '@users/enums';
+import { ROLE } from '../enums/index.js';
 
 export interface IUser {
   username: string;
   password: string;
   role: string;
   email?: string;
+  nickname?: string;
   _id: string;
 }
 

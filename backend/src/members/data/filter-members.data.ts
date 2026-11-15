@@ -1,32 +1,18 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { MEMBER_ROLE, SEASON } from '@shared';
+import { z } from 'zod';
+import { MEMBER_KIND, MEMBER_ROLE, SEASON } from '../../shared/index.js';
 
-export class MemberFilterData {
-  @ApiPropertyOptional({ nullable: true })
-  @IsOptional()
-  @IsString()
-  id?: string;
+export const UNMARKED_KIND = 'unmarked';
 
-  @ApiPropertyOptional({ nullable: true, enum: MEMBER_ROLE, enumName: 'Role' })
-  @IsOptional()
-  @IsEnum(MEMBER_ROLE, {
-    message: 'Invalid role',
-  })
-  role?: MEMBER_ROLE;
+export const MemberFilterData = z.object({
+  id: z.string().optional(),
+  role: z.enum(MEMBER_ROLE, { error: 'Invalid role' }).optional(),
+  kind: z
+    .enum([MEMBER_KIND.TEAM, MEMBER_KIND.GUEST, UNMARKED_KIND], {
+      error: 'Invalid kind',
+    })
+    .optional(),
+  season: z.enum(SEASON, { error: 'Invalid season' }).optional(),
+  year: z.coerce.number().optional(),
+});
 
-  @ApiPropertyOptional({
-    nullable: true,
-    enum: SEASON,
-    enumName: 'Season',
-  })
-  @IsOptional()
-  @IsEnum(SEASON, {
-    message: 'Invalid season',
-  })
-  season?: SEASON;
-
-  @ApiPropertyOptional({ nullable: true })
-  @IsOptional()
-  year?: number;
-}
+export type MemberFilterData = z.infer<typeof MemberFilterData>;

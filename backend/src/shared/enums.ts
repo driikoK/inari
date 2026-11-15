@@ -10,6 +10,11 @@ export enum MEMBER_ROLE {
   TYPESETTER = 'typesetter',
 }
 
+export enum MEMBER_KIND {
+  TEAM = 'team',
+  GUEST = 'guest',
+}
+
 export enum SEASON {
   WINTER = 'winter',
   SPRING = 'spring',

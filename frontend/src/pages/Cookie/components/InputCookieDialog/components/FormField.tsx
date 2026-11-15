@@ -104,6 +104,7 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
     register,
     control,
     resetField,
+    setValue,
     formState: { errors },
   } = useFormContext();
 
@@ -115,7 +116,7 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
 
   const handleCoinsChange = (
     value: string,
-    currentField: ControllerRenderProps<FieldValues, `${string}.coins`>
+    currentField: ControllerRenderProps<FieldValues, `${string}.coins`>,
   ) => {
     const validValue = value.replace(/[^0-9.]/g, '').replace(/(,|\.)+(?=.*[,.])/g, '');
 
@@ -127,6 +128,12 @@ const InputFields: FC<InputFieldsProps> = ({ name, onOpenDialog, isDisabled }) =
       resetField(`${name}.coins`);
     }
   }, [nickname]);
+
+  const kind = members.find((member) => member.nickname === nickname)?.kind;
+
+  useEffect(() => {
+    setValue(`${name}.isGuest`, !!nickname && kind === 'guest');
+  }, [name, nickname, kind, setValue]);
 
   return (
     <>

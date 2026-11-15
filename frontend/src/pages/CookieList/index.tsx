@@ -1,4 +1,4 @@
-import { FunctionComponent, useCallback, useEffect, useState } from 'react';
+import { FunctionComponent, useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
@@ -7,7 +7,7 @@ import { GridActionsCellItem, GridCellParams, GridColDef, GridRowModel } from '@
 import { PageContainer, Title, TitleWrapper } from './styles';
 import { CookiesFilters } from './components/CookiesFilters';
 import {
-  useAnimesStore,
+  useTitlesStore,
   useTracksStore,
   useRolesStore,
   useMembersStore,
@@ -19,6 +19,7 @@ import { convertAnimeTypeEngToUkr, convertSeasonEngToUkr } from '@/utils/convert
 import { prettifyDate } from '@/utils/dates';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
+import { notifyFailure } from '@/utils/request';
 
 function computeMutation(newRow: GridRowModel, oldRow: GridRowModel) {
   if (newRow?.coins !== oldRow?.coins) {
@@ -39,7 +40,8 @@ type RowType = {
 const CookieList: FunctionComponent = () => {
   const { tracks, getTracks, deleteTracks, updateTrack, isLoading, appliedFilters } =
     useTracksStore();
-  const getAnimes = useAnimesStore((state) => state.getAnimes);
+  const titles = useTitlesStore((state) => state.titles);
+  const getTitles = useTitlesStore((state) => state.getTitles);
   const { roles, getRoles } = useRolesStore();
   const getMembers = useMembersStore((state) => state.getMembers);
   const { hasAccess } = usePermissions();
@@ -48,25 +50,24 @@ const CookieList: FunctionComponent = () => {
   const [promiseArguments, setPromiseArguments] = useState<any>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RowType | null>(null);
-  // ** From docs https://mui.com/x/react-data-grid/pagination/
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10,
-  });
+  // The page and the filters are one thing in the store, so a filter can send the page back to the
+  // first one and the table follows
+  const page = appliedFilters.page ?? 1;
+  const perPage = appliedFilters.perPage ?? 10;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, when the page opens, with the filters and the page the store remembers
   useEffect(() => {
-    getAnimes();
+    getTitles().catch(notifyFailure);
     getRoles();
     getMembers();
+    getTracks({ ...appliedFilters, page, perPage }).catch(notifyFailure);
   }, []);
 
-  useEffect(() => {
-    getTracks({
-      ...appliedFilters,
-      page: paginationModel.page + 1,
-      perPage: paginationModel.pageSize,
-    });
-  }, [paginationModel]);
+  // The name of the project as it is now, the one the track was written under when it is gone
+  const titleNames = useMemo(
+    () => new Map(titles.map(({ _id, ukrName }) => [_id, ukrName])),
+    [titles],
+  );
 
   const booleanCell = {
     sortable: false,
@@ -86,6 +87,7 @@ const CookieList: FunctionComponent = () => {
       field: 'nameTitle',
       headerName: 'Назва тайтлу',
       width: 400,
+      valueGetter: (_, row) => titleNames.get(row.projectId ?? '') ?? row.nameTitle,
     },
     {
       field: 'coins',
@@ -249,7 +251,7 @@ const CookieList: FunctionComponent = () => {
           resolve(oldRow);
         }
       }),
-    []
+    [],
   );
 
   const handleUpdateNo = () => {
@@ -291,8 +293,14 @@ const CookieList: FunctionComponent = () => {
         rowCount={tracks.total}
         loading={isLoading}
         paginationMode="server"
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
+        paginationModel={{ page: page - 1, pageSize: perPage }}
+        onPaginationModelChange={(model) =>
+          getTracks({
+            ...appliedFilters,
+            page: model.page + 1,
+            perPage: model.pageSize,
+          }).catch(notifyFailure)
+        }
       />
 
       <ConfirmTableChangeDialog

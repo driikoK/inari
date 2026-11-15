@@ -1,10 +1,10 @@
 import { FC, FunctionComponent, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import Skeleton from '@mui/material/Skeleton';
 
 import { Container, ElementContainer, ElementImage, ElementContent, ElementTitle } from './styles';
-import { CreateAnimeAndMemberDialog, InputCookieDialog } from '@/pages/Cookie/components';
+import { AddMemberDialog, InputCookieDialog } from '@/pages/Cookie/components';
+import { ProjectFormDialog } from '@/pages/Projects/components/ProjectFormDialog';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
 import s from './Cookie.module.scss';
@@ -12,24 +12,20 @@ import s from './Cookie.module.scss';
 const IMAGES = {
   cookie: '/cookie.png',
   foxes: '/foxes.png',
-  general: '/general.png',
-  roles: '/roles.png',
+  project: '/general.png',
 };
 
 const Cookie: FunctionComponent = () => {
   const [openCookieDialog, setOpenCookieDialog] = useState(false);
-  const [openAddUsersAndTitlesDialog, setOpenAddUsersAndTitlesDialog] = useState(false);
+  const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
+  const [openProjectDialog, setOpenProjectDialog] = useState(false);
   const [imageLoaded, setImageLoaded] = useState({
     cookie: false,
     foxes: false,
-    general: false,
-    roles: false,
+    project: false,
   });
 
-  const isAllImagesLoaded =
-    imageLoaded.cookie && imageLoaded.foxes && imageLoaded.general && imageLoaded.roles;
-
-  const navigate = useNavigate();
+  const isAllImagesLoaded = imageLoaded.cookie && imageLoaded.foxes && imageLoaded.project;
 
   const { hasAccess } = usePermissions();
 
@@ -42,15 +38,14 @@ const Cookie: FunctionComponent = () => {
   useEffect(() => {
     preloadImage('cookie', IMAGES.cookie);
     preloadImage('foxes', IMAGES.foxes);
-    preloadImage('general', IMAGES.general);
-    preloadImage('roles', IMAGES.roles);
+    preloadImage('project', IMAGES.project);
   }, []);
 
   return (
     <div className={s.page}>
       <div className={s.header}>
         <div className={s.headerTitle}>Крихти</div>
-        <div className={s.headerSubtitle}>Управляй та переглядай крихти учасників</div>
+        <div className={s.headerSubtitle}>Записуй крихти, додавай учасників і створюй проєкти</div>
       </div>
 
       <Container>
@@ -67,39 +62,31 @@ const Cookie: FunctionComponent = () => {
         {hasAccess(SUBJECTS.ADD_MEMBERS) && (
           <Card
             isLoaded={isAllImagesLoaded}
-            onClick={() => setOpenAddUsersAndTitlesDialog(true)}
+            onClick={() => setOpenAddMemberDialog(true)}
             imgUrl={IMAGES.foxes}
-            title="Додати в лисятник"
-            description="Новий учасник або тайтл"
+            title="Додати учасника"
+            description="Новий учасник або гість"
           />
         )}
 
-        <Card
-          isLoaded={isAllImagesLoaded}
-          onClick={() => navigate('list')}
-          imgUrl={IMAGES.general}
-          title="Список крихт"
-          description="Переглянути всі записи"
-        />
-
-        <Card
-          isLoaded={isAllImagesLoaded}
-          onClick={() => navigate('rating')}
-          imgUrl={IMAGES.roles}
-          title="Рейтинг крихт"
-          description="Хто заробив найбільше?"
-        />
+        {hasAccess(SUBJECTS.MANAGE_PROJECTS) && (
+          <Card
+            isLoaded={isAllImagesLoaded}
+            onClick={() => setOpenProjectDialog(true)}
+            imgUrl={IMAGES.project}
+            title="Створити проєкт"
+            description="Новий тайтл для запису крихт"
+          />
+        )}
       </Container>
 
       {openCookieDialog && (
         <InputCookieDialog onClose={() => setOpenCookieDialog(false)} open={openCookieDialog} />
       )}
-      {openAddUsersAndTitlesDialog && (
-        <CreateAnimeAndMemberDialog
-          onClose={() => setOpenAddUsersAndTitlesDialog(false)}
-          open={openAddUsersAndTitlesDialog}
-        />
+      {openAddMemberDialog && (
+        <AddMemberDialog onClose={() => setOpenAddMemberDialog(false)} open={openAddMemberDialog} />
       )}
+      {openProjectDialog && <ProjectFormDialog open onClose={() => setOpenProjectDialog(false)} />}
     </div>
   );
 };

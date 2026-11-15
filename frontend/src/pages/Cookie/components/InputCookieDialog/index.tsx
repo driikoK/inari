@@ -5,9 +5,10 @@ import { type DialogProps } from '@mui/material';
 import { ChooseAnimeFormValues } from './types';
 import { CreateTrackForm } from './components/CreateTrackForm';
 import { ChooseAnimeForm } from './components/ChooseAnimeForm';
-import { useAnimesStore, useCoinsStore } from '@/stores';
+import { useCoinsStore, useTitlesStore } from '@/stores';
 import { ANIME_TYPE } from '@/types';
 import { CustomDialog } from '@/components';
+import { notifyFailure } from '@/utils/request';
 import { CreateTrackWithOnlySubsForm } from './components/CreateTrackWithOnlySubsForm';
 
 export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
@@ -15,13 +16,13 @@ export interface IInputCookieDialogProps extends Pick<DialogProps, 'open'> {
 }
 
 const InputCookieDialog: FunctionComponent<IInputCookieDialogProps> = ({ open, onClose }) => {
-  const getAnimes = useAnimesStore((state) => state.getAnimes);
+  const getTitles = useTitlesStore((state) => state.getTitles);
   const getCoins = useCoinsStore((state) => state.getCoins);
   const [isNextStep, setIsNextStep] = useState(false);
   const [chosenAnime, setChosenAnime] = useState<ChooseAnimeFormValues | null>(null);
 
   useEffect(() => {
-    getAnimes();
+    getTitles().catch(notifyFailure);
     getCoins();
   }, []);
 

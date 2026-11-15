@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
-import { createMock } from '@golevelup/ts-jest';
+import { vi } from 'vitest';
+import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
-import { TeamAnimesService } from './team-animes.service';
-import { ITeamAnime } from './interfaces/team-anime.interface';
-import { CreateAnimeData } from './data/create-team-anime.data';
+import { TeamAnimesService } from './team-animes.service.js';
+import { ITeamAnime } from './interfaces/team-anime.interface.js';
 
 describe('TeamAnimesService', () => {
   let teamAnimesService: TeamAnimesService;
-  let model: Model<ITeamAnime>;
+  let model: DeepMocked<Model<ITeamAnime>>;
 
   const mockTeamAnime = {
     _id: '61c0ccf11d7bf83d153d7c06',
@@ -21,22 +21,22 @@ describe('TeamAnimesService', () => {
         TeamAnimesService,
         {
           provide: 'TEAM_ANIME_MODEL',
-          useValue: createMock<TeamAnimesService>(),
+          useValue: createMock<Model<ITeamAnime>>(),
         },
       ],
     }).compile();
 
     teamAnimesService = module.get(TeamAnimesService);
-    model = module.get<Model<ITeamAnime>>('TEAM_ANIME_MODEL');
+    model = module.get('TEAM_ANIME_MODEL');
   });
 
   describe('findAll', () => {
     it('should return an array of team animes', async () => {
-      jest.spyOn(model, 'find').mockImplementation(
+      model.find.mockImplementation(
         () =>
           ({
-            sort: jest.fn().mockResolvedValue([mockTeamAnime]),
-          } as any),
+            sort: vi.fn().mockResolvedValue([mockTeamAnime]),
+          }) as any,
       );
 
       const result = await teamAnimesService.findAll();
@@ -45,36 +45,14 @@ describe('TeamAnimesService', () => {
     });
   });
 
-  describe('create', () => {
-    it('should create and return a team anime', async () => {
-      const newAnime = {
-        name: 'New awesome anime',
-      };
+  describe('markMoved', () => {
+    it('says which project the titles with these names went to', async () => {
+      await teamAnimesService.markMoved(['Wind Breaker', 'wind breaker'], 'p1');
 
-      jest
-        .spyOn(model, 'create')
-        .mockImplementationOnce(() => Promise.resolve(mockTeamAnime as any));
-
-      const result = await teamAnimesService.create(
-        newAnime as CreateAnimeData,
+      expect(model.updateMany).toHaveBeenCalledWith(
+        { name: { $in: ['Wind Breaker', 'wind breaker'] } },
+        { $set: { projectId: 'p1' } },
       );
-
-      expect(result).toEqual(mockTeamAnime);
-    });
-  });
-
-  describe('deleteById', () => {
-    it('should delete and return boolean value', async () => {
-      jest.spyOn(model, 'deleteOne').mockResolvedValue({
-        acknowledged: true,
-        deletedCount: 1,
-      });
-
-      const result = await teamAnimesService.deleteById(mockTeamAnime._id);
-
-      expect(model.deleteOne).toHaveBeenCalledWith({ _id: mockTeamAnime._id });
-
-      expect(result).toEqual(true);
     });
   });
 });

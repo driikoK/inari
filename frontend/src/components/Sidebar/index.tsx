@@ -1,86 +1,30 @@
-import { FC, ReactNode } from 'react';
+import { FC } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, useMediaQuery } from '@mui/material';
 import clsx from 'clsx';
 import { useAuthStore } from '@/stores';
-import { usePermissions } from '@/hooks';
 import { SUBJECTS } from '@/context/casl';
+import { usePermissions } from '@/hooks';
 import styles from './Sidebar.module.scss';
-import {
-  HomeOutlined,
-  CookieOutlined,
-  FormatListBulletedOutlined,
-  StarBorderOutlined,
-  LeaderboardOutlined,
-  AutoGraphOutlined,
-  SettingsOutlined,
-  Person2Outlined,
-  LogoutOutlined,
-  TableChartOutlined,
-} from '@mui/icons-material';
+import { NavBadge } from './NavBadge';
+import { useNavItems } from './useNavItems';
+import { useOpenRequests } from './useOpenRequests';
+import { OpenInNewOutlined, Person2Outlined, LogoutOutlined } from '@mui/icons-material';
 
 export const SIDEBAR_FULL_W = 200;
 export const SIDEBAR_MINI_W = 68;
 export const SIDEBAR_BREAKPOINT = '(max-width: 900px)';
 
-type NavItemDef = {
-  id: string;
-  path: string;
-  label: string;
-  icon: ReactNode;
-};
-
 const Sidebar: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, isLoggedIn } = useAuthStore();
+  const { logout } = useAuthStore();
+  const navItems = useNavItems();
   const { hasAccess } = usePermissions();
 
-  const collapsed = useMediaQuery(SIDEBAR_BREAKPOINT);
-  const isAdmin = hasAccess(SUBJECTS.PERMISSION_EDIT);
-  const isShowPoll = process.env.VITE_FEATURE_POLL === 'true';
-  const isShowResults =
-    hasAccess(SUBJECTS.SHOW_RESULTS) || process.env.VITE_FEATURE_RESULTS === 'true';
+  useOpenRequests(hasAccess(SUBJECTS.MANAGE_BUDGET));
 
-  const navItems: NavItemDef[] = [
-    { id: 'home', path: '/home', label: 'Головна', icon: <HomeOutlined /> },
-    ...(isLoggedIn
-      ? [
-          { id: 'cookie', path: '/cookie', label: 'Крихти', icon: <CookieOutlined /> },
-          {
-            id: 'cookie-list',
-            path: '/cookie/list',
-            label: 'Список крихт',
-            icon: <FormatListBulletedOutlined />,
-          },
-          {
-            id: 'cookie-rating',
-            path: '/cookie/rating',
-            label: 'Рейтинг',
-            icon: <StarBorderOutlined />,
-          },
-        ]
-      : []),
-    ...(process.env.VITE_SHEET_EMBED_URL
-      ? [
-          {
-            id: 'sheet',
-            path: '/sheet',
-            label: 'Лисяча комора',
-            icon: <TableChartOutlined />,
-          },
-        ]
-      : []),
-    ...(isShowPoll
-      ? [{ id: 'vote', path: '/vote', label: 'Голосування', icon: <LeaderboardOutlined /> }]
-      : []),
-    ...(isShowResults
-      ? [{ id: 'result', path: '/result', label: 'Результати', icon: <AutoGraphOutlined /> }]
-      : []),
-    ...(isAdmin
-      ? [{ id: 'settings', path: '/settings', label: 'Налаштування', icon: <SettingsOutlined /> }]
-      : []),
-  ];
+  const collapsed = useMediaQuery(SIDEBAR_BREAKPOINT);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -107,17 +51,48 @@ const Sidebar: FC = () => {
       </div>
 
       <nav className={styles.nav}>
-        {navItems.map((item) => (
-          <Button
-            key={item.id}
-            onClick={() => navigate(item.path)}
-            className={navBtnClass(item.path)}
-            startIcon={collapsed ? undefined : item.icon}
-            fullWidth
-          >
-            {collapsed ? item.icon : item.label}
-          </Button>
-        ))}
+        {navItems.map((item) =>
+          item.href ? (
+            <Button
+              key={item.id}
+              component="a"
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={navBtnClass(item.path)}
+              startIcon={collapsed ? undefined : item.icon}
+              endIcon={collapsed ? undefined : <OpenInNewOutlined sx={{ fontSize: 14 }} />}
+              title={collapsed ? item.label : undefined}
+              fullWidth
+            >
+              {collapsed ? item.icon : item.label}
+            </Button>
+          ) : (
+            <Button
+              key={item.id}
+              onClick={() => navigate(item.path)}
+              className={navBtnClass(item.path)}
+              startIcon={collapsed ? undefined : item.icon}
+              title={collapsed ? item.label : undefined}
+              aria-label={item.badge ? `${item.label}, очікують: ${item.badge}` : undefined}
+              fullWidth
+            >
+              {collapsed ? (
+                <span className={styles.iconWithBadge}>
+                  {item.icon}
+                  <NavBadge count={item.badge} collapsed />
+                </span>
+              ) : item.badge ? (
+                <>
+                  <span className={styles.label}>{item.label}</span>
+                  <NavBadge count={item.badge} />
+                </>
+              ) : (
+                item.label
+              )}
+            </Button>
+          ),
+        )}
       </nav>
 
       <div className={styles.bottomSection}>

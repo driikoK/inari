@@ -1,14 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength } from 'class-validator';
+import { z } from 'zod';
 
-export class LoginData {
-  @ApiProperty()
-  @IsString()
-  @MinLength(3)
-  username: string;
+export const LoginData = z.object({
+  username: z.string().min(3),
+  password: z.string().min(3),
+});
 
-  @ApiProperty()
-  @IsString()
-  @MinLength(3)
-  password: string;
-}
+export type LoginData = z.infer<typeof LoginData>;

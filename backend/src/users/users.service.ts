@@ -1,14 +1,26 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { Model } from 'mongoose';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import bcrypt from 'bcrypt';
+import { isValidObjectId, Model } from 'mongoose';
 
-import { CreateUserDto, IUser } from './interfaces/user.interface';
-import { ROLE } from './enums';
-import { UpdateUserData } from './data/update-user.data';
+import { MembersService } from '../members/members.service.js';
+import { MEMBER_KIND } from '../shared/index.js';
+import { CreateUserDto, IUser } from './interfaces/user.interface.js';
+import { ROLE } from './enums/index.js';
+import { UpdateUserData } from './data/update-user.data.js';
+import { UpdateUserNicknameData } from './data/update-user-nickname.data.js';
+
+const DUPLICATE_KEY = 11000;
 
 @Injectable()
 export class UsersService {
   @Inject('USER_MODEL') private readonly userModel: Model<IUser>;
+  @Inject(MembersService) private readonly membersService: MembersService;
 
   async findOneByUsername(
     username: string,
@@ -53,7 +65,22 @@ export class UsersService {
   }
 
   async findAll(): Promise<IUser[] | []> {
-    return this.userModel.find({}, { username: 1, role: 1, _id: 1 }).exec();
+    return this.userModel
+      .find({}, { username: 1, role: 1, nickname: 1, _id: 1 })
+      .exec();
+  }
+
+  // The nickname each account holds now. An account that is gone is missing.
+  async nicknamesOf(
+    usernames: string[],
+  ): Promise<Map<string, string | undefined>> {
+    if (usernames.length === 0) return new Map();
+
+    const users = await this.userModel
+      .find({ username: { $in: usernames } }, { username: 1, nickname: 1 })
+      .lean<{ username: string; nickname?: string }[]>();
+
+    return new Map(users.map(({ username, nickname }) => [username, nickname]));
   }
 
   async create({
@@ -62,9 +89,17 @@ export class UsersService {
     email,
     role,
   }: CreateUserDto): Promise<string> {
-    bcrypt.hash(password, 10, (err, hash) => {
-      this.userModel.create({ username, password: hash, role, email });
-    });
+    const hash = await bcrypt.hash(password, 10);
+
+    try {
+      await this.userModel.create({ username, password: hash, role, email });
+    } catch (error) {
+      if ((error as { code?: number }).code === DUPLICATE_KEY) {
+        throw new HttpException('Такий нікнейм вже існує', HttpStatus.CONFLICT);
+      }
+
+      throw error;
+    }
 
     return 'Created';
   }
@@ -120,5 +155,104 @@ export class UsersService {
     );
 
     return updatedUser;
+  }
+
+  async setNickname(
+    id: string,
+    { nickname, create }: UpdateUserNicknameData,
+    actor: string,
+  ): Promise<Omit<IUser, 'password'>> {
+    if (!isValidObjectId(id)) {
+      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.userModel.findById(id).exec();
+
+    if (!user) {
+      throw new NotFoundException('Юзера не знайдено');
+    }
+
+    if (user.username === 'root') {
+      throw new HttpException('Не можна редагувати юзера', HttpStatus.CONFLICT);
+    }
+
+    if (!nickname) return this.saveNickname(id, null);
+
+    const member = await this.membersService.findByNickname(nickname);
+
+    if (member?.deletedAt) {
+      throw new HttpException(
+        'Цей нікнейм приховано, оберіть інший',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    if (!member && !create) {
+      throw new NotFoundException('Нікнейм не знайдено');
+    }
+
+    const taken = await this.userModel.exists({ nickname, _id: { $ne: id } });
+
+    if (taken) {
+      throw new HttpException(
+        'Цей нікнейм вже прив’язано до іншого акаунта',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    if (!member) {
+      await this.membersService.createMember(
+        { nickname, types: [], kind: MEMBER_KIND.TEAM },
+        actor,
+      );
+    }
+
+    return this.saveNickname(id, nickname);
+  }
+
+  private async saveNickname(
+    id: string,
+    nickname: string | null,
+  ): Promise<Omit<IUser, 'password'>> {
+    try {
+      return await this.userModel.findByIdAndUpdate(
+        id,
+        nickname ? { $set: { nickname } } : { $unset: { nickname: 1 } },
+        { new: true, select: '-password -__v' },
+      );
+    } catch (error) {
+      if ((error as { code?: number }).code === DUPLICATE_KEY) {
+        throw new HttpException(
+          'Цей нікнейм вже прив’язано до іншого акаунта',
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  async delete(id: string, currentUserId: string): Promise<string> {
+    if (!isValidObjectId(id)) {
+      throw new HttpException('Невірний id', HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.userModel.findById(id).exec();
+
+    if (!user) {
+      throw new NotFoundException('Юзера не знайдено');
+    }
+
+    if (user.username === 'root') {
+      throw new HttpException('Не можна видаляти юзера', HttpStatus.CONFLICT);
+    }
+
+    if (String(user._id) === String(currentUserId)) {
+      throw new HttpException('Не можна видалити себе', HttpStatus.CONFLICT);
+    }
+
+    await this.userModel.deleteOne({ _id: id });
+
+    return user.username;
   }
 }

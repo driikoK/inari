@@ -1,0 +1,96 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.kind {
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.description {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.rows {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    padding: 4px 8px;
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  td {
+    padding: 4px 8px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+  }
+}
+
+.number {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.rows td.plus {
+  color: var(--green);
+}
+
+.rows td.minus {
+  color: var(--red);
+}
+
+.changes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.was {
+  color: var(--red);
+}
+
+.became {
+  color: var(--green);
+}

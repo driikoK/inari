@@ -1,7 +1,7 @@
 import { FC, useEffect, useMemo } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Box, Checkbox, FormControlLabel, TextField } from '@mui/material';
 
@@ -23,6 +23,7 @@ import { useCoinsByDuration, useWatchCheckboxValues, useWatchNicknames } from '.
 import { checkIsOnlyOneEpisode, finalizeMembersInfoArray } from '../helpers';
 
 export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
+  projectId,
   titleName,
   episode,
   onClose,
@@ -58,23 +59,27 @@ export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
   const transformMembersInfo = (
     membersInfo: CreateTrackWithSubsOnlyFormValues['membersInfo'],
     coins: CoinsType,
-    lastTracks?: { typeRole: string; nickname: string }[]
+    lastTracks?: { typeRole: string; nickname: string }[],
   ): CreateTrackWithSubsOnlyFormValues['membersInfo'] => {
-    return Object.entries(membersInfo).reduce((acc, [key, value]) => {
-      if (Array.isArray(value)) {
-        (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue[]) = [
-          ...findTracksByKey(key, value),
-        ];
-      } else {
-        (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue) = {
-          ...value,
-          coins: coins[key as keyof typeof coins].toString(),
-          nickname:
-            lastTracks?.find((track) => track.typeRole === key)?.nickname || value?.nickname || '',
-        };
-      }
-      return acc;
-    }, {} as CreateTrackWithSubsOnlyFormValues['membersInfo']);
+    return Object.entries(membersInfo).reduce(
+      (acc, [key, value]) => {
+        if (Array.isArray(value)) {
+          (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue[]) =
+            [...findTracksByKey(key, value)];
+        } else {
+          (acc[key as keyof CreateTrackWithSubsOnlyFormValues['membersInfo']] as FieldFormValue) = {
+            ...value,
+            coins: coins[key as keyof typeof coins].toString(),
+            nickname:
+              lastTracks?.find((track) => track.typeRole === key)?.nickname ||
+              value?.nickname ||
+              '',
+          };
+        }
+        return acc;
+      },
+      {} as CreateTrackWithSubsOnlyFormValues['membersInfo'],
+    );
   };
 
   const defaultValues: CreateTrackWithSubsOnlyFormValues = useMemo(() => {
@@ -88,7 +93,7 @@ export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
 
   const methods = useForm<CreateTrackWithSubsOnlyFormValues>({
     defaultValues,
-    resolver: yupResolver(createTrackWithSubsOnlyFormSchema(coins)),
+    resolver: zodResolver(createTrackWithSubsOnlyFormSchema(coins)),
     criteriaMode: 'all',
     mode: 'onChange',
   });
@@ -118,11 +123,10 @@ export const CreateTrackWithOnlySubsForm: FC<BasicTrackProps> = ({
     const payload: CreateTrackType = {
       ...form,
       membersInfo: finalizeMembersInfoArray(form.membersInfo),
-      nameTitle: titleName,
-      currentEpisode: parseInt(episode),
-      titleType: animeType,
+      projectId,
       season,
       year: Number(year),
+      currentEpisode: parseInt(episode),
       note: form.note || '',
       username: user!.username,
       isSubsOnly: true,

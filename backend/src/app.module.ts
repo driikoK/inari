@@ -4,25 +4,29 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { CommandModule } from 'nestjs-command';
-import { SeedModule } from './seeds/seed.module';
-import { MembersModule } from './members/members.module';
-import { PollsModule } from './polls/polls.module';
-import { TeamAnimesModule } from './team-animes/team-animes.module';
-import { LoggerMiddleware } from './middleware/logger.middleware';
-import { TracksModule } from './tracks/tracks.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { DictionariesModule } from './dictionaries/dictionaries.module';
-import { EmailModule } from './email/email.module';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration.js';
+import { validate } from './config/env.validation.js';
+import { SeedModule } from './seeds/seed.module.js';
+import { BudgetModule } from './budget/budget.module.js';
+import { MembersModule } from './members/members.module.js';
+import { ProjectsModule } from './projects/projects.module.js';
+import { ProposalsModule } from './proposals/proposals.module.js';
+import { LoggerMiddleware } from './middleware/logger.middleware.js';
+import { TracksModule } from './tracks/tracks.module.js';
+import { AuthModule } from './auth/auth.module.js';
+import { UsersModule } from './users/users.module.js';
+import { DictionariesModule } from './dictionaries/dictionaries.module.js';
+import { EmailModule } from './email/email.module.js';
 
 @Module({
   imports: [
-    CommandModule,
+    ConfigModule.forRoot({ isGlobal: true, load: [configuration], validate }),
     SeedModule,
     MembersModule,
-    PollsModule,
-    TeamAnimesModule,
+    ProposalsModule,
+    ProjectsModule,
+    BudgetModule,
     TracksModule,
     AuthModule,
     UsersModule,
@@ -34,6 +38,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(LoggerMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+      .forRoutes({ path: '{*splat}', method: RequestMethod.ALL });
   }
 }

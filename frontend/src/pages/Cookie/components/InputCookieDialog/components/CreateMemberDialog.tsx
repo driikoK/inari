@@ -3,8 +3,9 @@ import toast from 'react-hot-toast';
 
 import { TextField, type DialogProps, Button } from '@mui/material';
 
-import { CustomDialog, H6 } from '@/components';
+import { CustomDialog, H6, MemberKindToggle } from '@/components';
 import { useMembersStore } from '@/stores';
+import { MemberKind } from '@/types';
 
 export interface IRequiredAuthorizationDialogProps extends Pick<DialogProps, 'open'> {
   onClose: () => void;
@@ -15,11 +16,14 @@ const CreateMemberDialog: FunctionComponent<IRequiredAuthorizationDialogProps> =
   onClose,
 }) => {
   const [nickname, setNickname] = useState<string>('');
+  const [kind, setKind] = useState<MemberKind | null>(null);
   const addMember = useMembersStore((state) => state.addMember);
 
   const handleSubmit = async () => {
+    if (!kind) return;
+
     try {
-      await addMember({ nickname, types: [], coins: 0, seasons: [] });
+      await addMember({ nickname, kind, types: [], coins: 0, seasons: [] });
 
       toast.success('Новий мембер створений успішно!');
     } catch (e) {}
@@ -34,7 +38,13 @@ const CreateMemberDialog: FunctionComponent<IRequiredAuthorizationDialogProps> =
         onChange={(e) => setNickname(e.target.value)}
         sx={{ width: '100%' }}
       />
-      <Button type="submit" color="inherit" disabled={nickname.length < 3} onClick={handleSubmit}>
+      <MemberKindToggle value={kind} onChange={setKind} />
+      <Button
+        type="submit"
+        color="inherit"
+        disabled={nickname.length < 3 || !kind}
+        onClick={handleSubmit}
+      >
         Зберегти
       </Button>
     </CustomDialog>
