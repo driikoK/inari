@@ -22,8 +22,6 @@ export type NavItemDef = {
   path: string;
   label: string;
   icon: ReactNode;
-  // A page outside the site, opened in a new tab
-  href?: string;
   // How many things wait there, shown next to the name when it is above zero
   badge?: number;
 };
@@ -36,7 +34,6 @@ export const useNavItems = (): NavItemDef[] => {
   const isAdmin = hasAccess(SUBJECTS.PERMISSION_EDIT);
   const canManageBudget = hasAccess(SUBJECTS.MANAGE_BUDGET);
   const canAddCrumbs = hasAccess([SUBJECTS.ADD_COOKIES, SUBJECTS.ADD_MEMBERS]);
-  const codexUrl = process.env.VITE_CODEX_URL;
   const openRequests = useBudgetStore((state) => state.openRequests);
 
   return [
@@ -94,16 +91,8 @@ export const useNavItems = (): NavItemDef[] => {
           },
         ]
       : []),
-    ...(isLoggedIn && codexUrl
-      ? [
-          {
-            id: 'codex',
-            path: codexUrl,
-            href: codexUrl,
-            label: 'Кодекс Інарі',
-            icon: <MenuBookOutlined />,
-          },
-        ]
+    ...(isLoggedIn
+      ? [{ id: 'codex', path: '/codex', label: 'Кодекс Інарі', icon: <MenuBookOutlined /> }]
       : []),
     ...(isAdmin
       ? [{ id: 'settings', path: '/settings', label: 'Налаштування', icon: <SettingsOutlined /> }]

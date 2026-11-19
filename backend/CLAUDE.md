@@ -14,5 +14,6 @@ The details are split by topic in `docs/`. Read the file of the area you are abo
 | [docs/proposals-and-projects.md](docs/proposals-and-projects.md) | proposal seasons and paws, projects, seasons and debts, finishing, the list of roles |
 | [docs/titles-are-projects.md](docs/titles-are-projects.md) | tracks written by project, the team of a project, `migrate:titles` |
 | [docs/budget.md](docs/budget.md) | the ledger in kopiykas, jars and the coefficient, expenses, withdrawal requests, audit, reconciliation |
+| [docs/codex.md](docs/codex.md) | the Codex of the team: one document, the text it starts with, who may save, what the validation lets through |
 | [docs/layout-and-testing.md](docs/layout-and-testing.md) | the modules, how the specs are written and how to try the API on a real Mongo |
 | [docs/known-issues.md](docs/known-issues.md) | what is wrong and left as it is |

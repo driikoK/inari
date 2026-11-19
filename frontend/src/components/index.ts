@@ -10,6 +10,7 @@ import { SeasonFilter } from './SeasonFilter';
 import { ConfirmTableChangeDialog } from './ConfirmTableChangeDialog';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { RequireAccess } from './RequireAccess';
+import { RouteError } from './RouteError';
 import { MemberKindToggle } from './MemberKindToggle';
 import { H5, H6, ErrorText, P, Subtitle } from './Typography';
 import CustomDialog from './CustomDialog';
@@ -34,6 +35,7 @@ export {
   ConfirmTableChangeDialog,
   ConfirmDeleteDialog,
   RequireAccess,
+  RouteError,
   MemberKindToggle,
   CustomDialog,
   DateInput,

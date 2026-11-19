@@ -1,0 +1,9 @@
+# Codex
+
+Part of the backend guide, see [CLAUDE.md](../CLAUDE.md).
+
+- The Codex of the team («Кодекс Інарі», its rules) is one document: the collection `codex` with the single id `codex` (`CODEX_ID`). `CodexService.get` answers `{ content, updatedAt }`: the saved text, or, until the first save, `DEFAULT_CODEX` (`codex.default.ts`, the text as the team had it on telegra.ph) with `updatedAt: null`. So a new environment needs no seed and a deploy has no data step. `updatedBy` is kept in the database and is never given to the page.
+- `GET /codex` is for any logged-in user, `PUT /codex` (`{ content }`) for admins only (`AdminGuard`). The last save wins: there is no version check and no history, so a text that was written over can come back only from the nightly dump. The first save creates the document with an upsert. Two first saves at once meet on the unique id, and the one that lost goes again, once, as an update.
+- `content` is a Tiptap (ProseMirror) JSON document. `CodexContent` (`data/codex.data.ts`) accepts only what the editor of the page offers: paragraph, heading of level 2 or 3, horizontal rule, text and hard break, with the marks bold, italic and link. Anything else, an empty document, more than `MAX_CODEX_BLOCKS` blocks or more than `MAX_CODEX_SIZE` characters of JSON is a 400, and unknown keys are dropped. A link must be `http`, `https` or `mailto` and have no whitespace in it (the browser's `URL` takes «https://a b» and writes «https://a%20b/», Node's does not, so the editor of the page refuses a space too), and it is always written with `target="_blank"` and `rel="noopener noreferrer nofollow"`, whatever the client sent.
+- The numbers of the clauses («1.4.1») are bold text. There is no automatic numbering and no cross-reference by number, whoever edits keeps them right.
+- What the editor can make is two lists that must stay the same: `CodexContent` here and `frontend/src/pages/Codex/const/extensions.ts`.

@@ -9,7 +9,7 @@ import styles from './Sidebar.module.scss';
 import { NavBadge } from './NavBadge';
 import { useNavItems } from './useNavItems';
 import { useOpenRequests } from './useOpenRequests';
-import { OpenInNewOutlined, Person2Outlined, LogoutOutlined } from '@mui/icons-material';
+import { Person2Outlined, LogoutOutlined } from '@mui/icons-material';
 
 export const SIDEBAR_FULL_W = 200;
 export const SIDEBAR_MINI_W = 68;
@@ -51,48 +51,31 @@ const Sidebar: FC = () => {
       </div>
 
       <nav className={styles.nav}>
-        {navItems.map((item) =>
-          item.href ? (
-            <Button
-              key={item.id}
-              component="a"
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={navBtnClass(item.path)}
-              startIcon={collapsed ? undefined : item.icon}
-              endIcon={collapsed ? undefined : <OpenInNewOutlined sx={{ fontSize: 14 }} />}
-              title={collapsed ? item.label : undefined}
-              fullWidth
-            >
-              {collapsed ? item.icon : item.label}
-            </Button>
-          ) : (
-            <Button
-              key={item.id}
-              onClick={() => navigate(item.path)}
-              className={navBtnClass(item.path)}
-              startIcon={collapsed ? undefined : item.icon}
-              title={collapsed ? item.label : undefined}
-              aria-label={item.badge ? `${item.label}, очікують: ${item.badge}` : undefined}
-              fullWidth
-            >
-              {collapsed ? (
-                <span className={styles.iconWithBadge}>
-                  {item.icon}
-                  <NavBadge count={item.badge} collapsed />
-                </span>
-              ) : item.badge ? (
-                <>
-                  <span className={styles.label}>{item.label}</span>
-                  <NavBadge count={item.badge} />
-                </>
-              ) : (
-                item.label
-              )}
-            </Button>
-          ),
-        )}
+        {navItems.map((item) => (
+          <Button
+            key={item.id}
+            onClick={() => navigate(item.path)}
+            className={navBtnClass(item.path)}
+            startIcon={collapsed ? undefined : item.icon}
+            title={collapsed ? item.label : undefined}
+            aria-label={item.badge ? `${item.label}, очікують: ${item.badge}` : undefined}
+            fullWidth
+          >
+            {collapsed ? (
+              <span className={styles.iconWithBadge}>
+                {item.icon}
+                <NavBadge count={item.badge} collapsed />
+              </span>
+            ) : item.badge ? (
+              <>
+                <span className={styles.label}>{item.label}</span>
+                <NavBadge count={item.badge} />
+              </>
+            ) : (
+              item.label
+            )}
+          </Button>
+        ))}
       </nav>
 
       <div className={styles.bottomSection}>

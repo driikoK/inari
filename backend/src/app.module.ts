@@ -9,6 +9,7 @@ import configuration from './config/configuration.js';
 import { validate } from './config/env.validation.js';
 import { SeedModule } from './seeds/seed.module.js';
 import { BudgetModule } from './budget/budget.module.js';
+import { CodexModule } from './codex/codex.module.js';
 import { MembersModule } from './members/members.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { ProposalsModule } from './proposals/proposals.module.js';
@@ -27,6 +28,7 @@ import { EmailModule } from './email/email.module.js';
     ProposalsModule,
     ProjectsModule,
     BudgetModule,
+    CodexModule,
     TracksModule,
     AuthModule,
     UsersModule,
