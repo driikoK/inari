@@ -9,6 +9,7 @@ const Projects = lazy(() => import('../pages/Projects'));
 const Budget = lazy(() => import('../pages/Budget'));
 const Expenses = lazy(() => import('../pages/Expenses'));
 const Sheet = lazy(() => import('../pages/Sheet'));
+const Codex = lazy(() => import('../pages/Codex'));
 const Cookie = lazy(() => import('../pages/Cookie'));
 const Home = lazy(() => import('../pages/Home'));
 const CookieRating = lazy(() => import('../pages/CookieRating'));
@@ -57,6 +58,10 @@ const useConditionalRoutes = () => {
           path: 'sheet',
           element: <Sheet />,
         }),
+        {
+          path: 'codex',
+          element: <Codex />,
+        },
         {
           path: 'cookie',
           element: (

@@ -1,3 +1,5 @@
+import type { JSONContent } from '@tiptap/react';
+
 export interface TrackType {
   _id: string;
   projectId?: string;
@@ -18,6 +20,13 @@ export interface TrackType {
   createdAt: string;
   updatedAt: string;
   isSubsOnly?: boolean;
+}
+
+// The text of the Codex as the server keeps it, a Tiptap document, with the day it was saved
+// (missing while nobody has saved a text of their own)
+export interface CodexType {
+  content: JSONContent;
+  updatedAt: string | null;
 }
 
 export interface CoinsType {

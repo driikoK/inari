@@ -45,7 +45,6 @@ export const AboutBlock: FunctionComponent = () => {
     {
       term: 'Кодекс Інарі',
       text: 'правила, що тримають нашу лисячу зграю у гармонії та взаємоповазі.',
-      isHidden: !process.env.VITE_CODEX_URL,
     },
   ];
 

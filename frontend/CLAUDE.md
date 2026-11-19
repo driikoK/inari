@@ -15,3 +15,4 @@ The details are split by topic in `docs/`. Read the file of the area you are abo
 | [docs/home-and-crumbs.md](docs/home-and-crumbs.md) | the home page, the page of crumbs, the track form, the list of crumbs and its filters |
 | [docs/proposals-and-projects.md](docs/proposals-and-projects.md) | the Proposals and Projects pages |
 | [docs/budget.md](docs/budget.md) | the Budget page, the withdrawal request, the queue and pages of Expenses, the audit and the reconciliation |
+| [docs/codex.md](docs/codex.md) | the page of the Codex, the Tiptap editor, text that is not saved, the data router |

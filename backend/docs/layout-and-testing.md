@@ -14,6 +14,7 @@ Part of the backend guide, see [CLAUDE.md](../CLAUDE.md).
 | `proposals` | seasons with proposed titles, and who joins them in which roles |
 | `projects` | titles the team is working on, laid out by season with debts and statistics |
 | `budget` | the team's money: incomes ledger, season jars, coefficient, append-only audit |
+| `codex` | the Codex of the team: one document with the text it starts with, read by everyone and saved by admins |
 | `seeds` + `cli.ts` | seed commands (`cli.ts` is a small `parseArgs` dispatcher) |
 | `config`, `database`, `middleware`, `shared` | env, Mongo connection (`DATABASE_CONNECTION`), request logger, enums/helpers |
 

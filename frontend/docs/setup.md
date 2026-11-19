@@ -46,11 +46,11 @@ Read as `process.env.VITE_*` (injected by `define` in `vite.config.ts`), set in 
 | ----------------------- | -------------------------------------------------------- |
 | `VITE_API_URL`          | Backend base URL                                         |
 | `VITE_SHEET_EMBED_URL`  | Published Google Sheet embed URL, blank hides the page   |
-| `VITE_CODEX_URL`        | Page of «Кодекс Інарі» opened in a new tab, blank hides the item |
 
 Known issue: `define: { 'process.env': process.env }` in `vite.config.ts` inlines the whole environment of the machine that runs `vite build` into the shipped JavaScript. Never build with secrets in the environment, and prefer moving to `import.meta.env.VITE_*`.
 
 ## Dev server gotchas (Windows)
 
+- A build or dev server that says `failed to resolve import "@/…"` for a file that exists was started from a shell whose working directory has a lowercase drive letter (`d:\…`): `vite-tsconfig-paths` compares paths case-sensitively and skips the importer. Start it from `D:\…` (in Git Bash `cd "D:/Kostya/…"`, not `cd /d/Kostya/…`).
 - Restart `npm start` after adding or removing a dependency. A stale Vite optimizer cache fails with `ENOENT … index.esm.js` and lazy pages render blank. `npm start -- --force` rebuilds the cache.
 - Stop the dev server before `npm install`, it locks the esbuild and rollup binaries. Stopping the task can leave the `node …vite.js` process behind, check that port 5173 is free.

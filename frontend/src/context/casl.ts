@@ -16,6 +16,7 @@ export enum SUBJECTS {
   MANAGE_PROPOSALS = 'manage-proposals',
   MANAGE_PROJECTS = 'manage-projects',
   MANAGE_BUDGET = 'manage-budget',
+  EDIT_CODEX = 'edit-codex',
 }
 
 export enum ROLE {

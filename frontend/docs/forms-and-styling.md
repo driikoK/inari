@@ -38,7 +38,7 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 
 **Date fields** — use `DateInput` (`src/components/DateInput`, props `min` and `max` as `YYYY-MM-DD`), not a bare `TextField type="date"`. The browser opens its calendar only from the small icon of a native date field, so `DateInput` opens it from a click anywhere in the frame of the field (`showPicker()` on the frame, which also covers the padding around the `<input>`). The site is dark only, and `global.css` sets `color-scheme: dark` on `:root` so that the icon is drawn white (it was black on the dark background) and the calendar popup is dark too.
 
-**Toasts** — one `<Toaster>` in `src/index.tsx`, styled with the tokens of `global.css` (surface, text, font, radius). Its `style` sets the padding on purpose: `react-hot-toast` wraps its own styles in `:where()`, which has no specificity, so the `* { padding: 0 }` reset of `global.css` would win and the toast would have no padding. Do the same for any other third-party widget that looks unpadded.
+**Toasts** — one `<Toaster>` in `src/Root.tsx`, styled with the tokens of `global.css` (surface, text, font, radius). Its `style` sets the padding on purpose: `react-hot-toast` wraps its own styles in `:where()`, which has no specificity, so the `* { padding: 0 }` reset of `global.css` would win and the toast would have no padding. Do the same for any other third-party widget that looks unpadded.
 
 **New component styling** — use MUI `sx` prop for MUI components; use `.module.scss` CSS modules for plain HTML elements. Reference design tokens via `var(--accent)` etc. in SCSS.
 
