@@ -6,10 +6,13 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { CuratorGuard } from '../auth/curator.guard.js';
+import { readUpload } from '../posters/upload.js';
 import {
   CreateProjectData,
   FinishProjectData,
@@ -61,6 +64,18 @@ export class ProjectsController {
   @UseGuards(AuthGuard, CuratorGuard)
   reopen(@Param('id') id: string) {
     return this.projectsService.reopen(id);
+  }
+
+  @Put(':id/poster')
+  @UseGuards(AuthGuard, CuratorGuard)
+  async setPoster(@Param('id') id: string, @Req() request: FastifyRequest) {
+    return this.projectsService.setPoster(id, await readUpload(request));
+  }
+
+  @Delete(':id/poster')
+  @UseGuards(AuthGuard, CuratorGuard)
+  removePoster(@Param('id') id: string) {
+    return this.projectsService.removePoster(id);
   }
 
   @Delete(':id')

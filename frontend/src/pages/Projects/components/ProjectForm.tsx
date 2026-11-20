@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
@@ -32,6 +32,7 @@ import {
 } from '../const/form';
 import { MIN_DAY, projectTypes, todayDay } from '../const/options';
 import { ParticipantsEditor } from './ParticipantsEditor';
+import { PosterField } from './PosterField';
 
 interface ProjectFormProps {
   onClose: () => void;
@@ -65,8 +66,12 @@ const initialValues = (
 export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project, proposal }) => {
   const createProject = useProjectsStore((state) => state.createProject);
   const updateProject = useProjectsStore((state) => state.updateProject);
+  const uploadPoster = useProjectsStore((state) => state.uploadPoster);
+  const deletePoster = useProjectsStore((state) => state.deletePoster);
   const getProposals = useProposalsStore((state) => state.getProposals);
   const today = todayDay();
+  const [pickedPoster, setPickedPoster] = useState<File | null>(null);
+  const [isPosterRemoved, setIsPosterRemoved] = useState(false);
 
   const {
     control,
@@ -82,15 +87,29 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
   const titleType = watch('titleType');
   const isFinished = watch('isFinished');
 
+  // The project is saved by now, so a poster that fails does not keep the form open:
+  // saving again would make a second project
+  const applyPoster = async (id: string) => {
+    try {
+      if (pickedPoster) await uploadPoster(id, pickedPoster);
+      else if (isPosterRemoved) await deletePoster(id);
+    } catch (error) {
+      notifyFailure(error);
+      toast.error('Проєкт збережено, але постер не змінився');
+    }
+  };
+
   const onSubmit = async (values: ProjectFormValues) => {
     const payload = toProjectPayload(values);
+    let id: string;
 
     try {
       if (project) {
         await updateProject(project._id, { ...payload, ...toFinishedPayload(values) });
+        id = project._id;
         toast.success('Проєкт оновлено');
       } else {
-        await createProject({
+        id = await createProject({
           ...payload,
           ...toFinishedPayload(values),
           proposalId: proposal?._id,
@@ -99,11 +118,14 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
 
         if (proposal) getProposals().catch(notifyFailure);
       }
-
-      onClose();
     } catch (error) {
       notifyFailure(error);
+
+      return;
     }
+
+    await applyPoster(id);
+    onClose();
   };
 
   const textField = (name: keyof typeof textFieldLabels) => (
@@ -147,6 +169,17 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
         {textField('romajiName')}
         {textField('codeName')}
         {textField('link')}
+
+        <PosterField
+          current={project?.posterFile ? project.poster : undefined}
+          picked={pickedPoster}
+          isRemoved={isPosterRemoved}
+          onPick={(file) => {
+            setPickedPoster(file);
+            setIsPosterRemoved(false);
+          }}
+          onClear={() => (pickedPoster ? setPickedPoster(null) : setIsPosterRemoved(true))}
+        />
         {textField('posterUrl')}
 
         <Controller

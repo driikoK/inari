@@ -13,8 +13,9 @@
 .poster {
   flex: none;
   width: 110px;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
+  aspect-ratio: 0.7 / 1;
+  object-fit: contain;
+  background: var(--surface-2);
   border-radius: var(--radius-sm);
 }
 

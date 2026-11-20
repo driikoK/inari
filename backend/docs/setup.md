@@ -32,6 +32,6 @@ NestJS 12 on Fastify, ESM only (`"type": "module"`), Mongoose, Zod 4 for validat
 
 ## Configuration
 
-- Everything goes through `@nestjs/config`. `src/config/configuration.ts` defines the typed `AppConfig` (`app`, `auth`, `mongo`, `mailer`, `seed`). Inject `ConfigService<AppConfig, true>` and call `config.get('mongo', { infer: true })`. Do not read `process.env` anywhere else.
+- Everything goes through `@nestjs/config`. `src/config/configuration.ts` defines the typed `AppConfig` (`app`, `auth`, `mongo`, `mailer`, `posters`, `seed`). Inject `ConfigService<AppConfig, true>` and call `config.get('mongo', { infer: true })`. Do not read `process.env` anywhere else.
 - `src/config/env.validation.ts` validates the environment with Zod at startup. `JWT_SECRET_KEY` is required, ports must be 1-65535, and a blank `KEY=` counts as unset. The app refuses to start otherwise (the seed CLI too, it boots the whole app).
-- Real environment variables win over `.env`. `.env.example` documents every variable. `CORS` must be the frontend origin, it is also the base of the password-reset link.
+- Real environment variables win over `.env`. `.env.example` documents every variable. `CORS` must be the frontend origin, it is also the base of the password-reset link. `POSTERS_DIR` and `POSTERS_URL` say where the uploaded posters are kept and at which address they are served, see [posters.md](posters.md); `POSTERS_URL` is required when `NODE_ENV=production`.

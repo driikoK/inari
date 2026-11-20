@@ -34,3 +34,7 @@ export const seasonOptions = [
 export const FIRST_SEASON_YEAR = 2024;
 
 export const MAX_BULK_DELETE = 100;
+
+export const MAX_POSTER_BYTES = 5 * 1024 * 1024;
+
+export const POSTER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

@@ -267,6 +267,20 @@ describe('request DTO schemas', () => {
       participants: [{ nickname: 'Dixy', roles: ['sub', 'editor'] }],
     };
 
+    it('never takes the name of the poster file from the body', () => {
+      const created = CreateProjectData.safeParse({
+        ...projectBody,
+        posterFile: 'evil.webp',
+      });
+      const updated = UpdateProjectData.safeParse({
+        ...projectBody,
+        posterFile: 'evil.webp',
+      });
+
+      expect(created.success && created.data).not.toHaveProperty('posterFile');
+      expect(updated.success && updated.data).not.toHaveProperty('posterFile');
+    });
+
     it('accepts a project with only the required fields and no team yet', () => {
       expect(
         CreateProjectData.safeParse({ ...projectBody, participants: [] })

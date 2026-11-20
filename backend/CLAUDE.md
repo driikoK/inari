@@ -12,6 +12,7 @@ The details are split by topic in `docs/`. Read the file of the area you are abo
 | [docs/validation-and-auth.md](docs/validation-and-auth.md) | Zod request schemas, guards, who may write what, CORS verbs |
 | [docs/members-and-tracks.md](docs/members-and-tracks.md) | users, soft-deleted nicknames, team or guest, the total of the rating, the link of an account to a nickname, crumb counters and their audit |
 | [docs/proposals-and-projects.md](docs/proposals-and-projects.md) | proposal seasons and paws, projects, seasons and debts, finishing, the list of roles |
+| [docs/posters.md](docs/posters.md) | the poster of a project: a link or an uploaded file, how it is processed, where it lives and who serves it |
 | [docs/titles-are-projects.md](docs/titles-are-projects.md) | tracks written by project, the team of a project, `migrate:titles` |
 | [docs/budget.md](docs/budget.md) | the ledger in kopiykas, jars and the coefficient, expenses, withdrawal requests, audit, reconciliation |
 | [docs/codex.md](docs/codex.md) | the Codex of the team: one document, the text it starts with, who may save, what the validation lets through |

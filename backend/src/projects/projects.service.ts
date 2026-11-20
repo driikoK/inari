@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { isValidObjectId, Model, Types } from 'mongoose';
+import { PostersService } from '../posters/posters.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import {
   ANIME_TYPE,
@@ -21,6 +22,7 @@ import type {
 import type {
   Project,
   ProjectTitle,
+  ProjectView,
   SeasonLayout,
 } from './interfaces/index.js';
 import { MAX_PARTICIPANTS } from './enums/index.js';
@@ -47,10 +49,18 @@ export class ProjectsService {
   constructor(
     @Inject('PROJECT_MODEL') private readonly projectModel: Model<Project>,
     private readonly proposalsService: ProposalsService,
+    private readonly posters: PostersService,
   ) {}
 
   async findAll(): Promise<{ seasons: SeasonLayout[] }> {
-    return { seasons: buildLayout(await this.list(), todayInKyiv()) };
+    const layout = buildLayout(await this.list(), todayInKyiv());
+
+    return {
+      seasons: layout.map((season) => ({
+        ...season,
+        projects: season.projects.map((project) => this.withPoster(project)),
+      })),
+    };
   }
 
   // Every project once, as stored, with no layout by season
@@ -317,10 +327,66 @@ export class ProjectsService {
   async remove(id: string): Promise<boolean> {
     const project = await this.findProject(id);
 
-    await this.projectModel.deleteOne({ _id: project._id });
+    // The file is the one the deleted document had, not the one read a moment
+    // ago, which a poster uploaded in between may have replaced. It goes before
+    // clearLaunched, so a failure there cannot leave it behind.
+    const deleted = await this.projectModel
+      .findOneAndDelete({ _id: project._id })
+      .lean<Project>();
+
+    await this.posters.remove(deleted?.posterFile);
     await this.proposalsService.clearLaunched(project._id);
 
     return true;
+  }
+
+  // The new file is written first and the old one removed only once the project
+  // points at the new one, so a failure never leaves a project with no poster.
+  async setPoster(id: string, upload: Buffer) {
+    const { _id } = await this.findProject(id);
+    const posterFile = await this.posters.save(upload);
+    let previous: Pick<Project, 'posterFile'> | null;
+
+    try {
+      previous = await this.projectModel
+        .findOneAndUpdate({ _id }, { $set: { posterFile } })
+        .select('posterFile')
+        .lean<Pick<Project, 'posterFile'>>();
+    } catch (error) {
+      await this.posters.remove(posterFile);
+
+      throw error;
+    }
+
+    if (!previous) {
+      await this.posters.remove(posterFile);
+
+      throw new NotFoundException('Проєкт не знайдено');
+    }
+
+    await this.posters.remove(previous.posterFile);
+
+    return { posterFile, poster: this.posters.urlOf(posterFile) };
+  }
+
+  async removePoster(id: string): Promise<boolean> {
+    const { _id } = await this.findProject(id);
+    const previous = await this.projectModel
+      .findOneAndUpdate({ _id }, { $unset: { posterFile: '' } })
+      .select('posterFile')
+      .lean<Pick<Project, 'posterFile'>>();
+
+    await this.posters.remove(previous?.posterFile);
+
+    return true;
+  }
+
+  private withPoster(project: ProjectView): ProjectView {
+    const poster = project.posterFile
+      ? this.posters.urlOf(project.posterFile)
+      : project.posterUrl;
+
+    return poster ? { ...project, poster } : project;
   }
 
   private toDocument(fields: ProjectFields) {

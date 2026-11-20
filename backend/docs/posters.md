@@ -1,0 +1,23 @@
+# Project posters
+
+Part of the backend guide, see [CLAUDE.md](../CLAUDE.md). The page side is in [proposals-and-projects.md](../../frontend/docs/proposals-and-projects.md).
+
+- A project has two poster fields that do not depend on each other: `posterUrl`, a link typed in the form (the only one there was), and `posterFile`, the name of an uploaded file (`<uuid>.webp`). `GET /projects` adds `poster` to every project: the address of the uploaded file, else the link, else nothing (`ProjectsService.withPoster`), so the page never has to choose. A link stays when a file is uploaded and shows again when the file is taken away. Proposals still have the link only. `posterFile` cannot be set from a request body: the Zod schemas of a project drop it.
+- `PUT /projects/:id/poster` (multipart, one file) and `DELETE /projects/:id/poster` are for curators and admins like the rest of the writes of a project. An upload writes the new file first, then points the project at it (`findOneAndUpdate` gives back the document as it was), and only then removes the old file, so a failure never leaves a project with no poster; when the project is gone or the write fails the new file is removed again. Deleting a project removes its file: `remove` deletes with `findOneAndDelete` and takes the name of the file from the deleted document (an upload in between may have replaced the one read first), and does it before freeing the proposal, so a failure there leaves nothing behind. A temporary file of `save` that could not be written or renamed is removed again. A file that cannot be removed is only logged (`PostersService.remove` takes nothing that is not a name it gave out, so no path can leave the folder).
+- `PostersService.save` does not keep what the client sent. sharp decodes it (JPEG, PNG or WebP by content, not by name or `Content-Type`, at most 40 million pixels), turns it the way its orientation says, fits it into 800 × 800 without enlarging, and writes a WebP of quality 82 under a new uuid, through a temporary file and a rename. Metadata is gone. Anything else, an empty file or a cut-off one, is 400 «Завантажте зображення JPEG, PNG або WebP», and a body the multipart plugin cannot read (no boundary, or it stops half way) is 400 «Не вдалося прочитати файл, спробуйте ще раз», not the 500 it was. The 5 MB limit is set where `@fastify/multipart` is registered (`main.ts`) and is 413. `readUpload` also looks at `file.truncated` after `toBuffer()`: the plugin checks it after every chunk, so a file that crosses the limit in its last chunk comes back cut short with no error (and was 400 instead of 413 one run in a few).
+- Where the files are and who serves them: `POSTERS_DIR` (default `uploads/posters` under the working directory, ignored by git; a relative value is made absolute, because `@fastify/static` refuses a relative root and the API would not start) and `POSTERS_URL`, the public address of that folder (default `http://localhost:<PORT>/posters`, and **required when `NODE_ENV=production`**, where the default would send every visitor to their own localhost and show broken images). The address of a poster is `POSTERS_URL/<uuid>.webp` everywhere, and only the file name is in the database, so moving the folder or the domain changes two variables and no data. The backend serves `/posters/` itself with `@fastify/static` (a year of cache, `immutable`, `nosniff`, no listing, no dot files), so development needs nothing else. In production nginx takes `/posters/` first and the backend never sees it.
+- The files are public by their address, because an `<img>` carries no token. The names are random. A probe of the folder (a path out of it, the folder itself, a file with a dot) is answered 403 and shows in the log as an ERROR of `ExceptionsHandler`, that is expected.
+- Production (not in the repository, done on the server): the folder is outside the checkout and outside `frontend/dist`, whose swap on a deploy would wipe it, and nginx needs this on the API host:
+
+  ```nginx
+  client_max_body_size 6m;
+
+  location /posters/ {
+      alias /root/inari/posters/;
+      add_header Cache-Control "public, max-age=31536000, immutable" always;
+      add_header X-Content-Type-Options nosniff always;
+  }
+  ```
+
+  Without `client_max_body_size` nginx answers 413 for anything over its 1 MB default before the backend sees the upload. The nightly Mongo dump does not hold the files, they need a copy of their own.
+- sharp is a native dependency with prebuilt binaries for Windows and glibc Linux. `npm ci` on the server fetches the Linux one, check with `node -e "require('sharp')"` after an install.

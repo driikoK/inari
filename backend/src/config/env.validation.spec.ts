@@ -28,6 +28,45 @@ describe('validate (environment variables)', () => {
     expect(() => validate({ ...valid, PORT: port })).toThrow(/PORT/);
   });
 
+  it('accepts a folder and an address for the posters', () => {
+    expect(() =>
+      validate({
+        ...valid,
+        POSTERS_DIR: '/root/inari/posters',
+        POSTERS_URL: 'https://api.example.com/posters',
+      }),
+    ).not.toThrow();
+  });
+
+  it.each(['posters', '/posters', 'api.example.com/posters'])(
+    'rejects POSTERS_URL=%s, it has to be a full address',
+    (url) => {
+      expect(() => validate({ ...valid, POSTERS_URL: url })).toThrow(
+        /POSTERS_URL/,
+      );
+    },
+  );
+
+  it('wants POSTERS_URL in production, where the default would point every poster at localhost', () => {
+    expect(() => validate({ ...valid, NODE_ENV: 'production' })).toThrow(
+      /POSTERS_URL.*required in production/,
+    );
+    expect(() =>
+      validate({
+        ...valid,
+        NODE_ENV: 'production',
+        POSTERS_URL: 'https://api.example.com/posters',
+      }),
+    ).not.toThrow();
+  });
+
+  it.each(['development', 'test'])(
+    'does not want POSTERS_URL when NODE_ENV=%s',
+    (NODE_ENV) => {
+      expect(() => validate({ ...valid, NODE_ENV })).not.toThrow();
+    },
+  );
+
   it('reports every problem at once', () => {
     expect(() => validate({ PORT: 'abc', MONGO_PORT: '0' })).toThrow(
       /JWT_SECRET_KEY[\s\S]*PORT[\s\S]*MONGO_PORT/,
