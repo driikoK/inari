@@ -66,8 +66,8 @@ export const ProjectCard: FC<ProjectCardProps> = ({
     <CustomDialog open={open} onClose={onClose}>
       <div className={styles.card}>
         <div className={styles.head}>
-          {project.posterUrl && (
-            <img className={styles.poster} src={project.posterUrl} alt={project.ukrName} />
+          {project.poster && (
+            <img className={styles.poster} src={project.poster} alt={project.ukrName} />
           )}
 
           <div className={styles.titles}>

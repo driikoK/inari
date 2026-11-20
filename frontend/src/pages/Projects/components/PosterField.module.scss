@@ -1,0 +1,38 @@
+.field {
+  display: flex;
+  gap: 16px;
+}
+
+.preview {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  color: var(--text-faint);
+  background: var(--surface);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hint {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}

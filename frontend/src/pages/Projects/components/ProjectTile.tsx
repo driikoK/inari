@@ -21,8 +21,8 @@ export const ProjectTile: FC<ProjectTileProps> = ({ project, isInactive, isOpena
     disabled={!isOpenable}
     onClick={() => onOpen(project)}
   >
-    {project.posterUrl ? (
-      <img className={styles.poster} src={project.posterUrl} alt={project.ukrName} />
+    {project.poster ? (
+      <img className={styles.poster} src={project.poster} alt={project.ukrName} />
     ) : (
       <div className={styles.placeholder}>
         <MovieOutlinedIcon fontSize="large" />

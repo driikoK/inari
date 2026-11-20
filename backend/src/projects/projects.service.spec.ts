@@ -9,6 +9,7 @@ import { Model, Types } from 'mongoose';
 import { vi } from 'vitest';
 import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
+import { PostersService } from '../posters/posters.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { ANIME_TYPE, MEMBER_ROLE } from '../shared/index.js';
 import type { CreateProjectData, UpdateProjectData } from './data/index.js';
@@ -22,6 +23,7 @@ describe('ProjectsService', () => {
   let service: ProjectsService;
   let projects: DeepMocked<Model<Project>>;
   let proposals: DeepMocked<ProposalsService>;
+  let posters: DeepMocked<PostersService>;
 
   const leanResult = (value: unknown) =>
     ({ lean: vi.fn().mockResolvedValue(value) }) as any;
@@ -61,6 +63,9 @@ describe('ProjectsService', () => {
     extra: Partial<UpdateProjectData> = {},
   ): UpdateProjectData => ({ ...fields(), ...extra });
 
+  const selectLean = (value: unknown) =>
+    ({ select: () => leanResult(value) }) as any;
+
   const existing = (value: Project | null) =>
     projects.findById.mockReturnValue(leanResult(value));
 
@@ -76,12 +81,14 @@ describe('ProjectsService', () => {
           useValue: createMock<Model<Project>>(),
         },
         { provide: ProposalsService, useValue: createMock<ProposalsService>() },
+        { provide: PostersService, useValue: createMock<PostersService>() },
       ],
     }).compile();
 
     service = module.get(ProjectsService);
     projects = module.get('PROJECT_MODEL');
     proposals = module.get(ProposalsService);
+    posters = module.get(PostersService);
   });
 
   afterEach(() => {
@@ -102,6 +109,42 @@ describe('ProjectsService', () => {
         ['winter', false],
         ['spring', true],
       ]);
+    });
+
+    it('shows the uploaded file as the poster, over the link', async () => {
+      posters.urlOf.mockImplementation(
+        (file) => `https://api.test/posters/${file}`,
+      );
+      projects.find.mockReturnValue(
+        leanResult([
+          project({
+            posterUrl: 'https://cdn.example/a.jpg',
+            posterFile: 'a.webp',
+          }),
+        ]),
+      );
+
+      const { seasons } = await service.findAll();
+
+      expect(seasons.at(-1)?.projects[0].poster).toBe(
+        'https://api.test/posters/a.webp',
+      );
+    });
+
+    it('falls back to the link when there is no file, and has no poster when there is neither', async () => {
+      projects.find.mockReturnValue(
+        leanResult([
+          project({ posterUrl: 'https://cdn.example/a.jpg' }),
+          project({ _id: new Types.ObjectId() }),
+        ]),
+      );
+
+      const { seasons } = await service.findAll();
+      const [withLink, bare] = seasons.at(-1)?.projects ?? [];
+
+      expect(withLink.poster).toBe('https://cdn.example/a.jpg');
+      expect(bare).not.toHaveProperty('poster');
+      expect(posters.urlOf).not.toHaveBeenCalled();
     });
   });
 
@@ -758,13 +801,55 @@ describe('ProjectsService', () => {
   });
 
   describe('remove', () => {
+    const deleting = (deleted: Project | null) =>
+      projects.findOneAndDelete.mockReturnValue(leanResult(deleted));
+
     it('deletes the project and frees the proposal it came from', async () => {
       existing(project());
+      deleting(project());
 
       await expect(service.remove(String(projectId))).resolves.toBe(true);
 
-      expect(projects.deleteOne).toHaveBeenCalledWith({ _id: projectId });
+      expect(projects.findOneAndDelete).toHaveBeenCalledWith({
+        _id: projectId,
+      });
       expect(proposals.clearLaunched).toHaveBeenCalledWith(projectId);
+    });
+
+    it('removes the poster file of the project from the disk', async () => {
+      existing(project({ posterFile: 'old.webp' }));
+      deleting(project({ posterFile: 'old.webp' }));
+
+      await service.remove(String(projectId));
+
+      expect(posters.remove).toHaveBeenCalledWith('old.webp');
+    });
+
+    it('removes the file the deleted document had, not the one read before a poster was uploaded', async () => {
+      existing(project({ posterFile: 'old.webp' }));
+      deleting(project({ posterFile: 'new.webp' }));
+
+      await service.remove(String(projectId));
+
+      expect(posters.remove).toHaveBeenCalledTimes(1);
+      expect(posters.remove).toHaveBeenCalledWith('new.webp');
+    });
+
+    it('removes the file before it frees the proposal, so a failure there leaves nothing behind', async () => {
+      existing(project({ posterFile: 'old.webp' }));
+      deleting(project({ posterFile: 'old.webp' }));
+      proposals.clearLaunched.mockRejectedValue(new Error('down'));
+
+      await expect(service.remove(String(projectId))).rejects.toThrow('down');
+      expect(posters.remove).toHaveBeenCalledWith('old.webp');
+    });
+
+    it('is fine when somebody else deleted it a moment earlier', async () => {
+      existing(project());
+      deleting(null);
+
+      await expect(service.remove(String(projectId))).resolves.toBe(true);
+      expect(posters.remove).toHaveBeenCalledWith(undefined);
     });
 
     it('answers 404 for a project that does not exist', async () => {
@@ -773,7 +858,115 @@ describe('ProjectsService', () => {
       await expect(service.remove(String(projectId))).rejects.toThrow(
         NotFoundException,
       );
-      expect(projects.deleteOne).not.toHaveBeenCalled();
+      expect(projects.findOneAndDelete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setPoster', () => {
+    const upload = Buffer.from('image');
+
+    beforeEach(() => {
+      posters.save.mockResolvedValue('new.webp');
+      posters.urlOf.mockReturnValue('https://api.test/posters/new.webp');
+    });
+
+    it('writes the file, points the project at it and removes the file it had', async () => {
+      existing(project());
+      projects.findOneAndUpdate.mockReturnValue(
+        selectLean({ posterFile: 'old.webp' }),
+      );
+
+      await expect(
+        service.setPoster(String(projectId), upload),
+      ).resolves.toEqual({
+        posterFile: 'new.webp',
+        poster: 'https://api.test/posters/new.webp',
+      });
+
+      expect(posters.save).toHaveBeenCalledWith(upload);
+      expect(projects.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: projectId },
+        { $set: { posterFile: 'new.webp' } },
+      );
+      expect(posters.remove).toHaveBeenCalledTimes(1);
+      expect(posters.remove).toHaveBeenCalledWith('old.webp');
+    });
+
+    it('answers 404 for a project that does not exist, before it decodes anything', async () => {
+      existing(null);
+
+      await expect(
+        service.setPoster(String(projectId), upload),
+      ).rejects.toThrow(NotFoundException);
+      expect(posters.save).not.toHaveBeenCalled();
+    });
+
+    it('leaves the project and its file alone when the upload is not an image', async () => {
+      existing(project({ posterFile: 'old.webp' }));
+      posters.save.mockRejectedValue(new BadRequestException('not an image'));
+
+      await expect(
+        service.setPoster(String(projectId), upload),
+      ).rejects.toThrow(BadRequestException);
+      expect(projects.findOneAndUpdate).not.toHaveBeenCalled();
+      expect(posters.remove).not.toHaveBeenCalled();
+    });
+
+    it('takes the new file away and answers 404 when the project was deleted meanwhile', async () => {
+      existing(project());
+      projects.findOneAndUpdate.mockReturnValue(selectLean(null));
+
+      await expect(
+        service.setPoster(String(projectId), upload),
+      ).rejects.toThrow(NotFoundException);
+      expect(posters.remove).toHaveBeenCalledWith('new.webp');
+    });
+
+    it('takes the new file away and passes the error on when the write fails', async () => {
+      existing(project({ posterFile: 'old.webp' }));
+      projects.findOneAndUpdate.mockReturnValue({
+        select: () => ({ lean: vi.fn().mockRejectedValue(new Error('down')) }),
+      } as any);
+
+      await expect(
+        service.setPoster(String(projectId), upload),
+      ).rejects.toThrow('down');
+      expect(posters.remove).toHaveBeenCalledTimes(1);
+      expect(posters.remove).toHaveBeenCalledWith('new.webp');
+    });
+  });
+
+  describe('removePoster', () => {
+    it('unsets the file and removes it from the disk', async () => {
+      existing(project());
+      projects.findOneAndUpdate.mockReturnValue(
+        selectLean({ posterFile: 'old.webp' }),
+      );
+
+      await expect(service.removePoster(String(projectId))).resolves.toBe(true);
+
+      expect(projects.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: projectId },
+        { $unset: { posterFile: '' } },
+      );
+      expect(posters.remove).toHaveBeenCalledWith('old.webp');
+    });
+
+    it('is fine for a project that has no file', async () => {
+      existing(project());
+      projects.findOneAndUpdate.mockReturnValue(selectLean({}));
+
+      await expect(service.removePoster(String(projectId))).resolves.toBe(true);
+      expect(posters.remove).toHaveBeenCalledWith(undefined);
+    });
+
+    it('answers 404 for a project that does not exist', async () => {
+      existing(null);
+
+      await expect(service.removePoster(String(projectId))).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(projects.findOneAndUpdate).not.toHaveBeenCalled();
     });
   });
 });

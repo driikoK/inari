@@ -15,6 +15,7 @@ export interface Project {
   codeName?: string;
   link: string;
   posterUrl?: string;
+  posterFile?: string;
   titleType: ANIME_TYPE;
   isOngoing: boolean;
   isSequel: boolean;
@@ -27,8 +28,10 @@ export interface Project {
   participants: ProjectParticipant[];
 }
 
+// What the page shows: the uploaded file, else the link, else nothing
 export interface ProjectView extends Project {
   mark: PROJECT_MARK;
+  poster?: string;
 }
 
 // What a select needs to pick a title of a track

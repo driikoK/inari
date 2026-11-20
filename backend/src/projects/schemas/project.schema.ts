@@ -7,6 +7,7 @@ export const ProjectSchema = new mongoose.Schema(
     codeName: String,
     link: { type: String, required: true },
     posterUrl: String,
+    posterFile: String,
     titleType: { type: String, required: true },
     isOngoing: { type: Boolean, required: true },
     isSequel: { type: Boolean, default: false },

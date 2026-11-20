@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from '@/api';
 import type { ANIME_TYPE, PROJECT_MARK, PROPOSAL_FUNDING } from '@/types';
-import { ensure } from '@/utils/request';
+import { ensure, notifyFailure } from '@/utils/request';
 
 export interface ProjectParticipant {
   nickname: string;
@@ -15,6 +15,8 @@ export interface Project {
   codeName?: string;
   link: string;
   posterUrl?: string;
+  posterFile?: string;
+  poster?: string;
   titleType: ANIME_TYPE;
   isOngoing: boolean;
   isSequel: boolean;
@@ -77,11 +79,13 @@ interface Actions {
   getProjects: () => Promise<void>;
   createProject: (
     payload: ProjectPayload & Partial<FinishPayload> & { proposalId?: string },
-  ) => Promise<void>;
+  ) => Promise<string>;
   updateProject: (id: string, payload: ProjectPayload & Partial<FinishPayload>) => Promise<void>;
   finishProject: (id: string, payload: FinishPayload) => Promise<void>;
   reopenProject: (id: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  uploadPoster: (id: string, file: File) => Promise<void>;
+  deletePoster: (id: string) => Promise<void>;
 }
 
 const defaultPath = '/projects';
@@ -92,6 +96,10 @@ const useProjectsStore = create<State & Actions>((set) => {
 
     set({ seasons: response.data.seasons });
   };
+
+  // The write is done by now, so a list that fails to load must not look like a write
+  // that failed: the form would stay open and a second save would make a second project
+  const refreshAfterWrite = () => refresh().catch(notifyFailure);
 
   return {
     seasons: [],
@@ -108,8 +116,11 @@ const useProjectsStore = create<State & Actions>((set) => {
     },
 
     createProject: async (payload) => {
-      ensure(await axios.post(defaultPath, payload));
-      await refresh();
+      const response = ensure(await axios.post<{ _id: string }>(defaultPath, payload));
+
+      await refreshAfterWrite();
+
+      return response.data._id;
     },
 
     updateProject: async (id, payload) => {
@@ -130,6 +141,19 @@ const useProjectsStore = create<State & Actions>((set) => {
     deleteProject: async (id) => {
       ensure(await axios.delete(`${defaultPath}/${id}`));
       await refresh();
+    },
+
+    uploadPoster: async (id, file) => {
+      const body = new FormData();
+
+      body.append('poster', file);
+      ensure(await axios.put(`${defaultPath}/${id}/poster`, body));
+      await refreshAfterWrite();
+    },
+
+    deletePoster: async (id) => {
+      ensure(await axios.delete(`${defaultPath}/${id}/poster`));
+      await refreshAfterWrite();
     },
   };
 });

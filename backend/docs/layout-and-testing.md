@@ -13,6 +13,7 @@ Part of the backend guide, see [CLAUDE.md](../CLAUDE.md).
 | `team-animes` | the old list of title names, no routes and no seed any more; the service only reads it and marks what `migrate:titles` moved, until the `team_animes` collection is dropped |
 | `proposals` | seasons with proposed titles, and who joins them in which roles |
 | `projects` | titles the team is working on, laid out by season with debts and statistics |
+| `posters` | the folder of uploaded project posters: decoding and re-encoding with sharp, the names of the files |
 | `budget` | the team's money: incomes ledger, season jars, coefficient, append-only audit |
 | `codex` | the Codex of the team: one document with the text it starts with, read by everyone and saved by admins |
 | `seeds` + `cli.ts` | seed commands (`cli.ts` is a small `parseArgs` dispatcher) |

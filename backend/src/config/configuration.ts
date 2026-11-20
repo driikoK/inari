@@ -1,6 +1,10 @@
+import { resolve } from 'node:path';
+
+const port = () => Number(process.env.PORT) || 8000;
+
 const configuration = () => ({
   app: {
-    port: Number(process.env.PORT) || 8000,
+    port: port(),
     cors: process.env.CORS,
   },
   auth: {
@@ -16,6 +20,12 @@ const configuration = () => ({
   mailer: {
     user: process.env.MAILER_USER,
     pass: process.env.MAILER_PASS,
+  },
+  posters: {
+    dir: resolve(process.env.POSTERS_DIR || 'uploads/posters'),
+    url: (
+      process.env.POSTERS_URL || `http://localhost:${port()}/posters`
+    ).replace(/\/+$/, ''),
   },
   seed: {
     rootPassword: process.env.ROOT_PASSWORD,

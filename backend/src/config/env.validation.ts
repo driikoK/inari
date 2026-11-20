@@ -2,16 +2,28 @@ import { z } from 'zod';
 
 const port = z.coerce.number().int().min(1).max(65535).optional();
 
-const environmentSchema = z.object({
-  JWT_SECRET_KEY: z.string({ error: 'is required' }).min(1, 'is required'),
-  PORT: port,
-  MONGO_PORT: port,
-  MONGO_HOST: z.string().optional(),
-  MONGO_DATABASE: z.string().optional(),
-  MONGO_USERNAME: z.string().optional(),
-  MONGO_PASSWORD: z.string().optional(),
-  CORS: z.string().optional(),
-});
+const environmentSchema = z
+  .object({
+    JWT_SECRET_KEY: z.string({ error: 'is required' }).min(1, 'is required'),
+    PORT: port,
+    MONGO_PORT: port,
+    MONGO_HOST: z.string().optional(),
+    MONGO_DATABASE: z.string().optional(),
+    MONGO_USERNAME: z.string().optional(),
+    MONGO_PASSWORD: z.string().optional(),
+    CORS: z.string().optional(),
+    POSTERS_DIR: z.string().optional(),
+    POSTERS_URL: z.url().optional(),
+    NODE_ENV: z.string().optional(),
+  })
+  .refine(
+    ({ NODE_ENV, POSTERS_URL }) => NODE_ENV !== 'production' || POSTERS_URL,
+    {
+      path: ['POSTERS_URL'],
+      error:
+        'is required in production, uploaded posters would point at localhost',
+    },
+  );
 
 // Fails fast at startup instead of at the first request that needs a setting.
 export function validate(config: Record<string, unknown>) {
