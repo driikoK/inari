@@ -28,6 +28,7 @@
     "seed:budget": "nest build && node dist/cli.js seed:budget",
     "seed:clear": "nest build && node dist/cli.js seed:clear",
     "migrate:titles": "nest build && node dist/cli.js migrate:titles",
+    "backfill:episodes": "nest build && node dist/cli.js backfill:episodes",
     "drop:polls": "nest build && node dist/cli.js drop:polls",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",

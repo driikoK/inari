@@ -6,11 +6,13 @@ import { PROJECT_MARK } from './enums/index.js';
 import type { Project } from './interfaces/index.js';
 import {
   buildLayout,
+  isPlannedDay,
   ordinalOf,
   seasonOfDay,
   seasonOrdinal,
   seasonStartDay,
   shiftDays,
+  shiftYears,
   todayInKyiv,
 } from './layout.js';
 
@@ -111,6 +113,32 @@ describe('shiftDays', () => {
   });
 });
 
+describe('shiftYears', () => {
+  it.each([
+    ['2027-05-10', 2, '2029-05-10'],
+    ['2027-12-31', 2, '2029-12-31'],
+    ['2027-05-10', 0, '2027-05-10'],
+    ['2028-02-29', 2, '2030-03-01'],
+  ])('moves %s by %i years to %s', (day, years, shifted) => {
+    expect(shiftYears(day, years)).toBe(shifted);
+  });
+});
+
+describe('isPlannedDay', () => {
+  it.each([
+    ['2027-05-11', false],
+    ['2027-06-30', false],
+    ['2027-07-01', true],
+    ['2028-01-01', true],
+    ['2027-04-02', false],
+  ])(
+    'a start on %s, with today in the spring of 2027, is planned: %s',
+    (day, planned) => {
+      expect(isPlannedDay(day, TODAY)).toBe(planned);
+    },
+  );
+});
+
 describe('todayInKyiv', () => {
   it('takes the date in Kyiv, which is already tomorrow late in the evening UTC', () => {
     expect(todayInKyiv(new Date('2027-05-10T21:30:00Z'))).toBe('2027-05-11');
@@ -127,7 +155,15 @@ describe('buildLayout', () => {
       season: SEASON.SPRING,
       year: 2027,
       isCurrent: true,
-      stats: { total: 0, ongoing: 0, old: 0, debt: 0, patron: 0, order: 0 },
+      stats: {
+        total: 0,
+        ongoing: 0,
+        old: 0,
+        debt: 0,
+        planned: 0,
+        patron: 0,
+        order: 0,
+      },
     });
   });
 
@@ -283,5 +319,87 @@ describe('buildLayout', () => {
       'Ранній',
       'Пізній',
     ]);
+  });
+
+  describe('a planned project, whose season has not come', () => {
+    const planned = (extra: Partial<Project> = {}) =>
+      project({ ukrName: 'Продовження', startDate: '2027-10-20', ...extra });
+
+    it('gets a tab of its own season, after the current one, and no other', () => {
+      const layout = buildLayout([planned()], TODAY);
+
+      expect(layout.map(label)).toEqual(['spring 2027', 'fall 2027']);
+      expect(layout.map(({ isCurrent }) => isCurrent)).toEqual([true, false]);
+      expect(layout[0].projects).toEqual([]);
+    });
+
+    it('is marked planned, and is not a debt, however far away', () => {
+      const layout = buildLayout(
+        [planned(), planned({ startDate: '2028-02-10', ukrName: 'Далі' })],
+        TODAY,
+      );
+
+      expect(marksIn(layout, 'fall 2027')).toEqual([PROJECT_MARK.PLANNED]);
+      expect(marksIn(layout, 'winter 2028')).toEqual([PROJECT_MARK.PLANNED]);
+      expect(layout.map(label)).toEqual([
+        'spring 2027',
+        'fall 2027',
+        'winter 2028',
+      ]);
+    });
+
+    it('is counted as planned in the stats of its season, apart from the kind and the debts', () => {
+      const layout = buildLayout(
+        [planned(), planned({ ukrName: 'Інше', isOngoing: false })],
+        TODAY,
+      );
+      const { stats } = layout.find(
+        (entry) => label(entry) === 'fall 2027',
+      ) ?? {
+        stats: undefined,
+      };
+
+      expect(stats).toMatchObject({
+        total: 2,
+        planned: 2,
+        ongoing: 0,
+        old: 0,
+        debt: 0,
+      });
+    });
+
+    it('still counts the patron and order projects that are planned', () => {
+      const layout = buildLayout(
+        [planned({ funding: PROPOSAL_FUNDING.ORDER })],
+        TODAY,
+      );
+      const { stats } = layout[1];
+
+      expect(stats).toMatchObject({ total: 1, planned: 1, order: 1 });
+    });
+
+    it('does not touch the current season, nor its stats', () => {
+      const layout = buildLayout(
+        [planned(), project({ startDate: '2027-04-02' })],
+        TODAY,
+      );
+
+      expect(currentOf(layout).projects).toHaveLength(1);
+      expect(currentOf(layout).stats).toMatchObject({ total: 1, planned: 0 });
+    });
+
+    it('is a regular project of the current season when its start is later in that season', () => {
+      const layout = buildLayout([project({ startDate: '2027-06-20' })], TODAY);
+
+      expect(layout).toHaveLength(1);
+      expect(marksIn(layout, 'spring 2027')).toEqual([PROJECT_MARK.ONGOING]);
+    });
+
+    it('turns into a regular project of the season when that season comes', () => {
+      const layout = buildLayout([planned()], '2027-10-21');
+
+      expect(marksIn(layout, 'fall 2027')).toEqual([PROJECT_MARK.ONGOING]);
+      expect(currentOf(layout).stats).toMatchObject({ planned: 0 });
+    });
   });
 });

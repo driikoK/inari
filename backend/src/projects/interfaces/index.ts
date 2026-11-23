@@ -53,6 +53,7 @@ export interface SeasonStats {
   ongoing: number;
   old: number;
   debt: number;
+  planned: number;
   patron: number;
   order: number;
 }

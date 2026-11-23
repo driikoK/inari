@@ -20,6 +20,7 @@ import { AUDIT_KIND } from '../budget/enums/index.js';
 import { MembersService } from '../members/members.service.js';
 import type { Project } from '../projects/interfaces/index.js';
 import {
+  isPlannedDay,
   ordinalOf,
   seasonOfDay,
   seasonOrdinal,
@@ -390,6 +391,14 @@ export class TrackService {
       throw new HttpException('Такого юзера не існує', HttpStatus.BAD_REQUEST);
 
     const project = await this.projectsService.findOne(input.projectId);
+
+    if (isPlannedDay(project.startDate)) {
+      throw new HttpException(
+        'Проєкт ще не розпочато, треки для нього поки не можна додавати',
+        HttpStatus.CONFLICT,
+      );
+    }
+
     const track: NewTrack = {
       ...input,
       nameTitle: project.ukrName,
@@ -516,7 +525,7 @@ export class TrackService {
     currentEpisode,
     membersInfo,
   }: NewTrack) {
-    const attempt = async (what: string, run: () => Promise<void>) => {
+    const attempt = async (what: string, run: () => Promise<unknown>) => {
       try {
         await run();
       } catch (error) {
@@ -659,6 +668,20 @@ export class TrackService {
   // Tracks that were written before they had a project
   countUnlinked(): Promise<number> {
     return this.trackModel.countDocuments({ projectId: { $exists: false } });
+  }
+
+  async maxEpisodes(): Promise<Map<string, number>> {
+    const groups = await this.trackModel.aggregate<{
+      _id: string;
+      maxEpisode: number;
+    }>([
+      { $match: { projectId: { $type: 'string' } } },
+      {
+        $group: { _id: '$projectId', maxEpisode: { $max: '$currentEpisode' } },
+      },
+    ]);
+
+    return new Map(groups.map(({ _id, maxEpisode }) => [_id, maxEpisode ?? 0]));
   }
 
   // Links the tracks written under these title texts to a project. The tracks

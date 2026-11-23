@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import type { FieldErrors } from 'react-hook-form';
 
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
@@ -14,15 +14,41 @@ interface ParticipantsEditorProps {
   onChange: (participants: ParticipantFormValues[]) => void;
   nicknames: string[];
   errors?: FieldErrors<ProjectFormValues>['participants'];
+  submitCount: number;
 }
+
+type TouchedField = 'nickname' | 'roles';
 
 export const ParticipantsEditor: FC<ParticipantsEditorProps> = ({
   value,
   onChange,
   nicknames,
   errors,
+  submitCount,
 }) => {
   const roles = useRolesStore((state) => state.roles);
+  const [touched, setTouched] = useState<Record<string, Partial<Record<TouchedField, boolean>>>>(
+    {},
+  );
+  const latest = useRef(value);
+
+  latest.current = value;
+
+  // A row added a moment ago is empty on purpose, so its errors wait until the person has
+  // worked with that field, or has tried to save
+  useEffect(() => {
+    if (submitCount === 0) return;
+
+    setTouched((state) => ({
+      ...state,
+      ...Object.fromEntries(
+        latest.current.map(({ key }) => [key, { nickname: true, roles: true }]),
+      ),
+    }));
+  }, [submitCount]);
+
+  const touch = (key: string, field: TouchedField) =>
+    setTouched((state) => ({ ...state, [key]: { ...state[key], [field]: true } }));
 
   const roleLabel = (role: string) => roles.find((option) => option.value === role)?.label ?? role;
 
@@ -47,7 +73,11 @@ export const ParticipantsEditor: FC<ParticipantsEditorProps> = ({
                 sx={{ flex: '1 1 180px' }}
                 options={nicknames.filter((nickname) => !busy.has(nickname.toLowerCase()))}
                 value={participant.nickname || null}
-                onChange={(_, nickname) => update(index, { nickname: nickname ?? '' })}
+                onChange={(_, nickname) => {
+                  touch(participant.key, 'nickname');
+                  update(index, { nickname: nickname ?? '' });
+                }}
+                onBlur={() => touch(participant.key, 'nickname')}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -71,6 +101,7 @@ export const ParticipantsEditor: FC<ParticipantsEditorProps> = ({
                 onChange={(event) => {
                   const picked = event.target.value as unknown as string[];
 
+                  touch(participant.key, 'roles');
                   update(index, {
                     roles: roles
                       .map((option) => option.value)
@@ -80,6 +111,7 @@ export const ParticipantsEditor: FC<ParticipantsEditorProps> = ({
                 slotProps={{
                   select: {
                     multiple: true,
+                    onClose: () => touch(participant.key, 'roles'),
                     renderValue: (selected) => (selected as string[]).map(roleLabel).join(', '),
                   },
                 }}
@@ -96,8 +128,12 @@ export const ParticipantsEditor: FC<ParticipantsEditorProps> = ({
               </IconButton>
             </Box>
 
-            {rowErrors?.nickname?.message && <ErrorText>{rowErrors.nickname.message}</ErrorText>}
-            {rowErrors?.roles?.message && <ErrorText>{rowErrors.roles.message}</ErrorText>}
+            {touched[participant.key]?.nickname && rowErrors?.nickname?.message && (
+              <ErrorText>{rowErrors.nickname.message}</ErrorText>
+            )}
+            {touched[participant.key]?.roles && rowErrors?.roles?.message && (
+              <ErrorText>{rowErrors.roles.message}</ErrorText>
+            )}
           </Box>
         );
       })}

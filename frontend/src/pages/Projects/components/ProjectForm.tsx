@@ -19,7 +19,6 @@ import { DateInput, ErrorText, P } from '@/components';
 import { fundingOptions, kindOptions } from '@/pages/Proposals/const/options';
 import useProjectsStore, { type ProjectView } from '@/stores/useProjectsStore';
 import useProposalsStore, { type Proposal } from '@/stores/useProposalsStore';
-import { ANIME_TYPE } from '@/types';
 import { notifyFailure } from '@/utils/request';
 import {
   createProjectFormSchema,
@@ -30,7 +29,7 @@ import {
   toProjectPayload,
   type ProjectFormValues,
 } from '../const/form';
-import { MIN_DAY, projectTypes, todayDay } from '../const/options';
+import { hasEpisodeCount, latestStartDay, MIN_DAY, projectTypes, todayDay } from '../const/options';
 import { ParticipantsEditor } from './ParticipantsEditor';
 import { PosterField } from './PosterField';
 
@@ -77,7 +76,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
     control,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, submitCount },
   } = useForm<ProjectFormValues>({
     defaultValues: initialValues(today, nicknames, project, proposal),
     resolver: zodResolver(createProjectFormSchema(today)),
@@ -145,13 +144,13 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
     </div>
   );
 
-  const dateField = (name: 'startDate' | 'endDate', label: string) => (
+  const dateField = (name: 'startDate' | 'endDate', label: string, max: string) => (
     <div>
       <Controller
         control={control}
         name={name}
         render={({ field }) => (
-          <DateInput {...field} label={label} min={MIN_DAY} max={today} fullWidth />
+          <DateInput {...field} label={label} min={MIN_DAY} max={max} fullWidth />
         )}
       />
       <ErrorMessage
@@ -253,9 +252,9 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
           )}
         />
 
-        {dateField('startDate', 'Дата початку')}
+        {dateField('startDate', 'Дата початку', latestStartDay(today))}
 
-        {titleType === ANIME_TYPE.SERIES && (
+        {hasEpisodeCount(titleType) && (
           <div>
             <Controller
               control={control}
@@ -292,7 +291,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
 
         {isFinished && (
           <>
-            {dateField('endDate', 'Дата фіналу')}
+            {dateField('endDate', 'Дата фіналу', today)}
 
             <Controller
               control={control}
@@ -324,6 +323,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
                 onChange={field.onChange}
                 nicknames={nicknames}
                 errors={errors.participants}
+                submitCount={submitCount}
               />
             )}
           />

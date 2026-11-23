@@ -3,8 +3,9 @@ import { z } from 'zod';
 import type { Project, ProjectPayload } from '@/stores/useProjectsStore';
 import type { Proposal } from '@/stores/useProposalsStore';
 import { ANIME_TYPE, type FundingChoice, NO_FUNDING, PROPOSAL_FUNDING, TITLE_KIND } from '@/types';
+import { plural } from '@/utils/plural';
 import { httpUrl, LINK_MESSAGE } from '@/utils/validation';
-import { MIN_DAY } from './options';
+import { hasEpisodeCount, latestStartDay, MAX_PLANNED_YEARS, MIN_DAY } from './options';
 
 const REQUIRED_MESSAGE = 'Обов’язкове поле';
 
@@ -83,7 +84,10 @@ export const createProjectFormSchema = (
         .string({ error: REQUIRED_MESSAGE })
         .min(1, REQUIRED_MESSAGE)
         .refine((value) => value >= MIN_DAY, 'Дата не може бути раніше 2000 року')
-        .refine((value) => value <= today, 'Дата початку не може бути в майбутньому'),
+        .refine(
+          (value) => value <= latestStartDay(today),
+          `Дата початку не може бути пізніше ніж через ${MAX_PLANNED_YEARS} ${plural(MAX_PLANNED_YEARS, ['рік', 'роки', 'років'])}`,
+        ),
       episodesReleased: z.string().trim(),
       isFinished: z.boolean(),
       endDate: z.string(),
@@ -100,7 +104,7 @@ export const createProjectFormSchema = (
     .superRefine((values, context) => {
       const isProgressValid = /^(\d{1,3})?$/.test(values.episodesReleased);
 
-      if (values.titleType === ANIME_TYPE.SERIES && !isProgressValid) {
+      if (hasEpisodeCount(values.titleType) && !isProgressValid) {
         context.addIssue({
           code: 'custom',
           path: ['episodesReleased'],
@@ -224,7 +228,6 @@ export const toProjectPayload = (values: ProjectFormValues): ProjectPayload => (
   isSequel: values.isSequel,
   funding: values.funding === NO_FUNDING ? null : values.funding,
   startDate: values.startDate,
-  episodesReleased:
-    values.titleType === ANIME_TYPE.SERIES ? Number(values.episodesReleased || 0) : 0,
+  episodesReleased: hasEpisodeCount(values.titleType) ? Number(values.episodesReleased || 0) : 0,
   participants: values.participants.map(({ nickname, roles }) => ({ nickname, roles })),
 });

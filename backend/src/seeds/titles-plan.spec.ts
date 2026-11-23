@@ -159,6 +159,14 @@ describe('planTitles', () => {
       expect(entry.project?.titleType).toBe(ANIME_TYPE.SERIES);
     });
 
+    it('counts the episodes of a trailer, the «оповідки», as released like a series', () => {
+      const [entry] = plan({
+        groups: [group({ titleType: ANIME_TYPE.TRAILER, maxEpisode: 7 })],
+      });
+
+      expect(entry.project?.episodesReleased).toBe(7);
+    });
+
     it('keeps no released episodes for a film', () => {
       const [entry] = plan({
         groups: [
@@ -339,7 +347,15 @@ describe('planTitles', () => {
         projects: [known({ titleType: ANIME_TYPE.FILM, episodesReleased: 0 })],
       });
 
+      const [trailer] = plan({
+        groups: [group({ titleType: ANIME_TYPE.TRAILER, maxEpisode: 7 })],
+        projects: [
+          known({ titleType: ANIME_TYPE.TRAILER, episodesReleased: 3 }),
+        ],
+      });
+
       expect(raised.raiseTo).toBe(7);
+      expect(trailer.raiseTo).toBe(7);
       expect(enough).not.toHaveProperty('raiseTo');
       expect(film).not.toHaveProperty('raiseTo');
     });

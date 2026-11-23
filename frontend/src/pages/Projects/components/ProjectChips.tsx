@@ -16,6 +16,7 @@ const markTokens: Record<PROJECT_MARK, string> = {
   [PROJECT_MARK.ONGOING]: '--accent',
   [PROJECT_MARK.OLD]: '--text-muted',
   [PROJECT_MARK.DEBT]: '--red',
+  [PROJECT_MARK.PLANNED]: '--yellow',
 };
 
 type ProjectChipsProps = Pick<ProjectView, 'mark' | 'funding' | 'isSequel' | 'isFinished'>;

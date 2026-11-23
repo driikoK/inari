@@ -9,11 +9,7 @@ import {
 import { isValidObjectId, Model, Types } from 'mongoose';
 import { PostersService } from '../posters/posters.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
-import {
-  ANIME_TYPE,
-  type MEMBER_ROLE,
-  splitOptionals,
-} from '../shared/index.js';
+import { type MEMBER_ROLE, plural, splitOptionals } from '../shared/index.js';
 import type {
   CreateProjectData,
   FinishProjectData,
@@ -25,8 +21,19 @@ import type {
   ProjectView,
   SeasonLayout,
 } from './interfaces/index.js';
-import { MAX_PARTICIPANTS } from './enums/index.js';
-import { buildLayout, seasonOfDay, todayInKyiv } from './layout.js';
+import {
+  EPISODE_TYPES,
+  MAX_PARTICIPANTS,
+  MAX_PLANNED_YEARS,
+} from './enums/index.js';
+import {
+  buildLayout,
+  isFutureDay,
+  isPlannedDay,
+  seasonOfDay,
+  shiftYears,
+  todayInKyiv,
+} from './layout.js';
 
 type ProjectFields = Omit<
   CreateProjectData,
@@ -39,6 +46,7 @@ interface Participant {
 }
 
 const END_DATE_REQUIRED = 'Вкажіть дату завершення';
+const NOT_BEGUN = 'Проєкт ще не розпочато, його не можна завершити';
 // Two tracks of one project written at once can both try to add the same new person
 const ADD_ATTEMPTS = 3;
 
@@ -70,7 +78,10 @@ export class ProjectsService {
 
   // Every project, the unfinished first and the newest first
   async titles(): Promise<ProjectTitle[]> {
-    const projects = await this.list();
+    const today = todayInKyiv();
+    const projects = (await this.list()).filter(
+      ({ startDate }) => !isPlannedDay(startDate, today),
+    );
 
     return projects
       .sort(
@@ -238,7 +249,11 @@ export class ProjectsService {
     isInTime,
     ...fields
   }: CreateProjectData) {
-    this.assertStartedAlready(fields.startDate);
+    this.assertStartDate(fields.startDate);
+
+    if (isFutureDay(fields.startDate) && (endDate || isInTime)) {
+      throw new BadRequestException(NOT_BEGUN);
+    }
 
     if (endDate) this.assertEndDate(fields.startDate, endDate);
     else if (isInTime) throw new BadRequestException(END_DATE_REQUIRED);
@@ -264,7 +279,13 @@ export class ProjectsService {
     const project = await this.findProject(id);
     const { endDate, isInTime, ...fields } = dto;
 
-    this.assertStartedAlready(fields.startDate);
+    this.assertStartDate(fields.startDate);
+
+    if (!isFutureDay(project.startDate) && isPlannedDay(fields.startDate)) {
+      throw new ConflictException(
+        'Проєкт уже розпочато, його не можна перенести в майбутній сезон',
+      );
+    }
 
     if (project.isFinished) {
       if (!endDate) throw new BadRequestException(END_DATE_REQUIRED);
@@ -297,6 +318,8 @@ export class ProjectsService {
     const project = await this.findProject(id);
 
     if (project.isFinished) throw new ConflictException('Проєкт уже завершено');
+
+    if (isFutureDay(project.startDate)) throw new ConflictException(NOT_BEGUN);
 
     this.assertEndDate(project.startDate, endDate);
 
@@ -397,10 +420,9 @@ export class ProjectsService {
       set: {
         ...required,
         ...set,
-        episodesReleased:
-          required.titleType === ANIME_TYPE.SERIES
-            ? required.episodesReleased
-            : 0,
+        episodesReleased: EPISODE_TYPES.includes(required.titleType)
+          ? required.episodesReleased
+          : 0,
         participants: participants.map(({ nickname, roles }) => ({
           nickname: nickname.trim(),
           roles: [...new Set(roles)],
@@ -410,9 +432,11 @@ export class ProjectsService {
     };
   }
 
-  private assertStartedAlready(startDate: string) {
-    if (startDate > todayInKyiv()) {
-      throw new BadRequestException('Дата початку не може бути в майбутньому');
+  private assertStartDate(startDate: string) {
+    if (startDate > shiftYears(todayInKyiv(), MAX_PLANNED_YEARS)) {
+      throw new BadRequestException(
+        `Дата початку не може бути пізніше ніж через ${MAX_PLANNED_YEARS} ${plural(MAX_PLANNED_YEARS, ['рік', 'роки', 'років'])}`,
+      );
     }
   }
 
@@ -430,15 +454,17 @@ export class ProjectsService {
 
   // A track in the system means the episode is out, so the count of released
   // episodes only ever grows to the newest episode with a track
-  async markEpisodeReleased(id: string, episode: number): Promise<void> {
-    await this.projectModel.updateOne(
+  async markEpisodeReleased(id: string, episode: number): Promise<boolean> {
+    const { modifiedCount } = await this.projectModel.updateOne(
       {
         _id: id,
-        titleType: ANIME_TYPE.SERIES,
+        titleType: { $in: EPISODE_TYPES },
         episodesReleased: { $lt: episode },
       },
       { $set: { episodesReleased: episode } },
     );
+
+    return modifiedCount > 0;
   }
 
   private async findProject(id: string): Promise<Project> {

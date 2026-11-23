@@ -5,11 +5,10 @@ import { Button } from '@mui/material';
 
 import { CustomDialog, Icon } from '@/components';
 import { ParticipantsByRole } from '@/pages/Proposals/components/ParticipantsByRole';
-import { ANIME_TYPE } from '@/types';
 import type { ProjectView } from '@/stores/useProjectsStore';
 import { convertAnimeTypeEngToUkr, linkLabel, MAL_LABEL } from '@/utils/convert';
 import MalImg from '/mal.png';
-import { formatDay, quotaOf } from '../const/options';
+import { formatDay, hasEpisodeCount, quotaOf, todayDay } from '../const/options';
 import { ProjectChips } from './ProjectChips';
 import styles from './ProjectCard.module.scss';
 
@@ -35,7 +34,7 @@ export const ProjectCard: FC<ProjectCardProps> = ({
   onDelete,
 }) => {
   const label = linkLabel(project.link);
-  const isSeries = project.titleType === ANIME_TYPE.SERIES;
+  const isNotBegun = project.startDate > todayDay();
 
   const facts = [
     {
@@ -53,7 +52,10 @@ export const ProjectCard: FC<ProjectCardProps> = ({
     },
     { title: 'Тип', value: convertAnimeTypeEngToUkr(project.titleType) },
     { title: 'Квота', value: quotaOf(project) },
-    isSeries && { title: 'Прогрес', value: `Випущено серій: ${project.episodesReleased}` },
+    hasEpisodeCount(project.titleType) && {
+      title: 'Прогрес',
+      value: `Випущено серій: ${project.episodesReleased}`,
+    },
     { title: 'Початок', value: formatDay(project.startDate) },
     project.isFinished &&
       project.endDate && {
@@ -105,11 +107,12 @@ export const ProjectCard: FC<ProjectCardProps> = ({
             <Button variant="outlined" onClick={() => onEdit(project)}>
               Редагувати
             </Button>
-            {project.isFinished ? (
+            {project.isFinished && (
               <Button variant="outlined" onClick={() => onReopen(project)}>
                 Відновити
               </Button>
-            ) : (
+            )}
+            {!project.isFinished && !isNotBegun && (
               <Button variant="contained" onClick={() => onFinish(project)}>
                 Завершено
               </Button>
