@@ -76,7 +76,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
     control,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, submitCount },
   } = useForm<ProjectFormValues>({
     defaultValues: initialValues(today, nicknames, project, proposal),
     resolver: zodResolver(createProjectFormSchema(today)),
@@ -323,6 +323,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
                 onChange={field.onChange}
                 nicknames={nicknames}
                 errors={errors.participants}
+                submitCount={submitCount}
               />
             )}
           />
