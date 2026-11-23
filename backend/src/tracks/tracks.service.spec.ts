@@ -172,6 +172,38 @@ describe('TrackService', () => {
     });
   });
 
+  describe('maxEpisodes', () => {
+    it('gives the newest episode of the tracks of every project, 0 for a track with no episode', async () => {
+      model.aggregate.mockResolvedValue([
+        { _id: 'p1', maxEpisode: 24 },
+        { _id: 'p2', maxEpisode: null },
+      ] as any);
+
+      await expect(service.maxEpisodes()).resolves.toEqual(
+        new Map([
+          ['p1', 24],
+          ['p2', 0],
+        ]),
+      );
+    });
+
+    it('looks only at the tracks that have a project, and groups them by it', async () => {
+      model.aggregate.mockResolvedValue([] as any);
+
+      await service.maxEpisodes();
+
+      expect(model.aggregate).toHaveBeenCalledWith([
+        { $match: { projectId: { $type: 'string' } } },
+        {
+          $group: {
+            _id: '$projectId',
+            maxEpisode: { $max: '$currentEpisode' },
+          },
+        },
+      ]);
+    });
+  });
+
   describe('create', () => {
     const projectId = String(new Types.ObjectId());
     const track = (): CreateTrackData => ({
@@ -184,7 +216,13 @@ describe('TrackService', () => {
       username: 'root',
     });
 
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2027-09-10T12:00:00Z'));
       projects.findOne.mockResolvedValue({
         _id: projectId,
         ukrName: 'Вітробой',
@@ -277,16 +315,22 @@ describe('TrackService', () => {
       );
     });
 
+    it('refuses a project that has not begun, and writes nothing', async () => {
+      projects.findOne.mockResolvedValue({
+        _id: projectId,
+        ukrName: 'Попереду',
+        titleType: ANIME_TYPE.SERIES,
+        startDate: '2028-01-15',
+      } as unknown as Project);
+
+      await expect(service.create(track(), 'root')).rejects.toThrow(
+        'Проєкт ще не розпочато',
+      );
+      expect(model.create).not.toHaveBeenCalled();
+      expect(members.changeCoins).not.toHaveBeenCalled();
+    });
+
     describe('the season a track names', () => {
-      beforeEach(() => {
-        vi.useFakeTimers({ toFake: ['Date'] });
-        vi.setSystemTime(new Date('2027-09-10T12:00:00Z'));
-      });
-
-      afterEach(() => {
-        vi.useRealTimers();
-      });
-
       it('gets the crumbs when it is a season up to now', async () => {
         await service.create(
           { ...track(), season: SEASON.SUMMER, year: 2027 },

@@ -149,6 +149,23 @@ describe('ProjectsService', () => {
   });
 
   describe('titles', () => {
+    it('leaves out a planned project, which has no tracks to write yet', async () => {
+      projects.find.mockReturnValue(
+        leanResult([
+          project({ ukrName: 'Іде' }),
+          project({
+            _id: new Types.ObjectId(),
+            ukrName: 'Попереду',
+            startDate: '2027-09-01',
+          }),
+        ]),
+      );
+
+      const titles = await service.titles();
+
+      expect(titles.map(({ ukrName }) => ukrName)).toEqual(['Іде']);
+    });
+
     it('lists every project for a select: unfinished first, then the newest, with the season of the start', async () => {
       projects.find.mockReturnValue(
         leanResult([
@@ -441,20 +458,36 @@ describe('ProjectsService', () => {
   });
 
   describe('markEpisodeReleased', () => {
+    beforeEach(() => {
+      projects.updateOne.mockResolvedValue({ modifiedCount: 1 } as any);
+    });
+
+    it('says whether it wrote anything: not when the count was already as far', async () => {
+      await expect(
+        service.markEpisodeReleased(String(projectId), 5),
+      ).resolves.toBe(true);
+
+      projects.updateOne.mockResolvedValue({ modifiedCount: 0 } as any);
+
+      await expect(
+        service.markEpisodeReleased(String(projectId), 5),
+      ).resolves.toBe(false);
+    });
+
     it('raises the released episodes of a series to the episode of the track', async () => {
       await service.markEpisodeReleased(String(projectId), 5);
 
       expect(projects.updateOne).toHaveBeenCalledWith(
         {
           _id: String(projectId),
-          titleType: ANIME_TYPE.SERIES,
+          titleType: { $in: [ANIME_TYPE.SERIES, ANIME_TYPE.TRAILER] },
           episodesReleased: { $lt: 5 },
         },
         { $set: { episodesReleased: 5 } },
       );
     });
 
-    it('only ever raises the count, and leaves the films alone', async () => {
+    it('only ever raises the count, and leaves the films alone, a series and a trailer have one', async () => {
       await service.markEpisodeReleased(String(projectId), 2);
 
       const [filter, update] = projects.updateOne.mock.calls[0] as [
@@ -463,7 +496,9 @@ describe('ProjectsService', () => {
       ];
 
       expect(filter.episodesReleased).toEqual({ $lt: 2 });
-      expect(filter.titleType).toBe(ANIME_TYPE.SERIES);
+      expect(filter.titleType).toEqual({
+        $in: [ANIME_TYPE.SERIES, ANIME_TYPE.TRAILER],
+      });
       expect(Object.keys(update)).toEqual(['$set']);
     });
   });
@@ -547,29 +582,84 @@ describe('ProjectsService', () => {
       expect(document).not.toHaveProperty('funding');
     });
 
-    it('keeps progress only for a series', async () => {
-      await service.create(
-        fields({ titleType: ANIME_TYPE.FILM, episodesReleased: 4 }),
-      );
+    it.each([ANIME_TYPE.SERIES, ANIME_TYPE.TRAILER])(
+      'keeps the count of released episodes of a %s',
+      async (titleType) => {
+        await service.create(fields({ titleType, episodesReleased: 4 }));
+
+        expect(projects.create).toHaveBeenCalledWith(
+          expect.objectContaining({ episodesReleased: 4 }),
+        );
+      },
+    );
+
+    it.each([ANIME_TYPE.FILM, ANIME_TYPE.SHORT_FILM])(
+      'keeps no count for a %s',
+      async (titleType) => {
+        await service.create(fields({ titleType, episodesReleased: 4 }));
+
+        expect(projects.create).toHaveBeenCalledWith(
+          expect.objectContaining({ episodesReleased: 0 }),
+        );
+      },
+    );
+
+    it('accepts a start date later in the current season, counted in Kyiv time', async () => {
+      vi.setSystemTime(new Date('2027-05-10T21:30:00Z'));
+
+      await expect(
+        service.create(fields({ startDate: '2027-05-20' })),
+      ).resolves.not.toThrow();
+    });
+
+    it('counts the season by the date in Kyiv: late on the last day of spring it is already summer', async () => {
+      vi.setSystemTime(new Date('2027-06-30T21:30:00Z'));
+
+      await expect(
+        service.create(
+          fields({ startDate: '2027-07-01', endDate: '2027-07-01' }),
+        ),
+      ).resolves.not.toThrow();
+    });
+
+    it('accepts a start date in a season to come, a planned project', async () => {
+      await service.create(fields({ startDate: '2027-09-15' }));
 
       expect(projects.create).toHaveBeenCalledWith(
-        expect.objectContaining({ episodesReleased: 0 }),
+        expect.objectContaining({ startDate: '2027-09-15' }),
       );
     });
 
-    it('refuses a start date in the future', async () => {
+    it('accepts a start date two years from today and refuses the day after', async () => {
       await expect(
-        service.create(fields({ startDate: '2027-05-11' })),
+        service.create(fields({ startDate: '2029-05-10' })),
+      ).resolves.not.toThrow();
+
+      projects.create.mockClear();
+
+      await expect(
+        service.create(fields({ startDate: '2029-05-11' })),
       ).rejects.toThrow(BadRequestException);
       expect(projects.create).not.toHaveBeenCalled();
     });
 
-    it('accepts today, counted in Kyiv time', async () => {
-      vi.setSystemTime(new Date('2027-05-10T21:30:00Z'));
+    it.each(['2027-09-15', '2027-05-20'])(
+      'refuses to make a project that starts on %s, still ahead, finished: with an end date or the in-time flag',
+      async (startDate) => {
+        await expect(
+          service.create(fields({ startDate, endDate: '2027-05-01' })),
+        ).rejects.toThrow('Проєкт ще не розпочато');
+        await expect(
+          service.create(fields({ startDate, isInTime: true })),
+        ).rejects.toThrow('Проєкт ще не розпочато');
+        expect(projects.create).not.toHaveBeenCalled();
+      },
+    );
 
+    it('says the limit with the number of years it is, in the right form', async () => {
       await expect(
-        service.create(fields({ startDate: '2027-05-11' })),
-      ).resolves.not.toThrow();
+        service.create(fields({ startDate: '2029-05-11' })),
+      ).rejects.toThrow('Дата початку не може бути пізніше ніж через 2 роки');
     });
 
     it('claims the proposal before creating the project, under the same id', async () => {
@@ -674,6 +764,60 @@ describe('ProjectsService', () => {
       expect(update.$unset).toEqual({ posterUrl: '', funding: '' });
     });
 
+    it('lets a planned project move to another season to come, or start now', async () => {
+      existing(project({ startDate: '2027-09-01' }));
+      projects.findByIdAndUpdate.mockReturnValue(leanResult(project()));
+
+      await expect(
+        service.update(
+          String(projectId),
+          updateFields({ startDate: '2028-01-15' }),
+        ),
+      ).resolves.not.toThrow();
+      await expect(
+        service.update(
+          String(projectId),
+          updateFields({ startDate: '2027-05-02' }),
+        ),
+      ).resolves.not.toThrow();
+    });
+
+    it('lets a project whose start day is still ahead, inside the current season, move to a season to come', async () => {
+      existing(project({ startDate: '2027-05-20' }));
+      projects.findByIdAndUpdate.mockReturnValue(leanResult(project()));
+
+      await expect(
+        service.update(
+          String(projectId),
+          updateFields({ startDate: '2027-09-01' }),
+        ),
+      ).resolves.not.toThrow();
+    });
+
+    it('refuses to move a project that has begun into a season to come', async () => {
+      existing(project());
+
+      await expect(
+        service.update(
+          String(projectId),
+          updateFields({ startDate: '2027-09-01' }),
+        ),
+      ).rejects.toThrow(ConflictException);
+      expect(projects.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('refuses a start date more than two years ahead', async () => {
+      existing(project({ startDate: '2027-09-01' }));
+
+      await expect(
+        service.update(
+          String(projectId),
+          updateFields({ startDate: '2029-05-11' }),
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(projects.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
     it('refuses an end date on a project that is still running', async () => {
       existing(project());
 
@@ -751,6 +895,21 @@ describe('ProjectsService', () => {
         { $set: { isFinished: true, endDate: '2027-05-10', isInTime: true } },
       );
     });
+
+    it.each(['2027-09-01', '2027-05-20'])(
+      'refuses a project that starts on %s, it has not begun',
+      async (startDate) => {
+        existing(project({ startDate }));
+
+        await expect(
+          service.finish(String(projectId), {
+            endDate: '2027-05-10',
+            isInTime: false,
+          }),
+        ).rejects.toThrow('Проєкт ще не розпочато');
+        expect(projects.updateOne).not.toHaveBeenCalled();
+      },
+    );
 
     it('refuses a project that is already finished', async () => {
       existing(project({ isFinished: true, endDate: '2027-05-01' }));

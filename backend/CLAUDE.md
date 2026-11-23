@@ -8,7 +8,7 @@ The details are split by topic in `docs/`. Read the file of the area you are abo
 
 | File | What is in it |
 | --- | --- |
-| [docs/setup.md](docs/setup.md) | commands, seeds and the CLI (`migrate:titles`, `drop:polls`), stack, ESM and build rules, configuration |
+| [docs/setup.md](docs/setup.md) | commands, seeds and the CLI (`migrate:titles`, `backfill:episodes`, `drop:polls`), stack, ESM and build rules, configuration |
 | [docs/validation-and-auth.md](docs/validation-and-auth.md) | Zod request schemas, guards, who may write what, CORS verbs |
 | [docs/members-and-tracks.md](docs/members-and-tracks.md) | users, soft-deleted nicknames, team or guest, the total of the rating, the link of an account to a nickname, crumb counters and their audit |
 | [docs/proposals-and-projects.md](docs/proposals-and-projects.md) | proposal seasons and paws, projects, seasons and debts, finishing, the list of roles |

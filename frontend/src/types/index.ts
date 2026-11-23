@@ -72,6 +72,7 @@ export enum PROJECT_MARK {
   ONGOING = 'ongoing',
   OLD = 'old',
   DEBT = 'debt',
+  PLANNED = 'planned',
 }
 
 export enum INCOME_SOURCE {

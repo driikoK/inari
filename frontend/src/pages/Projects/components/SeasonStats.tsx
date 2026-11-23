@@ -13,6 +13,7 @@ export const SeasonStats: FC<SeasonStatsProps> = ({ stats }) => {
     { label: 'Онґоїнґи', value: stats.ongoing },
     { label: 'Стареча', value: stats.old },
     { label: 'Борги', value: stats.debt },
+    ...(stats.planned > 0 ? [{ label: 'Заплановано', value: stats.planned }] : []),
     { label: 'Меценатські', value: stats.patron },
     { label: 'Замовлення', value: stats.order },
   ];

@@ -36,6 +36,21 @@ export const seasonStartDay = (ordinal: number): string => {
   return `${seasonOfOrdinal(ordinal).year}-${String(firstMonth).padStart(2, '0')}-01`;
 };
 
+// 29 February rolls over to 1 March when the target year has no such day
+export const shiftYears = (day: string, years: number): string => {
+  const [year, month, date] = day.split('-').map(Number);
+
+  return new Date(Date.UTC(year + years, month - 1, date))
+    .toISOString()
+    .slice(0, 10);
+};
+
+export const isPlannedDay = (day: string, today = todayInKyiv()): boolean =>
+  seasonOrdinal(day) > seasonOrdinal(today);
+
+export const isFutureDay = (day: string, today = todayInKyiv()): boolean =>
+  day > today;
+
 export const shiftDays = (day: string, days: number): string => {
   const shifted = new Date(`${day}T00:00:00Z`);
 
@@ -44,7 +59,13 @@ export const shiftDays = (day: string, days: number): string => {
   return shifted.toISOString().slice(0, 10);
 };
 
-const markIn = (project: Project, ordinal: number): PROJECT_MARK => {
+const markIn = (
+  project: Project,
+  ordinal: number,
+  current: number,
+): PROJECT_MARK => {
+  if (ordinal > current) return PROJECT_MARK.PLANNED;
+
   const isCarried = seasonOrdinal(project.startDate) < ordinal;
   const isExcused = project.isFinished && project.isInTime;
 
@@ -58,6 +79,7 @@ const statsOf = (projects: ProjectView[]): SeasonStats => ({
   ongoing: projects.filter(({ mark }) => mark === PROJECT_MARK.ONGOING).length,
   old: projects.filter(({ mark }) => mark === PROJECT_MARK.OLD).length,
   debt: projects.filter(({ mark }) => mark === PROJECT_MARK.DEBT).length,
+  planned: projects.filter(({ mark }) => mark === PROJECT_MARK.PLANNED).length,
   patron: projects.filter(({ funding }) => funding === PROPOSAL_FUNDING.PATRON)
     .length,
   order: projects.filter(({ funding }) => funding === PROPOSAL_FUNDING.ORDER)
@@ -80,10 +102,10 @@ export const buildLayout = (
     const last =
       project.isFinished && project.endDate
         ? seasonOrdinal(project.endDate)
-        : current;
+        : Math.max(current, first);
 
     for (let ordinal = first; ordinal <= last; ordinal++) {
-      const view = { ...project, mark: markIn(project, ordinal) };
+      const view = { ...project, mark: markIn(project, ordinal, current) };
       const group = bySeason.get(ordinal);
 
       if (group) group.push(view);

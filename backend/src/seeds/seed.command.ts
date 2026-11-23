@@ -5,6 +5,7 @@ import { Types, type Mongoose } from 'mongoose';
 import { nicknames } from './datas/nicknames.data.js';
 import { users as userSeeds } from './datas/users.data.js';
 import { tracks as trackSeeds } from './datas/tracks.data.js';
+import { describeEpisodePlan, planEpisodes } from './episodes-plan.js';
 import { describeTitlePlan, planTitles } from './titles-plan.js';
 import { MemberData } from '../members/data/member.data.js';
 import { MembersService } from '../members/members.service.js';
@@ -368,6 +369,40 @@ export class SeedCommand {
     console.log(
       `${label} - created ${created} projects, linked ${linked} tracks`,
     );
+  }
+
+  // Catches up the count of released episodes of the trailer projects with
+  // their tracks. It only raises, so it can be run again.
+  async backfillEpisodes(dryRun: boolean) {
+    const label = dryRun ? 'backfill:episodes (dry run)' : 'backfill:episodes';
+    const [projects, maxEpisodes] = await Promise.all([
+      this.projectsService.list(),
+      this.trackService.maxEpisodes(),
+    ]);
+    const plans = planEpisodes(
+      projects.map(({ _id, ukrName, titleType, episodesReleased }) => ({
+        _id: String(_id),
+        ukrName,
+        titleType,
+        episodesReleased,
+      })),
+      maxEpisodes,
+    );
+
+    console.log(`${label} - ${plans.length} trailer projects to raise`);
+    for (const plan of plans) console.log(describeEpisodePlan(plan));
+
+    if (dryRun) return;
+
+    let raised = 0;
+
+    for (const { projectId, to } of plans) {
+      if (await this.projectsService.markEpisodeReleased(projectId, to)) {
+        raised++;
+      }
+    }
+
+    console.log(`${label} - raised ${raised} of ${plans.length} projects`);
   }
 
   async dropPolls() {

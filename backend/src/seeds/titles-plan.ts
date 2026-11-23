@@ -1,5 +1,5 @@
 import type { CreateProjectData } from '../projects/data/index.js';
-import { MIN_PROJECT_DAY } from '../projects/enums/index.js';
+import { EPISODE_TYPES, MIN_PROJECT_DAY } from '../projects/enums/index.js';
 import {
   ordinalOf,
   seasonOrdinal,
@@ -222,7 +222,7 @@ const projectOf = (
       isOngoing: first ? !!first.isOngoing : state === 'active',
       isSequel: false,
       startDate,
-      episodesReleased: titleType === ANIME_TYPE.SERIES ? maxEpisode : 0,
+      episodesReleased: EPISODE_TYPES.includes(titleType) ? maxEpisode : 0,
       participants,
       ...(state === 'finished' && { endDate, isInTime: true }),
     },
@@ -334,7 +334,7 @@ export const planTitles = ({
         unlinked,
         action: 'link',
         projectId: match._id,
-        ...(match.titleType === ANIME_TYPE.SERIES &&
+        ...(EPISODE_TYPES.includes(match.titleType) &&
           maxEpisode > match.episodesReleased && { raiseTo: maxEpisode }),
         ...(mismatch && {
           note: 'the season of its tracks is not the season of the start of the project',

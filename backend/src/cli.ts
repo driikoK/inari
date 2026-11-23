@@ -50,6 +50,12 @@ const commands: Record<string, Command> = {
     dryRun: true,
     run: (seed, { dryRun }) => seed.migrateTitles(dryRun),
   },
+  'backfill:episodes': {
+    describe:
+      'raise the count of released episodes of the trailer projects to the newest episode of their tracks (--dry-run only shows the plan)',
+    dryRun: true,
+    run: (seed, { dryRun }) => seed.backfillEpisodes(dryRun),
+  },
   'drop:polls': {
     describe: 'drop the collections of the removed voting (votes, poll_animes)',
     run: (seed) => seed.dropPolls(),

@@ -150,7 +150,7 @@ export const ChooseAnimeForm: FC<FormProps> = ({ saveFormValues, initialValues }
                     isOptionEqualToValue={(option, value) => option._id === value._id}
                     value={titles.find(({ _id }) => _id === field.value) ?? null}
                     onChange={(_, title) => handleProject(title)}
-                    noOptionsText="Такого проєкту немає. Створіть його на сторінці «Крихти»"
+                    noOptionsText="Такого проєкту немає. Заплановані проєкти тут не показуються, новий можна створити на сторінці «Крихти»"
                     renderInput={(params) => (
                       <TextField
                         {...params}
