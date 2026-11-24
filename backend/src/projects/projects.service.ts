@@ -470,8 +470,8 @@ export class ProjectsService {
   }
 
   private async hasTracks(id: Types.ObjectId): Promise<boolean> {
-    const tracks = await this.trackModel.exists({ projectId: String(id) })
-    return !!tracks
+    const tracks = await this.trackModel.exists({ projectId: String(id) });
+    return !!tracks;
   }
 
   private async findProject(id: string): Promise<Project> {

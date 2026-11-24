@@ -74,17 +74,22 @@ const markIn = (
   return project.isOngoing ? PROJECT_MARK.ONGOING : PROJECT_MARK.OLD;
 };
 
-const statsOf = (projects: ProjectView[]): SeasonStats => ({
-  total: projects.length,
-  ongoing: projects.filter(({ mark }) => mark === PROJECT_MARK.ONGOING).length,
-  old: projects.filter(({ mark }) => mark === PROJECT_MARK.OLD).length,
-  debt: projects.filter(({ mark }) => mark === PROJECT_MARK.DEBT).length,
-  planned: projects.filter(({ mark }) => mark === PROJECT_MARK.PLANNED).length,
-  patron: projects.filter(({ funding }) => funding === PROPOSAL_FUNDING.PATRON)
-    .length,
-  order: projects.filter(({ funding }) => funding === PROPOSAL_FUNDING.ORDER)
-    .length,
-});
+const statsOf = (projects: ProjectView[]): SeasonStats => {
+  const marked = (mark: PROJECT_MARK) =>
+    projects.filter((project) => project.mark === mark).length;
+  const funded = (funding: PROPOSAL_FUNDING) =>
+    projects.filter((project) => project.funding === funding).length;
+
+  return {
+    total: projects.length,
+    ongoing: marked(PROJECT_MARK.ONGOING),
+    old: marked(PROJECT_MARK.OLD),
+    debt: marked(PROJECT_MARK.DEBT),
+    planned: marked(PROJECT_MARK.PLANNED),
+    patron: funded(PROPOSAL_FUNDING.PATRON),
+    order: funded(PROPOSAL_FUNDING.ORDER),
+  };
+};
 
 const byStart = (a: Project, b: Project) =>
   a.startDate.localeCompare(b.startDate) ||
