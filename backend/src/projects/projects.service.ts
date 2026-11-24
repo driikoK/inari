@@ -10,6 +10,7 @@ import { isValidObjectId, Model, Types } from 'mongoose';
 import { PostersService } from '../posters/posters.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { type MEMBER_ROLE, plural, splitOptionals } from '../shared/index.js';
+import type { ITrack } from '../tracks/interfaces/track.interface.js';
 import type {
   CreateProjectData,
   FinishProjectData,
@@ -56,6 +57,7 @@ export class ProjectsService {
 
   constructor(
     @Inject('PROJECT_MODEL') private readonly projectModel: Model<Project>,
+    @Inject('TRACK_MODEL') private readonly trackModel: Model<ITrack>,
     private readonly proposalsService: ProposalsService,
     private readonly posters: PostersService,
   ) {}
@@ -281,9 +283,9 @@ export class ProjectsService {
 
     this.assertStartDate(fields.startDate);
 
-    if (!isFutureDay(project.startDate) && isPlannedDay(fields.startDate)) {
+    if (isPlannedDay(fields.startDate) && (await this.hasTracks(project._id))) {
       throw new ConflictException(
-        'Проєкт уже розпочато, його не можна перенести в майбутній сезон',
+        'У проєкту вже є треки, його не можна перенести в майбутній сезон',
       );
     }
 
@@ -465,6 +467,11 @@ export class ProjectsService {
     );
 
     return modifiedCount > 0;
+  }
+
+  private async hasTracks(id: Types.ObjectId): Promise<boolean> {
+    const tracks = await this.trackModel.exists({ projectId: String(id) })
+    return !!tracks
   }
 
   private async findProject(id: string): Promise<Project> {

@@ -12,6 +12,7 @@ import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 import { PostersService } from '../posters/posters.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
 import { ANIME_TYPE, MEMBER_ROLE } from '../shared/index.js';
+import type { ITrack } from '../tracks/interfaces/track.interface.js';
 import type { CreateProjectData, UpdateProjectData } from './data/index.js';
 import type { Project } from './interfaces/index.js';
 import { ProjectsService } from './projects.service.js';
@@ -22,6 +23,7 @@ describe('ProjectsService', () => {
 
   let service: ProjectsService;
   let projects: DeepMocked<Model<Project>>;
+  let tracks: DeepMocked<Model<ITrack>>;
   let proposals: DeepMocked<ProposalsService>;
   let posters: DeepMocked<PostersService>;
 
@@ -80,6 +82,7 @@ describe('ProjectsService', () => {
           provide: 'PROJECT_MODEL',
           useValue: createMock<Model<Project>>(),
         },
+        { provide: 'TRACK_MODEL', useValue: createMock<Model<ITrack>>() },
         { provide: ProposalsService, useValue: createMock<ProposalsService>() },
         { provide: PostersService, useValue: createMock<PostersService>() },
       ],
@@ -87,6 +90,8 @@ describe('ProjectsService', () => {
 
     service = module.get(ProjectsService);
     projects = module.get('PROJECT_MODEL');
+    tracks = module.get('TRACK_MODEL');
+    tracks.exists.mockResolvedValue(null as never);
     proposals = module.get(ProposalsService);
     posters = module.get(PostersService);
   });
@@ -794,8 +799,24 @@ describe('ProjectsService', () => {
       ).resolves.not.toThrow();
     });
 
-    it('refuses to move a project that has begun into a season to come', async () => {
+    it('lets a project that has begun but has no tracks move into a season to come', async () => {
       existing(project());
+      projects.findByIdAndUpdate.mockReturnValue(leanResult(project()));
+
+      await expect(
+        service.update(
+          String(projectId),
+          updateFields({ startDate: '2027-09-01' }),
+        ),
+      ).resolves.not.toThrow();
+      expect(tracks.exists).toHaveBeenCalledWith({
+        projectId: String(projectId),
+      });
+    });
+
+    it('refuses to move a project with tracks into a season to come', async () => {
+      existing(project());
+      tracks.exists.mockResolvedValue({ _id: new Types.ObjectId() } as never);
 
       await expect(
         service.update(
@@ -804,6 +825,19 @@ describe('ProjectsService', () => {
         ),
       ).rejects.toThrow(ConflictException);
       expect(projects.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('lets a project with tracks move inside the seasons that have come', async () => {
+      existing(project());
+      tracks.exists.mockResolvedValue({ _id: new Types.ObjectId() } as never);
+      projects.findByIdAndUpdate.mockReturnValue(leanResult(project()));
+
+      await expect(
+        service.update(
+          String(projectId),
+          updateFields({ startDate: '2027-03-01' }),
+        ),
+      ).resolves.not.toThrow();
     });
 
     it('refuses a start date more than two years ahead', async () => {
