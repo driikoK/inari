@@ -575,7 +575,12 @@ describe('ProjectsService', () => {
 
     it('drops blank optional fields instead of storing them', async () => {
       await service.create(
-        fields({ codeName: '  ', posterUrl: null, funding: null }),
+        fields({
+          codeName: '  ',
+          collabTeam: ' ',
+          posterUrl: null,
+          funding: null,
+        }),
       );
 
       const [document] = projects.create.mock.calls[0] as unknown as [
@@ -583,8 +588,19 @@ describe('ProjectsService', () => {
       ];
 
       expect(document).not.toHaveProperty('codeName');
+      expect(document).not.toHaveProperty('collabTeam');
       expect(document).not.toHaveProperty('posterUrl');
       expect(document).not.toHaveProperty('funding');
+    });
+
+    it('stores the team the project is made with', async () => {
+      await service.create(fields({ collabTeam: 'Studio Band' }));
+
+      const [document] = projects.create.mock.calls[0] as unknown as [
+        Record<string, unknown>,
+      ];
+
+      expect(document).toMatchObject({ collabTeam: 'Studio Band' });
     });
 
     it.each([ANIME_TYPE.SERIES, ANIME_TYPE.TRAILER])(
@@ -766,7 +782,33 @@ describe('ProjectsService', () => {
 
       expect(update.$set).toMatchObject({ codeName: 'wind' });
       expect(update.$set).not.toHaveProperty('endDate');
-      expect(update.$unset).toEqual({ posterUrl: '', funding: '' });
+      expect(update.$unset).toEqual({
+        collabTeam: '',
+        posterUrl: '',
+        funding: '',
+      });
+    });
+
+    it('sets the team of a collab and takes it off again when it is cleared', async () => {
+      existing(project({ collabTeam: 'Studio Band' }));
+      projects.findByIdAndUpdate.mockReturnValue(leanResult(project()));
+
+      await service.update(
+        String(projectId),
+        updateFields({ collabTeam: 'Other Team' }),
+      );
+      await service.update(
+        String(projectId),
+        updateFields({ collabTeam: null }),
+      );
+
+      const [[, withTeam], [, withoutTeam]] = projects.findByIdAndUpdate.mock
+        .calls as any[];
+
+      expect(withTeam.$set).toMatchObject({ collabTeam: 'Other Team' });
+      expect(withTeam.$unset).not.toHaveProperty('collabTeam');
+      expect(withoutTeam.$set).not.toHaveProperty('collabTeam');
+      expect(withoutTeam.$unset).toHaveProperty('collabTeam', '');
     });
 
     it('lets a planned project move to another season to come, or start now', async () => {

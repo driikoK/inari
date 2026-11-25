@@ -13,6 +13,7 @@ export interface Project {
   ukrName: string;
   romajiName: string;
   codeName?: string;
+  collabTeam?: string;
   link: string;
   posterUrl?: string;
   posterFile?: string;

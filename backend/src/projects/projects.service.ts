@@ -415,8 +415,20 @@ export class ProjectsService {
   }
 
   private toDocument(fields: ProjectFields) {
-    const { codeName, posterUrl, funding, participants, ...required } = fields;
-    const { set, unset } = splitOptionals({ codeName, posterUrl, funding });
+    const {
+      codeName,
+      collabTeam,
+      posterUrl,
+      funding,
+      participants,
+      ...required
+    } = fields;
+    const { set, unset } = splitOptionals({
+      codeName,
+      collabTeam,
+      posterUrl,
+      funding,
+    });
 
     return {
       set: {

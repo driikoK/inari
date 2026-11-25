@@ -29,7 +29,15 @@ import {
   toProjectPayload,
   type ProjectFormValues,
 } from '../const/form';
-import { hasEpisodeCount, latestStartDay, MIN_DAY, projectTypes, todayDay } from '../const/options';
+import {
+  COLLAB_TEAM,
+  collabOptions,
+  hasEpisodeCount,
+  latestStartDay,
+  MIN_DAY,
+  projectTypes,
+  todayDay,
+} from '../const/options';
 import { ParticipantsEditor } from './ParticipantsEditor';
 import { PosterField } from './PosterField';
 
@@ -46,6 +54,7 @@ const textFieldLabels = {
   ukrName: 'Назва українською',
   romajiName: 'Назва ромаджі',
   codeName: 'Кодова назва (не обов’язково)',
+  collabTeam: 'Команда, з якою співпрацюємо',
   link: 'Посилання (MAL чи аналогічний ресурс)',
   posterUrl: 'Постер (посилання, не обов’язково)',
 } as const;
@@ -85,6 +94,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
 
   const titleType = watch('titleType');
   const isFinished = watch('isFinished');
+  const collab = watch('collab');
 
   // The project is saved by now, so a poster that fails does not keep the form open:
   // saving again would make a second project
@@ -240,6 +250,31 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
             )}
           />
         </div>
+
+        <div>
+          <P sx={{ color: 'var(--text-muted)', mb: 0.5 }}>Співпраця з іншою командою</P>
+          <Controller
+            control={control}
+            name="collab"
+            render={({ field }) => (
+              <ToggleButtonGroup
+                exclusive
+                color="primary"
+                size="small"
+                value={field.value}
+                onChange={(_, next) => next && field.onChange(next)}
+              >
+                {collabOptions.map((option) => (
+                  <ToggleButton key={option.value} value={option.value} sx={toggleSx}>
+                    {option.label}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            )}
+          />
+        </div>
+
+        {collab === COLLAB_TEAM && textField('collabTeam')}
 
         <Controller
           control={control}

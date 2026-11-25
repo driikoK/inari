@@ -293,6 +293,7 @@ describe('request DTO schemas', () => {
         CreateProjectData.safeParse({
           ...projectBody,
           codeName: 'wind',
+          collabTeam: 'Studio Band',
           posterUrl: 'https://cdn.myanimelist.net/images/1.jpg',
           funding: 'order',
           proposalId: '61c0ccf11d7bf83d153d7c06',
@@ -302,6 +303,7 @@ describe('request DTO schemas', () => {
         CreateProjectData.safeParse({
           ...projectBody,
           codeName: null,
+          collabTeam: null,
           posterUrl: null,
           funding: null,
           proposalId: null,
@@ -323,6 +325,7 @@ describe('request DTO schemas', () => {
       ['episodesReleased', 1000],
       ['episodesReleased', 2.5],
       ['codeName', 'x'.repeat(101)],
+      ['collabTeam', 'x'.repeat(101)],
     ])('rejects %s = %o', (field, value) => {
       expect(
         CreateProjectData.safeParse({ ...projectBody, [field]: value }).success,

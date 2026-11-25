@@ -13,6 +13,7 @@ export interface Project {
   ukrName: string;
   romajiName: string;
   codeName?: string;
+  collabTeam?: string;
   link: string;
   posterUrl?: string;
   posterFile?: string;
@@ -55,6 +56,7 @@ export interface ProjectPayload {
   ukrName: string;
   romajiName: string;
   codeName: string | null;
+  collabTeam: string | null;
   link: string;
   posterUrl: string | null;
   titleType: ANIME_TYPE;

@@ -5,6 +5,7 @@ export const ProjectSchema = new mongoose.Schema(
     ukrName: { type: String, required: true },
     romajiName: { type: String, required: true },
     codeName: String,
+    collabTeam: String,
     link: { type: String, required: true },
     posterUrl: String,
     posterFile: String,

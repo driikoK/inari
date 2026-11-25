@@ -36,6 +36,7 @@ const projectFields = {
     .trim()
     .min(1, 'Вкажіть назву ромаджі'),
   codeName: z.string().trim().max(100, 'Максимум 100 символів').nullish(),
+  collabTeam: z.string().trim().max(100, 'Максимум 100 символів').nullish(),
   link: url,
   posterUrl: url.nullish(),
   titleType: z.enum(ANIME_TYPE, { error: 'Невідомий тип проєкту' }),
