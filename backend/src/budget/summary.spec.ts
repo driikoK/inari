@@ -11,7 +11,7 @@ import type {
   ExpenseEntry,
   IncomeEntry,
 } from './interfaces/index.js';
-import { orderBudgets, summarize } from './summary.js';
+import { orderBudgets, seasonRates, summarize } from './summary.js';
 
 const entry = (extra: Partial<IncomeEntry> = {}): IncomeEntry => ({
   _id: '1',
@@ -557,5 +557,125 @@ describe('summarize with support budgets and expenses', () => {
     it('is empty when nothing was paid', () => {
       expect(run(jar).seasons[1].expenses).toEqual([]);
     });
+  });
+});
+
+describe('the seasons before the previous one', () => {
+  const today = '2027-05-10';
+  const label = ({ season, year }: { season: SEASON; year: number }) =>
+    `${season} ${year}`;
+
+  const old = [
+    entry({
+      season: SEASON.FALL,
+      year: 2026,
+      date: '2026-11-01',
+      amountKop: 40000,
+    }),
+    entry({
+      season: SEASON.SUMMER,
+      year: 2026,
+      date: '2026-08-01',
+      amountKop: 30000,
+    }),
+    allocation({
+      season: SEASON.SUMMER,
+      year: 2026,
+      date: '2026-08-02',
+      amountKop: 10000,
+    }),
+    entry({
+      season: SEASON.SPRING,
+      year: 2020,
+      date: '2020-04-10',
+      amountKop: 20000,
+    }),
+  ];
+  const oldCrumbs = [
+    { season: SEASON.FALL, year: 2026, coins: 100 },
+    { season: SEASON.SUMMER, year: 2026, coins: 40 },
+  ];
+
+  it('lists every season that has money or crumbs, the newest first', () => {
+    const { earlierSeasons } = summarize(old, oldCrumbs, today);
+
+    expect(earlierSeasons.map(label)).toEqual([
+      'fall 2026',
+      'summer 2026',
+      'spring 2020',
+    ]);
+    expect(earlierSeasons.every(({ isCurrent }) => !isCurrent)).toBe(true);
+  });
+
+  it('leaves out a season that has nothing in it', () => {
+    expect(summarize([], [], today).earlierSeasons).toEqual([]);
+    expect(summarize(old, [], today).earlierSeasons.map(label)).not.toContain(
+      'winter 2026',
+    );
+  });
+
+  it('has a season that has crumbs but no money, whose coefficient is zero', () => {
+    const { earlierSeasons } = summarize(
+      [],
+      [{ season: SEASON.FALL, year: 2026, coins: 999 }],
+      today,
+    );
+
+    expect(earlierSeasons).toHaveLength(1);
+    expect(earlierSeasons[0]).toMatchObject({
+      crumbs: 999,
+      jarKop: 0,
+      coefficient: 0,
+    });
+  });
+
+  it('does not repeat the previous and the current season, nor take one to come', () => {
+    const { seasons, earlierSeasons } = summarize(
+      [
+        entry({ season: SEASON.WINTER, year: 2027, date: '2027-02-01' }),
+        entry(),
+        entry({ season: SEASON.FALL, year: 2027, date: '2027-11-01' }),
+      ],
+      [],
+      today,
+    );
+
+    expect(seasons.map(label)).toEqual(['winter 2027', 'spring 2027']);
+    expect(earlierSeasons).toEqual([]);
+  });
+
+  it('gives a season the very numbers it would have as the previous one', () => {
+    const earlier = summarize(old, oldCrumbs, today).earlierSeasons.find(
+      (item) => label(item) === 'fall 2026',
+    );
+    const [asPrevious] = summarize(old, oldCrumbs, '2027-01-15').seasons;
+
+    expect(label(asPrevious)).toBe('fall 2026');
+    expect(earlier).toEqual(asPrevious);
+    expect(earlier).toMatchObject({ jarKop: 40000, coefficient: 4 });
+  });
+
+  it('shows the coefficient a payout of that season is paid at', () => {
+    const { earlierSeasons } = summarize(old, oldCrumbs, today);
+    const rates = seasonRates(old, oldCrumbs);
+
+    for (const item of earlierSeasons.filter(({ crumbs }) => crumbs > 0)) {
+      const rate = rates.find(
+        ({ season, year }) => label({ season, year }) === label(item),
+      );
+
+      expect(item.coefficient).toBe(rate?.coefficient);
+    }
+    expect(
+      earlierSeasons.find((item) => label(item) === 'summer 2026'),
+    ).toMatchObject({ jarKop: 20000, supportKop: 10000, coefficient: 5 });
+  });
+
+  it('takes the entries counted in groups too', () => {
+    const grouped = old.map((item) => ({ ...item, count: 1 }));
+
+    expect(summarize(grouped, oldCrumbs, today).earlierSeasons).toEqual(
+      summarize(old, oldCrumbs, today).earlierSeasons,
+    );
   });
 });

@@ -5,6 +5,7 @@ import { usePermissions } from '@/hooks';
 import type { BudgetSeasonSummary, BudgetSummary } from '@/stores/useBudgetStore';
 import { formatKop } from '../const/options';
 import { BreakdownDialog, type BreakdownKind } from './BreakdownDialog';
+import { EarlierSeasons } from './EarlierSeasons';
 import { SeasonJarCard } from './SeasonJarCard';
 import { StatCard } from './StatCard';
 import { SupportBudgetDialog } from './SupportBudgetDialog';
@@ -39,6 +40,11 @@ export const SummaryCards: FC<SummaryCardsProps> = ({ summary }) => {
           />
         ))}
       </div>
+
+      <EarlierSeasons
+        seasons={summary.earlierSeasons}
+        onOpen={(season) => setOpened({ kind: 'jar', season })}
+      />
 
       <div className={styles.grid}>
         <StatCard
@@ -80,7 +86,7 @@ export const SummaryCards: FC<SummaryCardsProps> = ({ summary }) => {
           summary={summary}
           season={
             opened.season &&
-            summary.seasons.find(
+            [...summary.seasons, ...summary.earlierSeasons].find(
               ({ season, year }) =>
                 season === opened.season?.season && year === opened.season?.year,
             )

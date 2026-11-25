@@ -1,4 +1,8 @@
-import { seasonOfOrdinal, seasonOrdinal } from '../projects/layout.js';
+import {
+  ordinalOf,
+  seasonOfOrdinal,
+  seasonOrdinal,
+} from '../projects/layout.js';
 import type { SEASON } from '../shared/index.js';
 import type { SeasonCoins } from '../tracks/interfaces/track.interface.js';
 import {
@@ -341,6 +345,17 @@ export const summarize = (
   const support = supportLines(parts);
   const orders = titleLines(parts);
 
+  // Seasons before the previous one that have money or crumbs in them, the newest first
+  const earlier = [
+    ...new Set(
+      [...entries, ...crumbs].map(({ season, year }) =>
+        ordinalOf(season, year),
+      ),
+    ),
+  ]
+    .filter((ordinal) => ordinal < current - 1)
+    .sort((a, b) => b - a);
+
   const onSide = (kind: SIDE_KIND) =>
     sum(entries, (entry) =>
       sum(
@@ -358,6 +373,9 @@ export const summarize = (
         seasonOfOrdinal(ordinal),
         ordinal === current,
       ),
+    ),
+    earlierSeasons: earlier.map((ordinal) =>
+      summarizeSeason(parts, crumbs, seasonOfOrdinal(ordinal), false),
     ),
     confectioneryKop:
       onSide(SIDE_KIND.JAR) +

@@ -73,6 +73,7 @@ export interface LisodarLine {
 export interface BudgetSummary {
   today: string;
   seasons: BudgetSeasonSummary[];
+  earlierSeasons: BudgetSeasonSummary[];
   confectioneryKop: number;
   supportKop: number;
   ordersKop: number;
