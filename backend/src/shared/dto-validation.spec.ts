@@ -17,6 +17,8 @@ import {
 import {
   CreateProjectData,
   FinishProjectData,
+  ProjectsQueryData,
+  SeasonTabsQueryData,
   UpdateProjectData,
 } from '../projects/data/index.js';
 import {
@@ -439,6 +441,52 @@ describe('request DTO schemas', () => {
       expect(
         FinishProjectData.safeParse({ endDate: '2027-05-01' }).success,
       ).toBe(false);
+    });
+
+    describe('the query of the list', () => {
+      it('is fine with nothing at all, which asks for every project', () => {
+        expect(ProjectsQueryData.parse({})).toEqual({});
+      });
+
+      it('takes a season with its year, coerced to a number, and a participant', () => {
+        expect(
+          ProjectsQueryData.parse({
+            season: 'fall',
+            year: '2026',
+            participant: ' Аня ',
+          }),
+        ).toEqual({ season: 'fall', year: 2026, participant: 'Аня' });
+        expect(ProjectsQueryData.parse({ participant: 'Аня' })).toEqual({
+          participant: 'Аня',
+        });
+      });
+
+      it.each([
+        { season: 'fall' },
+        { year: '2026' },
+        { season: 'autumn', year: '2026' },
+        { season: 'fall', year: 'abc' },
+        { season: 'fall', year: '2026.5' },
+        { season: 'fall', year: '1999' },
+        { season: 'fall', year: '2101' },
+        { season: 'fall', year: '' },
+        { participant: 'x'.repeat(101) },
+      ])('rejects %o', (query) => {
+        expect(ProjectsQueryData.safeParse(query).success).toBe(false);
+      });
+
+      it('says that a season and a year go together', () => {
+        expect(messagesOf(ProjectsQueryData, { season: 'fall' })).toEqual([
+          'Вкажіть сезон і рік разом',
+        ]);
+      });
+
+      it('gives the tabs a participant and nothing else', () => {
+        expect(SeasonTabsQueryData.parse({})).toEqual({});
+        expect(SeasonTabsQueryData.parse({ participant: 'Аня' })).toEqual({
+          participant: 'Аня',
+        });
+      });
     });
   });
 

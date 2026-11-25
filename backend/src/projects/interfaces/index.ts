@@ -59,6 +59,13 @@ export interface SeasonStats {
   order: number;
 }
 
+export interface SeasonTab {
+  season: SEASON;
+  year: number;
+  isCurrent: boolean;
+  count: number;
+}
+
 export interface SeasonLayout {
   season: SEASON;
   year: number;

@@ -28,7 +28,7 @@ Defined in `src/router/index.tsx`. All routes are lazy-loaded. Two routes are co
 All stores in `src/stores/` follow `create<State & Actions>((set) => ({ ... }))`. Key stores:
 
 - `useAuthStore` — login/logout, current user, all users, update/delete user
-- `useProposalsStore` and `useProjectsStore` — seasons with their proposals / the project layout. Every successful mutation refetches the list, so the page shows what the server holds. `ensure()` (in `utils/request.ts`) turns a response-less Axios result into an error, and components call `notifyFailure(error)` from there in `catch`, because the interceptor only toasts errors the server answered
+- `useProposalsStore` and `useProjectsStore` — seasons with their proposals / the project layout. Every successful mutation refetches the list, so the page shows what the server holds. `useProjectsStore` holds two views of the projects: the whole layout (`seasons`) and what the Projects page shows (`tabs`, one `season`, `participants`), see [proposals-and-projects.md](proposals-and-projects.md). `ensure()` (in `utils/request.ts`) turns a response-less Axios result into an error, and components call `notifyFailure(error)` from there in `catch`, because the interceptor only toasts errors the server answered
 - `useTitlesStore` — every project as the select of a title offers it (`GET /projects/titles`, fetched when the track form or the list opens) / `useTracksStore` — tracks and the previous episode of a title
 - `useCoinsStore` — coin values by anime type
 - `useMembersStore` / `useRolesStore` — team members ("nicknames") and roles; `deleteMember` and `updateMemberKind` also update `membersDictionary`, `addMember` needs a `kind`

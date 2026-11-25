@@ -26,8 +26,27 @@
   color: var(--text-muted);
 }
 
+.filter {
+  max-width: 320px;
+}
+
 .tabs {
   border-bottom: 1px solid var(--border);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: opacity 0.15s ease;
+}
+
+// Dimmed only after a moment, so an answer that comes at once changes nothing on the screen.
+// Leaving it has no delay, so the new season is bright as soon as it is there.
+.busy {
+  opacity: 0.5;
+  pointer-events: none;
+  transition-delay: 0.2s;
 }
 
 .grid {

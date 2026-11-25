@@ -1,15 +1,20 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import clsx from 'clsx';
 import toast from 'react-hot-toast';
 
 import AddIcon from '@mui/icons-material/AddOutlined';
 import { Button, CircularProgress, Tab, Tabs } from '@mui/material';
 
-import { ConfirmDeleteDialog } from '@/components';
+import { ConfirmDeleteDialog, SearchSelect } from '@/components';
 import { SUBJECTS } from '@/context/casl';
 import { usePermissions } from '@/hooks';
 import { seasonLabel } from '@/pages/Proposals/const/options';
-import useProjectsStore, { type ProjectSeason, type ProjectView } from '@/stores/useProjectsStore';
+import useProjectsStore, {
+  type ProjectSeason,
+  type ProjectView,
+  type SeasonTarget,
+} from '@/stores/useProjectsStore';
 import useRolesStore from '@/stores/useRolesStore';
 import { notifyFailure } from '@/utils/request';
 import { FinishProjectDialog } from './components/FinishProjectDialog';
@@ -19,59 +24,122 @@ import { ProjectTile } from './components/ProjectTile';
 import { SeasonStats } from './components/SeasonStats';
 import styles from './Projects.module.scss';
 
-const keyOf = (season: ProjectSeason) => `${season.season}-${season.year}`;
+const keyOf = ({ season, year }: SeasonTarget) => `${season}-${year}`;
 
 const isInactive = (season: ProjectSeason, project: ProjectView) =>
   season.isCurrent && project.isFinished;
 
+interface OpenRequest {
+  id: string;
+  key: string;
+}
+
 const Projects: FC = () => {
-  const { seasons, isLoading, getProjects, reopenProject, deleteProject } = useProjectsStore();
+  const {
+    tabs,
+    season,
+    participants,
+    isSeasonLoading,
+    isSeasonFailed,
+    getTabs,
+    getSeason,
+    getParticipants,
+    getProjectSeason,
+    reopenProject,
+    deleteProject,
+  } = useProjectsStore();
   const getRoles = useRolesStore((state) => state.getRoles);
   const { hasAccess } = usePermissions();
   const isCurator = hasAccess(SUBJECTS.MANAGE_PROJECTS);
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedId = searchParams.get('project');
 
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  // No tab chosen yet means the current season, which only the server knows
+  const [target, setTarget] = useState<SeasonTarget>();
+  const [participant, setParticipant] = useState<string>();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [openRequest, setOpenRequest] = useState<OpenRequest | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<ProjectView | null>(null);
   const [projectToFinish, setProjectToFinish] = useState<ProjectView | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<ProjectView | null>(null);
   const [isFetched, setIsFetched] = useState(false);
 
+  // The tab of a season that has no project any more (the last one was deleted) is gone, and the
+  // page falls back to the current season
+  const activeTab =
+    (target && tabs.find((tab) => keyOf(tab) === keyOf(target))) ||
+    tabs.find(({ isCurrent }) => isCurrent);
+  const activeSeason = activeTab?.season;
+  const activeYear = activeTab?.year;
+
+  const options = useMemo(
+    () => participants.map((name) => ({ value: name.toLowerCase(), label: name })),
+    [participants],
+  );
+
   useEffect(() => {
-    getProjects()
+    getParticipants().catch(notifyFailure);
+    getRoles().catch(notifyFailure);
+  }, [getParticipants, getRoles]);
+
+  useEffect(() => {
+    getTabs(participant)
       .catch(notifyFailure)
       .finally(() => setIsFetched(true));
-    getRoles().catch(notifyFailure);
-  }, [getProjects, getRoles]);
-
-  const current =
-    seasons.find((season) => keyOf(season) === selectedKey) ??
-    seasons.find((season) => season.isCurrent) ??
-    seasons[0];
-
-  const isOpenable = (season: ProjectSeason, project: ProjectView) =>
-    isCurator || !isInactive(season, project);
+  }, [participant, getTabs]);
 
   useEffect(() => {
-    if (!requestedId || !isFetched) return;
+    if (activeSeason === undefined || activeYear === undefined) return;
 
-    const season = [...seasons]
-      .reverse()
-      .find(({ projects }) => projects.some((project) => project._id === requestedId));
-    const project = season?.projects.find(({ _id }) => _id === requestedId);
+    getSeason({ season: activeSeason, year: activeYear }, participant).catch(notifyFailure);
+  }, [activeSeason, activeYear, participant, getSeason]);
+
+  // A person who is in no team any more (after an edit or a delete) is no filter any more
+  useEffect(() => {
+    if (participant && !options.some(({ value }) => value === participant)) {
+      setParticipant(undefined);
+    }
+  }, [participant, options]);
+
+  // While the season of a tab loads the one before it stays, dimmed and out of reach, so the page
+  // does not go blank for the length of a request
+  const isBusy = isSeasonLoading || (!!season && !!activeTab && keyOf(season) !== keyOf(activeTab));
+
+  const isOpenable = (current: ProjectSeason, project: ProjectView) =>
+    isCurator || !isInactive(current, project);
+
+  // A link to a project (from the proposals) lands on the season the project is shown on
+  useEffect(() => {
+    if (!requestedId) return;
 
     setSearchParams({}, { replace: true });
+    setParticipant(undefined);
 
-    if (!season || !project) return;
+    getProjectSeason(requestedId)
+      .then((found) => {
+        setTarget(found);
+        setOpenRequest({ id: requestedId, key: keyOf(found) });
+      })
+      .catch(notifyFailure);
+  }, [requestedId, getProjectSeason, setSearchParams]);
 
-    setSelectedKey(keyOf(season));
-    if (isCurator || !isInactive(season, project)) setOpenId(requestedId);
-  }, [requestedId, isFetched, seasons, isCurator, setSearchParams]);
+  useEffect(() => {
+    if (!openRequest || !season || keyOf(season) !== openRequest.key) return;
 
-  const openProject = current?.projects.find(({ _id }) => _id === openId);
+    // The season of the store can be one from an earlier visit (filtered, or from before the
+    // project existed) while the season of this visit is on its way, and the project is not in it.
+    // The store is read here, not in the render, because the load starts in an effect of this
+    // same commit.
+    if (useProjectsStore.getState().isSeasonLoading) return;
+
+    const project = season.projects.find(({ _id }) => _id === openRequest.id);
+
+    setOpenRequest(null);
+    if (project && (isCurator || !isInactive(season, project))) setOpenId(project._id);
+  }, [openRequest, season, isCurator]);
+
+  const openProject = season?.projects.find(({ _id }) => _id === openId);
 
   const handleReopen = async (project: ProjectView) => {
     try {
@@ -95,6 +163,12 @@ const Projects: FC = () => {
     }
   };
 
+  const emptyText = participant
+    ? 'У цьому сезоні немає проєктів з цим учасником.'
+    : isCurator
+      ? 'У цьому сезоні поки немає проєктів. Додайте перший.'
+      : 'У цьому сезоні поки немає проєктів.';
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -110,53 +184,82 @@ const Projects: FC = () => {
         )}
       </div>
 
-      {isLoading && seasons.length === 0 && <CircularProgress sx={{ alignSelf: 'center' }} />}
+      {!isFetched && <CircularProgress sx={{ alignSelf: 'center' }} />}
 
-      {!isLoading && seasons.length === 0 && (
+      {isFetched && tabs.length === 0 && (
         <div className={styles.empty}>
           Не вдалося завантажити проєкти.{' '}
-          <Button onClick={() => getProjects().catch(notifyFailure)}>Спробувати ще раз</Button>
+          <Button onClick={() => getTabs(participant).catch(notifyFailure)}>
+            Спробувати ще раз
+          </Button>
         </div>
       )}
 
-      {current && (
+      {activeTab && (
         <>
+          <div className={styles.filter}>
+            <SearchSelect
+              label="Учасник"
+              value={participant}
+              onChange={setParticipant}
+              options={options}
+              noOptionsText="Учасника не знайдено"
+            />
+          </div>
+
           <Tabs
             className={styles.tabs}
-            value={keyOf(current)}
-            onChange={(_, key: string) => setSelectedKey(key)}
+            value={keyOf(activeTab)}
+            onChange={(_, key: string) => setTarget(tabs.find((tab) => keyOf(tab) === key))}
             variant="scrollable"
             scrollButtons="auto"
           >
-            {seasons.map((season) => (
+            {tabs.map((tab) => (
               <Tab
-                key={keyOf(season)}
-                value={keyOf(season)}
-                label={seasonLabel(season.season, season.year)}
+                key={keyOf(tab)}
+                value={keyOf(tab)}
+                label={`${seasonLabel(tab.season, tab.year)}${participant ? ` (${tab.count})` : ''}`}
                 sx={{ textTransform: 'none', minHeight: 48 }}
               />
             ))}
           </Tabs>
 
-          <SeasonStats stats={current.stats} />
+          {!season && isSeasonLoading && <CircularProgress sx={{ alignSelf: 'center' }} />}
 
-          {current.projects.length === 0 ? (
+          {!season && isSeasonFailed && !isSeasonLoading && (
             <div className={styles.empty}>
-              {isCurator
-                ? 'У цьому сезоні поки немає проєктів. Додайте перший.'
-                : 'У цьому сезоні поки немає проєктів.'}
+              Не вдалося завантажити сезон.{' '}
+              <Button
+                onClick={() =>
+                  getSeason({ season: activeTab.season, year: activeTab.year }, participant).catch(
+                    notifyFailure,
+                  )
+                }
+              >
+                Спробувати ще раз
+              </Button>
             </div>
-          ) : (
-            <div className={styles.grid}>
-              {current.projects.map((project) => (
-                <ProjectTile
-                  key={project._id}
-                  project={project}
-                  isInactive={isInactive(current, project)}
-                  isOpenable={isOpenable(current, project)}
-                  onOpen={(target) => setOpenId(target._id)}
-                />
-              ))}
+          )}
+
+          {season && (
+            <div className={clsx(styles.content, isBusy && styles.busy)}>
+              <SeasonStats stats={season.stats} />
+
+              {season.projects.length === 0 ? (
+                <div className={styles.empty}>{emptyText}</div>
+              ) : (
+                <div className={styles.grid}>
+                  {season.projects.map((project) => (
+                    <ProjectTile
+                      key={project._id}
+                      project={project}
+                      isInactive={isInactive(season, project)}
+                      isOpenable={isOpenable(season, project)}
+                      onOpen={(opened) => setOpenId(opened._id)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </>

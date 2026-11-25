@@ -7,10 +7,13 @@ import type { Project } from './interfaces/index.js';
 import {
   buildLayout,
   isPlannedDay,
+  lastSeasonOf,
   ordinalOf,
+  seasonLayout,
   seasonOfDay,
   seasonOrdinal,
   seasonStartDay,
+  seasonTabs,
   shiftDays,
   shiftYears,
   todayInKyiv,
@@ -400,6 +403,146 @@ describe('buildLayout', () => {
 
       expect(marksIn(layout, 'fall 2027')).toEqual([PROJECT_MARK.ONGOING]);
       expect(currentOf(layout).stats).toMatchObject({ planned: 0 });
+    });
+  });
+});
+
+describe('one season of the layout', () => {
+  const mixed = () => [
+    project({ ukrName: 'Старий', startDate: '2026-11-15' }),
+    project({
+      ukrName: 'Завершений',
+      startDate: '2027-01-10',
+      isFinished: true,
+      endDate: '2027-02-01',
+      isInTime: true,
+    }),
+    project({ ukrName: 'Цей сезон' }),
+    project({ ukrName: 'Попереду', startDate: '2027-10-20' }),
+  ];
+
+  describe('seasonLayout', () => {
+    it('is the very entry the full layout has, season by season', () => {
+      const projects = mixed();
+
+      for (const entry of buildLayout(projects, TODAY)) {
+        expect(
+          seasonLayout(projects, ordinalOf(entry.season, entry.year), TODAY),
+        ).toEqual(entry);
+      }
+    });
+
+    it('holds the projects that are on that season, marked as they are there', () => {
+      const entry = seasonLayout(
+        mixed(),
+        ordinalOf(SEASON.WINTER, 2027),
+        TODAY,
+      );
+
+      expect(entry.projects.map(({ ukrName }) => ukrName)).toEqual([
+        'Старий',
+        'Завершений',
+      ]);
+      expect(entry.projects.map(({ mark }) => mark)).toEqual([
+        PROJECT_MARK.DEBT,
+        PROJECT_MARK.ONGOING,
+      ]);
+      expect(entry.stats).toMatchObject({ total: 2, debt: 1, ongoing: 1 });
+    });
+
+    it('is an empty season, not a missing one, when nobody is on it', () => {
+      const entry = seasonLayout(
+        [project()],
+        ordinalOf(SEASON.SUMMER, 2024),
+        TODAY,
+      );
+
+      expect(entry).toMatchObject({
+        season: SEASON.SUMMER,
+        year: 2024,
+        isCurrent: false,
+        projects: [],
+        stats: { total: 0, debt: 0, planned: 0 },
+      });
+    });
+
+    it('flags the current season even when it is empty', () => {
+      expect(seasonLayout([], seasonOrdinal(TODAY), TODAY)).toMatchObject({
+        isCurrent: true,
+        projects: [],
+      });
+    });
+  });
+
+  describe('seasonTabs', () => {
+    it('lists the seasons that have a project and the current one, with how many are on each', () => {
+      const projects = mixed();
+      const tabs = seasonTabs(projects, projects, TODAY);
+
+      expect(tabs.map((tab) => [label(tab), tab.isCurrent, tab.count])).toEqual(
+        [
+          ['fall 2026', false, 1],
+          ['winter 2027', false, 2],
+          ['spring 2027', true, 2],
+          ['fall 2027', false, 1],
+        ],
+      );
+    });
+
+    it('counts only the projects that are shown, and still has every tab', () => {
+      const projects = mixed();
+      const tabs = seasonTabs(projects, [projects[3]], TODAY);
+
+      expect(tabs.map(({ count }) => count)).toEqual([0, 0, 0, 1]);
+    });
+
+    it('has the current season with nothing at all', () => {
+      expect(seasonTabs([], [], TODAY)).toEqual([
+        { season: SEASON.SPRING, year: 2027, isCurrent: true, count: 0 },
+      ]);
+    });
+
+    it('agrees with the full layout on which seasons exist and how many projects each holds', () => {
+      const projects = mixed();
+
+      expect(
+        seasonTabs(projects, projects, TODAY).map((tab) => [
+          label(tab),
+          tab.count,
+        ]),
+      ).toEqual(
+        buildLayout(projects, TODAY).map((entry) => [
+          label(entry),
+          entry.projects.length,
+        ]),
+      );
+    });
+  });
+
+  describe('lastSeasonOf', () => {
+    it('is the current season for a project that is still running', () => {
+      expect(lastSeasonOf(project({ startDate: '2026-11-15' }), TODAY)).toEqual(
+        { season: SEASON.SPRING, year: 2027 },
+      );
+    });
+
+    it('is the season of the end for a finished one', () => {
+      expect(
+        lastSeasonOf(
+          project({
+            startDate: '2027-01-10',
+            isFinished: true,
+            endDate: '2027-02-01',
+          }),
+          TODAY,
+        ),
+      ).toEqual({ season: SEASON.WINTER, year: 2027 });
+    });
+
+    it('is its own season for a planned one', () => {
+      expect(lastSeasonOf(project({ startDate: '2027-10-20' }), TODAY)).toEqual(
+        { season: SEASON.FALL, year: 2027 },
+      );
     });
   });
 });

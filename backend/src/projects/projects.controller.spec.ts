@@ -25,8 +25,16 @@ describe('ProjectsController', () => {
     ]);
   });
 
-  it('lets any logged-in user read the layout', () => {
-    expect(guardsOf(ProjectsController.prototype.findAll)).toEqual([AuthGuard]);
+  it.each([
+    'findAll',
+    'titles',
+    'seasons',
+    'participants',
+    'seasonOf',
+  ] as const)('%s can be read by any logged-in user', (handler) => {
+    expect(guardsOf(ProjectsController.prototype[handler])).toEqual([
+      AuthGuard,
+    ]);
   });
 
   it('hands the file of the upload to the service', async () => {

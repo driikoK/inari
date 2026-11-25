@@ -95,6 +95,79 @@ const byStart = (a: Project, b: Project) =>
   a.startDate.localeCompare(b.startDate) ||
   String(a._id).localeCompare(String(b._id));
 
+// The first and the last season a project is on: a running one goes on to the
+// current season, a finished one stops at the season of its end
+const spanOf = (project: Project, current: number): [number, number] => {
+  const first = seasonOrdinal(project.startDate);
+  const last =
+    project.isFinished && project.endDate
+      ? seasonOrdinal(project.endDate)
+      : Math.max(current, first);
+
+  return [first, last];
+};
+
+const isOn = (project: Project, ordinal: number, current: number) => {
+  const [first, last] = spanOf(project, current);
+
+  return first <= ordinal && ordinal <= last;
+};
+
+export const lastSeasonOf = (project: Project, today: string) =>
+  seasonOfOrdinal(spanOf(project, seasonOrdinal(today))[1]);
+
+// One season, with the projects that are on it and their statistics. A season
+// nobody is on is still a season, with nothing in it.
+export const seasonLayout = (
+  projects: Project[],
+  ordinal: number,
+  today: string,
+): SeasonLayout => {
+  const current = seasonOrdinal(today);
+  const seasonProjects = [...projects]
+    .sort(byStart)
+    .filter((project) => isOn(project, ordinal, current))
+    .map((project) => ({
+      ...project,
+      mark: markIn(project, ordinal, current),
+    }));
+
+  return {
+    ...seasonOfOrdinal(ordinal),
+    isCurrent: ordinal === current,
+    stats: statsOf(seasonProjects),
+    projects: seasonProjects,
+  };
+};
+
+// The tabs of the page: every season that has a project of any kind, and the
+// current one. The count is of the projects that are wanted (`shown`), so a
+// filter can leave a tab with none.
+export const seasonTabs = (
+  projects: Project[],
+  shown: Project[],
+  today: string,
+) => {
+  const current = seasonOrdinal(today);
+  const ordinals = new Set([current]);
+
+  for (const project of projects) {
+    const [first, last] = spanOf(project, current);
+
+    for (let ordinal = first; ordinal <= last; ordinal++) {
+      ordinals.add(ordinal);
+    }
+  }
+
+  return [...ordinals]
+    .sort((a, b) => a - b)
+    .map((ordinal) => ({
+      ...seasonOfOrdinal(ordinal),
+      isCurrent: ordinal === current,
+      count: shown.filter((project) => isOn(project, ordinal, current)).length,
+    }));
+};
+
 export const buildLayout = (
   projects: Project[],
   today: string,
@@ -103,11 +176,7 @@ export const buildLayout = (
   const bySeason = new Map<number, ProjectView[]>([[current, []]]);
 
   for (const project of [...projects].sort(byStart)) {
-    const first = seasonOrdinal(project.startDate);
-    const last =
-      project.isFinished && project.endDate
-        ? seasonOrdinal(project.endDate)
-        : Math.max(current, first);
+    const [first, last] = spanOf(project, current);
 
     for (let ordinal = first; ordinal <= last; ordinal++) {
       const view = { ...project, mark: markIn(project, ordinal, current) };
