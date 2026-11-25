@@ -43,6 +43,10 @@ export const latestStartDay = (today: string) => {
 
 export const MIN_DAY = '2000-01-01';
 
+// The first day of spring 2020, the first season of the team: it did not exist before. The
+// Budget keeps its own, wider limit (MIN_DAY).
+export const MIN_PROJECT_DAY = '2020-04-01';
+
 export const todayDay = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' });
 
 export const formatDay = (day: string) => day.split('-').reverse().join('.');

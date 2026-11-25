@@ -11,7 +11,7 @@ const url = z.url({
 const day = z.iso
   .date({ error: 'Вкажіть коректну дату' })
   .refine((value) => value >= MIN_PROJECT_DAY, {
-    error: 'Дата не може бути раніше 2000 року',
+    error: 'Дата не може бути раніше квітня 2020 року',
     when: ({ issues }) => issues.length === 0,
   });
 

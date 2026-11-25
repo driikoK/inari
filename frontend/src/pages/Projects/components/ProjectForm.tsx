@@ -34,7 +34,7 @@ import {
   collabOptions,
   hasEpisodeCount,
   latestStartDay,
-  MIN_DAY,
+  MIN_PROJECT_DAY,
   projectTypes,
   todayDay,
 } from '../const/options';
@@ -160,7 +160,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ onClose, nicknames, project,
         control={control}
         name={name}
         render={({ field }) => (
-          <DateInput {...field} label={label} min={MIN_DAY} max={max} fullWidth />
+          <DateInput {...field} label={label} min={MIN_PROJECT_DAY} max={max} fullWidth />
         )}
       />
       <ErrorMessage

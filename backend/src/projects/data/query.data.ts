@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SEASON } from '../../shared/index.js';
+import { MIN_PROJECT_DAY } from '../enums/index.js';
 
 const participant = z.string().trim().max(100).optional();
 
@@ -11,7 +12,7 @@ export const ProjectsQueryData = z
     year: z.coerce
       .number({ error: 'Невірний рік' })
       .int('Невірний рік')
-      .min(2000, 'Невірний рік')
+      .min(Number(MIN_PROJECT_DAY.slice(0, 4)), 'Невірний рік')
       .max(2100, 'Невірний рік')
       .optional(),
     participant,

@@ -15,6 +15,7 @@ export const MAX_PLANNED_YEARS = 2;
 
 export const PROJECT_TIME_ZONE = 'Europe/Kyiv';
 
-export const MIN_PROJECT_DAY = '2000-01-01';
+// The first day of spring 2020, the first season of the team: it did not exist before
+export const MIN_PROJECT_DAY = '2020-04-01';
 
 export const MAX_PARTICIPANTS = 50;

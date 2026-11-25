@@ -360,27 +360,39 @@ describe('request DTO schemas', () => {
       ).toBe(true);
     });
 
-    it('refuses a date before 2000, a typo that would span thousands of seasons', () => {
+    it('refuses a date before April 2020, when the team did not exist yet, and a typo that would span thousands of seasons', () => {
       expect(
         CreateProjectData.safeParse({ ...projectBody, startDate: '0025-04-01' })
           .success,
       ).toBe(false);
       expect(
-        CreateProjectData.safeParse({ ...projectBody, startDate: '1999-12-31' })
+        CreateProjectData.safeParse({ ...projectBody, startDate: '2000-01-01' })
           .success,
       ).toBe(false);
       expect(
-        CreateProjectData.safeParse({ ...projectBody, startDate: '2000-01-01' })
+        CreateProjectData.safeParse({ ...projectBody, startDate: '2020-03-31' })
+          .success,
+      ).toBe(false);
+      expect(
+        CreateProjectData.safeParse({ ...projectBody, startDate: '2020-04-01' })
           .success,
       ).toBe(true);
       expect(
-        UpdateProjectData.safeParse({ ...projectBody, endDate: '1999-12-31' })
+        UpdateProjectData.safeParse({ ...projectBody, startDate: '2020-03-31' })
           .success,
       ).toBe(false);
       expect(
-        FinishProjectData.safeParse({ endDate: '1999-12-31', isInTime: false })
+        UpdateProjectData.safeParse({ ...projectBody, endDate: '2020-03-31' })
           .success,
       ).toBe(false);
+      expect(
+        FinishProjectData.safeParse({ endDate: '2020-03-31', isInTime: false })
+          .success,
+      ).toBe(false);
+      expect(
+        FinishProjectData.safeParse({ endDate: '2020-04-01', isInTime: false })
+          .success,
+      ).toBe(true);
     });
 
     it('says only that a malformed date is malformed, not also that it is too early', () => {
@@ -395,7 +407,7 @@ describe('request DTO schemas', () => {
           ...projectBody,
           startDate: '0025-04-01',
         }),
-      ).toEqual(['Дата не може бути раніше 2000 року']);
+      ).toEqual(['Дата не може бути раніше квітня 2020 року']);
     });
 
     it('lets a new project come already finished, with an end date and the flag', () => {
@@ -414,7 +426,7 @@ describe('request DTO schemas', () => {
         }).success,
       ).toBe(true);
       expect(
-        CreateProjectData.safeParse({ ...projectBody, endDate: '1999-12-31' })
+        CreateProjectData.safeParse({ ...projectBody, endDate: '2020-03-31' })
           .success,
       ).toBe(false);
     });
@@ -468,6 +480,7 @@ describe('request DTO schemas', () => {
         { season: 'fall', year: 'abc' },
         { season: 'fall', year: '2026.5' },
         { season: 'fall', year: '1999' },
+        { season: 'winter', year: '2019' },
         { season: 'fall', year: '2101' },
         { season: 'fall', year: '' },
         { participant: 'x'.repeat(101) },

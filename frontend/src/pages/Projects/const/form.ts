@@ -12,7 +12,7 @@ import {
   latestStartDay,
   MAX_COLLAB_TEAM,
   MAX_PLANNED_YEARS,
-  MIN_DAY,
+  MIN_PROJECT_DAY,
   NO_COLLAB,
 } from './options';
 
@@ -96,7 +96,7 @@ export const createProjectFormSchema = (
       startDate: z
         .string({ error: REQUIRED_MESSAGE })
         .min(1, REQUIRED_MESSAGE)
-        .refine((value) => value >= MIN_DAY, 'Дата не може бути раніше 2000 року')
+        .refine((value) => value >= MIN_PROJECT_DAY, 'Дата не може бути раніше квітня 2020 року')
         .refine(
           (value) => value <= latestStartDay(today),
           `Дата початку не може бути пізніше ніж через ${MAX_PLANNED_YEARS} ${plural(MAX_PLANNED_YEARS, ['рік', 'роки', 'років'])}`,
