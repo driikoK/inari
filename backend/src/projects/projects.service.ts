@@ -14,6 +14,8 @@ import type { ITrack } from '../tracks/interfaces/track.interface.js';
 import type {
   CreateProjectData,
   FinishProjectData,
+  ProjectsQueryData,
+  SeasonTabsQueryData,
   UpdateProjectData,
 } from './data/index.js';
 import type {
@@ -21,6 +23,7 @@ import type {
   ProjectTitle,
   ProjectView,
   SeasonLayout,
+  SeasonTab,
 } from './interfaces/index.js';
 import {
   EPISODE_TYPES,
@@ -31,7 +34,11 @@ import {
   buildLayout,
   isFutureDay,
   isPlannedDay,
+  lastSeasonOf,
+  ordinalOf,
+  seasonLayout,
   seasonOfDay,
+  seasonTabs,
   shiftYears,
   todayInKyiv,
 } from './layout.js';
@@ -62,15 +69,57 @@ export class ProjectsService {
     private readonly posters: PostersService,
   ) {}
 
-  async findAll(): Promise<{ seasons: SeasonLayout[] }> {
-    const layout = buildLayout(await this.list(), todayInKyiv());
+  // Every project laid out by season. A season (with its year) asks for that
+  // one season alone, a participant for the projects that person is in.
+  async findAll({
+    season,
+    year,
+    participant,
+  }: ProjectsQueryData = {}): Promise<{ seasons: SeasonLayout[] }> {
+    const today = todayInKyiv();
+    const projects = this.withParticipant(await this.list(), participant);
+    const layout =
+      season && year !== undefined
+        ? [seasonLayout(projects, ordinalOf(season, year), today)]
+        : buildLayout(projects, today);
 
     return {
-      seasons: layout.map((season) => ({
-        ...season,
-        projects: season.projects.map((project) => this.withPoster(project)),
+      seasons: layout.map((entry) => ({
+        ...entry,
+        projects: entry.projects.map((project) => this.withPoster(project)),
       })),
     };
+  }
+
+  async seasons({
+    participant,
+  }: SeasonTabsQueryData = {}): Promise<SeasonTab[]> {
+    const projects = await this.list();
+
+    return seasonTabs(
+      projects,
+      this.withParticipant(projects, participant),
+      todayInKyiv(),
+    );
+  }
+
+  // Everybody in the team of some project, once whatever the case, A to Z
+  async participants(): Promise<string[]> {
+    const names = new Map<string, string>();
+
+    for (const { participants } of await this.list()) {
+      for (const { nickname } of participants) {
+        const key = nickname.toLowerCase();
+
+        if (!names.has(key)) names.set(key, nickname);
+      }
+    }
+
+    return [...names.values()].sort((a, b) => a.localeCompare(b, 'uk'));
+  }
+
+  async seasonOf(id: string) {
+    return lastSeasonOf(await this.findProject(id), todayInKyiv());
   }
 
   // Every project once, as stored, with no layout by season
@@ -406,6 +455,16 @@ export class ProjectsService {
     return true;
   }
 
+  private withParticipant(projects: Project[], participant?: string) {
+    const wanted = participant?.toLowerCase();
+
+    if (!wanted) return projects;
+
+    return projects.filter(({ participants }) =>
+      participants.some(({ nickname }) => nickname.toLowerCase() === wanted),
+    );
+  }
+
   private withPoster(project: ProjectView): ProjectView {
     const poster = project.posterFile
       ? this.posters.urlOf(project.posterFile)
@@ -415,8 +474,20 @@ export class ProjectsService {
   }
 
   private toDocument(fields: ProjectFields) {
-    const { codeName, posterUrl, funding, participants, ...required } = fields;
-    const { set, unset } = splitOptionals({ codeName, posterUrl, funding });
+    const {
+      codeName,
+      collabTeam,
+      posterUrl,
+      funding,
+      participants,
+      ...required
+    } = fields;
+    const { set, unset } = splitOptionals({
+      codeName,
+      collabTeam,
+      posterUrl,
+      funding,
+    });
 
     return {
       set: {

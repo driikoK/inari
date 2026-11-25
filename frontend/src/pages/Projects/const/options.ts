@@ -16,6 +16,18 @@ export const markLabels: Record<PROJECT_MARK, string> = {
   [PROJECT_MARK.PLANNED]: 'Заплановано',
 };
 
+export const NO_COLLAB = 'none';
+export const COLLAB_TEAM = 'team';
+
+export type CollabChoice = typeof NO_COLLAB | typeof COLLAB_TEAM;
+
+export const collabOptions = [
+  { value: NO_COLLAB, label: 'Не вказано' },
+  { value: COLLAB_TEAM, label: 'Колаба' },
+] as const;
+
+export const MAX_COLLAB_TEAM = 100;
+
 // The types that count released episodes: a series and the trailers called «оповідки»
 export const hasEpisodeCount = (type: ANIME_TYPE) =>
   type === ANIME_TYPE.SERIES || type === ANIME_TYPE.TRAILER;
@@ -30,6 +42,10 @@ export const latestStartDay = (today: string) => {
 };
 
 export const MIN_DAY = '2000-01-01';
+
+// The first day of spring 2020, the first season of the team: it did not exist before. The
+// Budget keeps its own, wider limit (MIN_DAY).
+export const MIN_PROJECT_DAY = '2020-04-01';
 
 export const todayDay = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' });
 

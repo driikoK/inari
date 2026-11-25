@@ -13,6 +13,7 @@ export interface Project {
   ukrName: string;
   romajiName: string;
   codeName?: string;
+  collabTeam?: string;
   link: string;
   posterUrl?: string;
   posterFile?: string;
@@ -56,6 +57,13 @@ export interface SeasonStats {
   planned: number;
   patron: number;
   order: number;
+}
+
+export interface SeasonTab {
+  season: SEASON;
+  year: number;
+  isCurrent: boolean;
+  count: number;
 }
 
 export interface SeasonLayout {

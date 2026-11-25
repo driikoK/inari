@@ -24,6 +24,7 @@
   --red: oklch(0.65 0.22 20);
   --red-dim: oklch(0.65 0.22 20 / 0.12);
   --green: oklch(0.68 0.18 145);
+  --pink: oklch(0.72 0.19 350);
   --text: #f0eefc;
   --text-muted: rgba(240, 238, 252, 0.45);
   --text-faint: rgba(240, 238, 252, 0.2);

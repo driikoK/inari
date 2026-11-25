@@ -52,6 +52,7 @@ export const ProjectCard: FC<ProjectCardProps> = ({
     },
     { title: 'Тип', value: convertAnimeTypeEngToUkr(project.titleType) },
     { title: 'Квота', value: quotaOf(project) },
+    project.collabTeam && { title: 'Колаба', value: project.collabTeam },
     hasEpisodeCount(project.titleType) && {
       title: 'Прогрес',
       value: `Випущено серій: ${project.episodesReleased}`,
@@ -84,6 +85,7 @@ export const ProjectCard: FC<ProjectCardProps> = ({
           funding={project.funding}
           isSequel={project.isSequel}
           isFinished={project.isFinished}
+          collabTeam={project.collabTeam}
         />
 
         <dl className={styles.facts}>

@@ -5,7 +5,16 @@ import type { Proposal } from '@/stores/useProposalsStore';
 import { ANIME_TYPE, type FundingChoice, NO_FUNDING, PROPOSAL_FUNDING, TITLE_KIND } from '@/types';
 import { plural } from '@/utils/plural';
 import { httpUrl, LINK_MESSAGE } from '@/utils/validation';
-import { hasEpisodeCount, latestStartDay, MAX_PLANNED_YEARS, MIN_DAY } from './options';
+import {
+  COLLAB_TEAM,
+  type CollabChoice,
+  hasEpisodeCount,
+  latestStartDay,
+  MAX_COLLAB_TEAM,
+  MAX_PLANNED_YEARS,
+  MIN_PROJECT_DAY,
+  NO_COLLAB,
+} from './options';
 
 const REQUIRED_MESSAGE = 'Обов’язкове поле';
 
@@ -32,6 +41,8 @@ export interface ProjectFormValues {
   ukrName: string;
   romajiName: string;
   codeName: string;
+  collab: CollabChoice;
+  collabTeam: string;
   link: string;
   posterUrl: string;
   titleType: ANIME_TYPE;
@@ -66,6 +77,8 @@ export const createProjectFormSchema = (
       ukrName: z.string({ error: REQUIRED_MESSAGE }).trim().min(1, REQUIRED_MESSAGE),
       romajiName: z.string({ error: REQUIRED_MESSAGE }).trim().min(1, REQUIRED_MESSAGE),
       codeName: z.string().trim().max(100, 'Максимум 100 символів'),
+      collab: z.enum([NO_COLLAB, COLLAB_TEAM]),
+      collabTeam: z.string().trim(),
       link: z.string({ error: REQUIRED_MESSAGE }).trim().min(1, REQUIRED_MESSAGE).pipe(httpUrl),
       posterUrl: z
         .string()
@@ -83,7 +96,7 @@ export const createProjectFormSchema = (
       startDate: z
         .string({ error: REQUIRED_MESSAGE })
         .min(1, REQUIRED_MESSAGE)
-        .refine((value) => value >= MIN_DAY, 'Дата не може бути раніше 2000 року')
+        .refine((value) => value >= MIN_PROJECT_DAY, 'Дата не може бути раніше квітня 2020 року')
         .refine(
           (value) => value <= latestStartDay(today),
           `Дата початку не може бути пізніше ніж через ${MAX_PLANNED_YEARS} ${plural(MAX_PLANNED_YEARS, ['рік', 'роки', 'років'])}`,
@@ -102,6 +115,20 @@ export const createProjectFormSchema = (
       ),
     })
     .superRefine((values, context) => {
+      if (values.collab === COLLAB_TEAM) {
+        const path = ['collabTeam'];
+
+        if (!values.collabTeam) {
+          context.addIssue({ code: 'custom', path, message: REQUIRED_MESSAGE });
+        } else if (values.collabTeam.length > MAX_COLLAB_TEAM) {
+          context.addIssue({
+            code: 'custom',
+            path,
+            message: `Максимум ${MAX_COLLAB_TEAM} символів`,
+          });
+        }
+      }
+
       const isProgressValid = /^(\d{1,3})?$/.test(values.episodesReleased);
 
       if (hasEpisodeCount(values.titleType) && !isProgressValid) {
@@ -156,6 +183,8 @@ export const emptyProjectForm = (today: string): ProjectFormValues => ({
   ukrName: '',
   romajiName: '',
   codeName: '',
+  collab: NO_COLLAB,
+  collabTeam: '',
   link: '',
   posterUrl: '',
   titleType: ANIME_TYPE.SERIES,
@@ -174,6 +203,8 @@ export const fromProject = (project: Project): ProjectFormValues => ({
   ukrName: project.ukrName,
   romajiName: project.romajiName,
   codeName: project.codeName ?? '',
+  collab: project.collabTeam ? COLLAB_TEAM : NO_COLLAB,
+  collabTeam: project.collabTeam ?? '',
   link: project.link,
   posterUrl: project.posterUrl ?? '',
   titleType: project.titleType,
@@ -221,6 +252,7 @@ export const toProjectPayload = (values: ProjectFormValues): ProjectPayload => (
   ukrName: values.ukrName,
   romajiName: values.romajiName,
   codeName: values.codeName.trim() || null,
+  collabTeam: values.collab === COLLAB_TEAM ? values.collabTeam.trim() : null,
   link: values.link,
   posterUrl: values.posterUrl || null,
   titleType: values.titleType,

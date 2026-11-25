@@ -27,7 +27,7 @@ Follow the Settings and Rating pages: an `actions` column (`GridActionsColDef` w
 --accent, --accent-dim, --accent-glow        (oklch purple)
 --border, --border-hover
 --text, --text-muted, --text-faint
---red, --green, --teal, --orange, --yellow   (semantic colours)
+--red, --green, --teal, --orange, --yellow, --pink   (semantic colours)
 --font-head, --font-body
 --radius, --radius-sm
 ```

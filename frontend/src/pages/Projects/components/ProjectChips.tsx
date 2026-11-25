@@ -19,9 +19,18 @@ const markTokens: Record<PROJECT_MARK, string> = {
   [PROJECT_MARK.PLANNED]: '--yellow',
 };
 
-type ProjectChipsProps = Pick<ProjectView, 'mark' | 'funding' | 'isSequel' | 'isFinished'>;
+type ProjectChipsProps = Pick<
+  ProjectView,
+  'mark' | 'funding' | 'isSequel' | 'isFinished' | 'collabTeam'
+>;
 
-export const ProjectChips: FC<ProjectChipsProps> = ({ mark, funding, isSequel, isFinished }) => (
+export const ProjectChips: FC<ProjectChipsProps> = ({
+  mark,
+  funding,
+  isSequel,
+  isFinished,
+  collabTeam,
+}) => (
   <Stack direction="row" flexWrap="wrap" gap={0.75}>
     <Chip size="small" label={markLabels[mark]} sx={chipSx(markTokens[mark])} />
     {funding === PROPOSAL_FUNDING.PATRON && (
@@ -30,6 +39,7 @@ export const ProjectChips: FC<ProjectChipsProps> = ({ mark, funding, isSequel, i
     {funding === PROPOSAL_FUNDING.ORDER && (
       <Chip size="small" label="Замовлення" sx={chipSx('--orange')} />
     )}
+    {collabTeam && <Chip size="small" label="Колаба" sx={chipSx('--pink')} />}
     {isSequel && <Chip size="small" label="Продовження" sx={chipSx('--teal')} />}
     {isFinished && <Chip size="small" label="Завершено" sx={chipSx('--text-faint')} />}
   </Stack>

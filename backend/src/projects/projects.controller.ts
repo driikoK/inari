@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,8 @@ import { readUpload } from '../posters/upload.js';
 import {
   CreateProjectData,
   FinishProjectData,
+  ProjectsQueryData,
+  SeasonTabsQueryData,
   UpdateProjectData,
 } from './data/index.js';
 import { ProjectsService } from './projects.service.js';
@@ -26,14 +29,32 @@ export class ProjectsController {
 
   @Get()
   @UseGuards(AuthGuard)
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Query({ schema: ProjectsQueryData }) query: ProjectsQueryData) {
+    return this.projectsService.findAll(query);
   }
 
   @Get('titles')
   @UseGuards(AuthGuard)
   titles() {
     return this.projectsService.titles();
+  }
+
+  @Get('seasons')
+  @UseGuards(AuthGuard)
+  seasons(@Query({ schema: SeasonTabsQueryData }) query: SeasonTabsQueryData) {
+    return this.projectsService.seasons(query);
+  }
+
+  @Get('participants')
+  @UseGuards(AuthGuard)
+  participants() {
+    return this.projectsService.participants();
+  }
+
+  @Get(':id/season')
+  @UseGuards(AuthGuard)
+  seasonOf(@Param('id') id: string) {
+    return this.projectsService.seasonOf(id);
   }
 
   @Post()

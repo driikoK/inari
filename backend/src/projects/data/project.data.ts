@@ -11,7 +11,7 @@ const url = z.url({
 const day = z.iso
   .date({ error: 'Вкажіть коректну дату' })
   .refine((value) => value >= MIN_PROJECT_DAY, {
-    error: 'Дата не може бути раніше 2000 року',
+    error: 'Дата не може бути раніше квітня 2020 року',
     when: ({ issues }) => issues.length === 0,
   });
 
@@ -36,6 +36,7 @@ const projectFields = {
     .trim()
     .min(1, 'Вкажіть назву ромаджі'),
   codeName: z.string().trim().max(100, 'Максимум 100 символів').nullish(),
+  collabTeam: z.string().trim().max(100, 'Максимум 100 символів').nullish(),
   link: url,
   posterUrl: url.nullish(),
   titleType: z.enum(ANIME_TYPE, { error: 'Невідомий тип проєкту' }),

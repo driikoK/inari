@@ -11,10 +11,10 @@ import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 
 import { PostersService } from '../posters/posters.service.js';
 import { ProposalsService } from '../proposals/proposals.service.js';
-import { ANIME_TYPE, MEMBER_ROLE } from '../shared/index.js';
+import { ANIME_TYPE, MEMBER_ROLE, SEASON } from '../shared/index.js';
 import type { ITrack } from '../tracks/interfaces/track.interface.js';
 import type { CreateProjectData, UpdateProjectData } from './data/index.js';
-import type { Project } from './interfaces/index.js';
+import type { Project, SeasonLayout } from './interfaces/index.js';
 import { ProjectsService } from './projects.service.js';
 
 describe('ProjectsService', () => {
@@ -136,6 +136,128 @@ describe('ProjectsService', () => {
       );
     });
 
+    describe('asked for one season or one participant', () => {
+      const team = (nickname: string) => [
+        { nickname, roles: [MEMBER_ROLE.SUB] },
+      ];
+      const stored = () => [
+        project({
+          ukrName: 'Старий',
+          startDate: '2026-11-15',
+          participants: team('Аня'),
+        }),
+        project({
+          _id: new Types.ObjectId(),
+          ukrName: 'Цей',
+          participants: team('Богдан'),
+        }),
+        project({
+          _id: new Types.ObjectId(),
+          ukrName: 'Попереду',
+          startDate: '2027-10-20',
+          participants: [...team('аня'), ...team('Богдан')],
+        }),
+      ];
+      const namesIn = (seasons: SeasonLayout[]) =>
+        seasons.map(({ projects: list }) => list.map(({ ukrName }) => ukrName));
+
+      beforeEach(() => {
+        projects.find.mockReturnValue(leanResult(stored()));
+      });
+
+      it('gives every season with every project when it is asked for nothing', async () => {
+        const { seasons } = await service.findAll();
+
+        expect(namesIn(seasons)).toEqual([
+          ['Старий'],
+          ['Старий'],
+          ['Старий', 'Цей'],
+          ['Попереду'],
+        ]);
+      });
+
+      it('gives that one season alone, with its own statistics', async () => {
+        const { seasons } = await service.findAll({
+          season: SEASON.WINTER,
+          year: 2027,
+        });
+
+        expect(seasons).toHaveLength(1);
+        expect(seasons[0]).toMatchObject({
+          season: SEASON.WINTER,
+          year: 2027,
+          isCurrent: false,
+          stats: { total: 1, debt: 1 },
+        });
+        expect(namesIn(seasons)).toEqual([['Старий']]);
+      });
+
+      it('gives a season nobody is on as an empty one', async () => {
+        const { seasons } = await service.findAll({
+          season: SEASON.SUMMER,
+          year: 2020,
+        });
+
+        expect(seasons).toEqual([
+          expect.objectContaining({
+            season: SEASON.SUMMER,
+            year: 2020,
+            projects: [],
+          }),
+        ]);
+      });
+
+      it('keeps the projects of a participant, whatever the case of the nickname', async () => {
+        const { seasons } = await service.findAll({ participant: 'АНЯ' });
+
+        expect(namesIn(seasons)).toEqual([
+          ['Старий'],
+          ['Старий'],
+          ['Старий'],
+          ['Попереду'],
+        ]);
+      });
+
+      it('counts the statistics of the season over the participant alone', async () => {
+        const { seasons } = await service.findAll({ participant: 'Богдан' });
+        const current = seasons.find(({ isCurrent }) => isCurrent);
+
+        expect(namesIn(seasons).flat()).toEqual(['Цей', 'Попереду']);
+        expect(current?.stats).toMatchObject({ total: 1, ongoing: 1 });
+      });
+
+      it('takes a season and a participant together', async () => {
+        const { seasons } = await service.findAll({
+          season: SEASON.SPRING,
+          year: 2027,
+          participant: 'Богдан',
+        });
+
+        expect(namesIn(seasons)).toEqual([['Цей']]);
+      });
+
+      it('gives nothing but the empty current season for a person who is in no team', async () => {
+        const { seasons } = await service.findAll({ participant: 'Ніхто' });
+
+        expect(seasons).toHaveLength(1);
+        expect(seasons[0]).toMatchObject({ isCurrent: true, projects: [] });
+      });
+
+      it('gives the uploaded file as the poster in one season as well', async () => {
+        posters.urlOf.mockImplementation((file) => `https://api.test/${file}`);
+        projects.find.mockReturnValue(
+          leanResult([project({ posterFile: 'a.webp' })]),
+        );
+
+        const { seasons } = await service.findAll({
+          season: SEASON.SPRING,
+          year: 2027,
+        });
+
+        expect(seasons[0].projects[0].poster).toBe('https://api.test/a.webp');
+      });
+    });
+
     it('falls back to the link when there is no file, and has no poster when there is neither', async () => {
       projects.find.mockReturnValue(
         leanResult([
@@ -150,6 +272,119 @@ describe('ProjectsService', () => {
       expect(withLink.poster).toBe('https://cdn.example/a.jpg');
       expect(bare).not.toHaveProperty('poster');
       expect(posters.urlOf).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('seasons', () => {
+    const team = (nickname: string) => [{ nickname, roles: [MEMBER_ROLE.SUB] }];
+    const stored = () => [
+      project({
+        ukrName: 'Старий',
+        startDate: '2026-11-15',
+        participants: team('Аня'),
+      }),
+      project({
+        _id: new Types.ObjectId(),
+        ukrName: 'Попереду',
+        startDate: '2027-10-20',
+        participants: team('Богдан'),
+      }),
+    ];
+
+    beforeEach(() => {
+      projects.find.mockReturnValue(leanResult(stored()));
+    });
+
+    it('lists the tabs with how many projects are on each', async () => {
+      const tabs = await service.seasons();
+
+      expect(
+        tabs.map(({ season, year, isCurrent, count }) => [
+          season,
+          year,
+          isCurrent,
+          count,
+        ]),
+      ).toEqual([
+        ['fall', 2026, false, 1],
+        ['winter', 2027, false, 1],
+        ['spring', 2027, true, 1],
+        ['fall', 2027, false, 1],
+      ]);
+    });
+
+    it('counts only the projects of a participant and keeps every tab', async () => {
+      const tabs = await service.seasons({ participant: 'богдан' });
+
+      expect(tabs.map(({ count }) => count)).toEqual([0, 0, 0, 1]);
+    });
+  });
+
+  describe('participants', () => {
+    it('lists everybody once, whatever the case, A to Z', async () => {
+      projects.find.mockReturnValue(
+        leanResult([
+          project({
+            participants: [
+              { nickname: 'Богдан', roles: [MEMBER_ROLE.SUB] },
+              { nickname: 'аня', roles: [MEMBER_ROLE.SUB] },
+            ],
+          }),
+          project({
+            _id: new Types.ObjectId(),
+            participants: [
+              { nickname: 'Аня', roles: [MEMBER_ROLE.EDITOR] },
+              { nickname: 'Віка', roles: [MEMBER_ROLE.SUB] },
+            ],
+          }),
+          project({ _id: new Types.ObjectId(), participants: [] }),
+        ]),
+      );
+
+      expect(await service.participants()).toEqual(['аня', 'Богдан', 'Віка']);
+    });
+
+    it('is empty when no project has a team', async () => {
+      projects.find.mockReturnValue(leanResult([project()]));
+
+      expect(await service.participants()).toEqual([]);
+    });
+  });
+
+  describe('seasonOf', () => {
+    it('is the current season for a project that is still running', async () => {
+      existing(project({ startDate: '2026-11-15' }));
+
+      expect(await service.seasonOf(String(projectId))).toEqual({
+        season: SEASON.SPRING,
+        year: 2027,
+      });
+    });
+
+    it('is the season of the end for a finished project', async () => {
+      existing(
+        project({
+          startDate: '2027-01-10',
+          isFinished: true,
+          endDate: '2027-02-01',
+        }),
+      );
+
+      expect(await service.seasonOf(String(projectId))).toEqual({
+        season: SEASON.WINTER,
+        year: 2027,
+      });
+    });
+
+    it('answers 404 for a project that does not exist, and 400 for a bad id', async () => {
+      existing(null);
+
+      await expect(service.seasonOf(String(projectId))).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.seasonOf('nope')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -575,7 +810,12 @@ describe('ProjectsService', () => {
 
     it('drops blank optional fields instead of storing them', async () => {
       await service.create(
-        fields({ codeName: '  ', posterUrl: null, funding: null }),
+        fields({
+          codeName: '  ',
+          collabTeam: ' ',
+          posterUrl: null,
+          funding: null,
+        }),
       );
 
       const [document] = projects.create.mock.calls[0] as unknown as [
@@ -583,8 +823,19 @@ describe('ProjectsService', () => {
       ];
 
       expect(document).not.toHaveProperty('codeName');
+      expect(document).not.toHaveProperty('collabTeam');
       expect(document).not.toHaveProperty('posterUrl');
       expect(document).not.toHaveProperty('funding');
+    });
+
+    it('stores the team the project is made with', async () => {
+      await service.create(fields({ collabTeam: 'Studio Band' }));
+
+      const [document] = projects.create.mock.calls[0] as unknown as [
+        Record<string, unknown>,
+      ];
+
+      expect(document).toMatchObject({ collabTeam: 'Studio Band' });
     });
 
     it.each([ANIME_TYPE.SERIES, ANIME_TYPE.TRAILER])(
@@ -766,7 +1017,33 @@ describe('ProjectsService', () => {
 
       expect(update.$set).toMatchObject({ codeName: 'wind' });
       expect(update.$set).not.toHaveProperty('endDate');
-      expect(update.$unset).toEqual({ posterUrl: '', funding: '' });
+      expect(update.$unset).toEqual({
+        collabTeam: '',
+        posterUrl: '',
+        funding: '',
+      });
+    });
+
+    it('sets the team of a collab and takes it off again when it is cleared', async () => {
+      existing(project({ collabTeam: 'Studio Band' }));
+      projects.findByIdAndUpdate.mockReturnValue(leanResult(project()));
+
+      await service.update(
+        String(projectId),
+        updateFields({ collabTeam: 'Other Team' }),
+      );
+      await service.update(
+        String(projectId),
+        updateFields({ collabTeam: null }),
+      );
+
+      const [[, withTeam], [, withoutTeam]] = projects.findByIdAndUpdate.mock
+        .calls as any[];
+
+      expect(withTeam.$set).toMatchObject({ collabTeam: 'Other Team' });
+      expect(withTeam.$unset).not.toHaveProperty('collabTeam');
+      expect(withoutTeam.$set).not.toHaveProperty('collabTeam');
+      expect(withoutTeam.$unset).toHaveProperty('collabTeam', '');
     });
 
     it('lets a planned project move to another season to come, or start now', async () => {

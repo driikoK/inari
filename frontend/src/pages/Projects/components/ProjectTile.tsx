@@ -38,6 +38,7 @@ export const ProjectTile: FC<ProjectTileProps> = ({ project, isInactive, isOpena
         funding={project.funding}
         isSequel={project.isSequel}
         isFinished={project.isFinished}
+        collabTeam={project.collabTeam}
       />
     </div>
   </button>
